@@ -66,6 +66,21 @@ node test/sim_test.js                 # runs the AI against idle players
 node test/bot_test.js veteran 900 42  # a scripted "human" plays a full match
 ```
 
+## Difficulty, as measured
+
+The AI is a scripted opponent that runs an economy, expands housing, masses armies, defends its base, researches and casts powers. Its *strategy* is the same on every level; difficulty only changes how hard and how often it pushes (and it may only gather slightly faster on Warlord).
+
+`test/bot_test.js` plays complete matches with a simple scripted "human":
+
+| Difficulty | Result for the scripted proxy |
+| --- | --- |
+| Recruit | usually wins (3/3 in the last runs) |
+| Veteran | roughly even, losses come from early barrack snipes |
+| Warlord | almost always loses — a real player needs maps, towers and timing |
+
 ## Deployment
 
-The repo is a static site. On Vercel: import the repo, pick **Other** as the framework, leave the build command empty and the output directory as the repository root.
+The repo is a static site (no build step, no dependencies).
+
+- **Vercel**: import the repo, choose **Other** as the framework, and leave the build command and output directory empty. `vercel.json` already sets safe headers.
+- **Anything else**: copy the repository root behind any static host. There is no server-side code.

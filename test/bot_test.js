@@ -27,7 +27,7 @@ function bot(g) {
 
   // barracks first
   const uc = g.buildings.filter((b) => !b.dead && b.owner === 0 && b.progress < 1).length;
-  if (count('barracks') + pending('barracks') < (g.time > 240 ? 2 : 1) && g.res[0].wood >= 110 && uc < 2) {
+  if (count('barracks') + pending('barracks') < (g.time > 200 ? 2 : 1) && g.res[0].wood >= 110 && uc < 2) {
     const spot = g.makePlacement(0, 'barracks', keep.x + 40, keep.y + 40);
     if (spot) g.placeBuilding('barracks', spot.x, spot.y, 0);
   }
@@ -70,7 +70,7 @@ function bot(g) {
   const baseThreat = g.units.filter((u) => !u.dead && u.owner === 1 && keep && RTS.util.dist(u.x, u.y, keep.x, keep.y) < 300);
   if (baseThreat.length) {
     for (const u of idle) g.orderAttack(u, baseThreat[0]);
-  } else if (idle.length >= 9 && enemyKeep) {
+  } else if (idle.length >= 11 && enemyKeep) {
     // push only when we outnumber what we can see
     const seenEnemy = g.units.filter((u) => !u.dead && u.owner === 1 && g.visible(u)).length;
     if (idle.length > seenEnemy) for (const u of idle) g.orderAttack(u, enemyKeep);

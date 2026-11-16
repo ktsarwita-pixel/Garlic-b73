@@ -94,11 +94,10 @@
     mmWrap.append(el('div', 'vig'));
     this.mmWrap = mmWrap;
     this.bindMinimap();
-    right.append(mmWrap);
 
-    // abilities
+    // abilities (inner) then minimap (corner) for better thumb reach
     this.abilEl = el('div', 'abilities');
-    right.append(this.abilEl);
+    right.append(this.abilEl, mmWrap);
 
     dock.append(left, right);
     r.append(dock);
