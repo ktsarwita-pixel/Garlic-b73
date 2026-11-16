@@ -1,6 +1,9 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "name": "garlic-wars",
+  "buildCommand": "mkdir -p dist && cp -r index.html styles.css js dist/",
+  "outputDirectory": "dist",
   "cleanUrls": true,
   "headers": [
     {
@@ -12,6 +15,10 @@
     },
     {
       "source": "/js/(.*)",
+      "headers": [ { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" } ]
+    },
+    {
+      "source": "/styles.css",
       "headers": [ { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" } ]
     }
   ]
