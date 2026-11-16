@@ -1,10 +1,14 @@
 # Garlic Wars
 
-A complete 2D pixel-art **real-time strategy** game that runs in the browser — no frameworks, no build step, no image assets. Every sprite, tile and icon is drawn procedurally on a `<canvas>` at load time, and the whole thing is designed to be played with a thumb on a phone as well as with mouse and keyboard on a desktop.
+A complete 2D pixel-art **real-time strategy** game that runs in the browser — no game frameworks, no image assets. Every sprite, tile and icon is drawn procedurally on a `<canvas>` at load time, and the whole thing is designed to be played with a thumb on a phone as well as with mouse and keyboard on a desktop.
 
 > Hold the vale, harvest the garlic, and knock down the rival Keep.
 
 ## Play
+
+**Live: <https://b-73.vercel.app>** — open it on your phone, ideally in landscape.
+
+Locally:
 
 ```bash
 # any static server works
@@ -12,7 +16,7 @@ python3 -m http.server 5173
 # then open http://localhost:5173
 ```
 
-Open `index.html` directly is *not* recommended (some browsers block module-free scripts from `file://` inconsistently) — use a tiny static server or deploy to Vercel.
+Opening `index.html` directly is *not* recommended (some browsers block module-free scripts from `file://` inconsistently) — use a tiny static server or deploy to Vercel.
 
 ## Features
 
@@ -80,7 +84,17 @@ The AI is a scripted opponent that runs an economy, expands housing, masses armi
 
 ## Deployment
 
-The repo is a static site (no build step, no dependencies).
+Live site: **<https://b-73.vercel.app>** (Vercel project `b-73`).
 
-- **Vercel**: import the repo, choose **Other** as the framework, and leave the build command and output directory empty. `vercel.json` already sets safe headers.
-- **Anything else**: copy the repository root behind any static host. There is no server-side code.
+The game itself has no runtime dependencies — nine classic `<script>` tags and one stylesheet. Vercel runs it through a thin Vite build so the hosting preset is happy:
+
+- `vite.config.js` emits `dist/index.html` (Vite bundles `styles.css` into `dist/assets/`) and a small `closeBundle` plugin copies `js/` to `dist/js/` untouched.
+- `vercel.json` sets `buildCommand: npm run build` and `outputDirectory: dist`, plus nosniff / no-referrer headers and `must-revalidate` caching for the scripts.
+
+```bash
+npm install     # just vite
+npm run build   # -> dist/
+npm run preview # serve dist/ on :5173
+```
+
+- **Anything else** (GitHub Pages, Netlify, plain nginx): serve the repository root as-is. There is no server-side code, and `index.html` works unbuilt.

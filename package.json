@@ -3,7 +3,6 @@
   "private": true,
   "version": "1.0.0",
   "description": "Garlic Wars - a 2D pixel-art real-time strategy game for browser, phone and desktop",
-  "type": "module",
   "scripts": {
     "start": "python3 -m http.server 5173",
     "dev": "vite",
@@ -14,6 +13,12 @@
   "devDependencies": {
     "vite": "^6.4.6"
   },
-  "keywords": ["rts", "pixel-art", "game", "canvas", "mobile"],
+  "keywords": [
+    "rts",
+    "pixel-art",
+    "game",
+    "canvas",
+    "mobile"
+  ],
   "license": "MIT"
 }
