@@ -47,7 +47,7 @@
     opts = opts || {};
     this.seed = opts.seed || 1234;
     this.mission = opts.mission || 'skirmish';
-    this.difficultyId = opts.difficulty || 'veteran';
+    this.difficultyId = opts.difficulty || 'recruit';
     this.diff = RTS.DIFFICULTY[this.difficultyId] || RTS.DIFFICULTY.veteran;
     const field = RTS.FIELDS[opts.field] || RTS.FIELDS.medium;
     const size = field.tiles;

@@ -11,7 +11,7 @@
     this.settings = {
       faction: 'everglen',
       enemy: 'mirefen',
-      difficulty: 'veteran',
+      difficulty: 'recruit',
       mission: 'skirmish',
       field: 'medium',
     };
@@ -401,6 +401,7 @@
   };
 
   /* ---------------- build / ability modes ---------------- */
+  A.lastBuild = 'farm';
   A.enterPlaceModeMenu = function () {
     // cycle through buildable options (mobile: opens palette in the card by selecting workers)
     const workers = this.game.units.filter((u) => !u.dead && u.owner === 0 && u.type === 'worker');
@@ -411,7 +412,10 @@
     }
     // ensure a worker is selected so the card shows the palette
     if (!this.game.selectedUnits().some((u) => u.type === 'worker')) this.game.selectUnits(workers.slice(0, 1));
-    (this.ui.cardEl || {}).scrollIntoView && this.ui.cardEl.scrollIntoView({ block: 'nearest' });
+    // if the palette is already visible, start placing the last affordable building right away
+    const type = this.lastBuild && this.game.res[0].wood >= RTS.BUILDINGS[this.lastBuild].cost.wood ? this.lastBuild : null;
+    if (type) this.enterPlaceMode(type);
+    else this.ui.toast('Pick a building from the deck');
   };
 
   A.clearHint = function () {
@@ -420,6 +424,7 @@
 
   A.enterPlaceMode = function (type) {
     if (!this.game) return;
+    this.lastBuild = type;
     const workers = this.game.units.filter((u) => !u.dead && u.owner === 0 && u.type === 'worker');
     if (!workers.length) {
       this.ui.toast('You need a Peasant to build');

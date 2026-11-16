@@ -162,11 +162,19 @@
     const panel = el('div', 'menu-panel panel');
     const grid = el('div', 'menu-grid');
 
-    const play = el('button', 'pbtn primary wide', '▶ Play');
-    play.style.fontSize = '12px';
-    play.style.padding = '14px';
+    const play = el('button', 'pbtn wide', '⚙ Battle Setup');
+    play.style.fontSize = '10px';
+    play.style.padding = '12px';
     play.onclick = () => { this.app.sound.play('select'); this.showScreen('setup'); };
     grid.append(play);
+
+    const quick = el('button', 'pbtn primary wide', '⚡ Quick Match');
+    quick.onclick = () => {
+      this.app.sound.play('select');
+      this.app.startGame(this.app.settings);
+      this.showScreen(null);
+    };
+    grid.append(quick);
 
     const help = el('button', 'pbtn wide', '? How to play');
     help.onclick = () => { this.app.sound.play('click'); this.showScreen('help', () => 'title'); };
@@ -308,7 +316,7 @@
       const alt = RTS.FACTIONS.find((f) => f.id !== st.faction);
       if (alt) st.enemy = alt.id;
     }
-    if (!st.difficulty) st.difficulty = 'veteran';
+    if (!st.difficulty) st.difficulty = 'recruit';
     if (!st.mission) st.mission = 'skirmish';
     this.facRow.querySelectorAll('.faction-card').forEach((b) => {
       b.classList.toggle('on', b.dataset.faction === st.faction);
@@ -437,6 +445,7 @@
     const row = el('div', 'row');
     const again = el('button', 'pbtn primary', '⚔ Rematch');
     again.onclick = () => { this.showScreen(null); this.app.restart(); };
+    this.goAgain = again;
     const menu = el('button', 'pbtn', '⌂ Main menu');
     menu.onclick = () => { this.showScreen(null); this.app.toMenu(); };
     row.append(again, menu);

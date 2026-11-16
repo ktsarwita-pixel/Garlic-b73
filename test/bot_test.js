@@ -94,9 +94,18 @@ for (let i = 0; i < steps; i++) {
   if (i % 15 === 0) bot(g);
   if (g.gameOver) break;
 }
+// ---- assertions ----
+const checks = [
+  ['player gathered wood', g.res[0].wood >= 0],
+  ['player trained soldiers', g.units.some((u) => u.owner === 0 && u.type !== 'worker')],
+  ['combat happened', g.stats.kills[0] + g.stats.lost[0] + g.stats.lost[1] > 0],
+  ['buildings were built', g.buildings.some((b) => b.owner === 0 && b.type !== 'keep')],
+];
 const pArmy = g.units.filter((u) => u.owner === 0 && u.type !== 'worker').length;
 const eArmy = g.units.filter((u) => u.owner === 1 && u.type !== 'worker').length;
 console.log(
   `[${difficulty}/${mission}] t=${g.time.toFixed(0)}s result=${g.result || 'timeout'} | player ${g.units.filter((u) => u.owner === 0).length}u(${pArmy} army)/${g.buildings.filter((b) => b.owner === 0).length}b | ` +
   `enemy ${g.units.filter((u) => u.owner === 1).length}u(${eArmy} army)/${g.buildings.filter((b) => b.owner === 1).length}b | kills ${g.stats.kills[0]}/${g.stats.lost[0]}`
 );
+const failed = checks.filter(([, ok]) => !ok);
+if (failed.length) { console.log('FAILED CHECKS:', failed.map(([n]) => n).join(', ')); process.exit(1); }
