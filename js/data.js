@@ -193,15 +193,22 @@
     skirmish: {
       name: 'Skirmish',
       desc: 'Destroy the enemy Keep. Classic RTS duel.',
-      startingWood: 150,
+      startingWood: 170,
     },
     flood: {
       name: 'The Long Tide',
-      desc: 'Strike the enemy Keep before raiders mass at 9 minutes.',
-      startingWood: 170,
+      desc: 'Strike the enemy Keep before time runs out at 15:00.',
+      startingWood: 190,
       aiRush: true,
     },
   };
+
+  /* play field sizes: tiles */
+  const FIELDS = (RTS.FIELDS = {
+    small: { name: 'Small Vale', tiles: 60, blurb: 'Quick, tight skirmish' },
+    medium: { name: 'Green Vale', tiles: 80, blurb: 'Classic duel' },
+    large: { name: 'Great Vale', tiles: 98, blurb: 'Long game, more room' },
+  });
 
   RTS.MAX_POP = 120;
   RTS.DIFFICULTY = {

@@ -546,6 +546,19 @@
           ctx.globalAlpha = 1;
           break;
         }
+        case 'warn': {
+          const pulse = 1 - k;
+          ctx.strokeStyle = 'rgba(255,110,90,' + (0.35 + pulse * 0.5).toFixed(2) + ')';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(e.x, e.y - 30, 16 + Math.sin(e.t * 8) * 3, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = 'rgba(255,110,90,' + (0.5 + pulse * 0.4).toFixed(2) + ')';
+          ctx.font = 'bold 10px ui-monospace, monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('!', e.x, e.y - 26);
+          break;
+        }
         case 'ping': {
           ctx.strokeStyle = e.color || '#fff';
           ctx.globalAlpha = 1 - k;

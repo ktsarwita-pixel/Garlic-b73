@@ -460,3 +460,6 @@ kbd {
 .faction-card .stat b { color: var(--ink); font-weight: normal; }
 .mini-help { font-size: 7px; line-height: 1.9; color: var(--ink-dim); }
 .mini-help b { color: var(--ink); }
+
+.timer.mission { color: #ffe9a8; border-color: #6b5c8c; white-space: nowrap; }
+@media (max-width: 560px) { .timer.mission { font-size: 8px; padding: 5px 6px; } }

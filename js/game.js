@@ -49,9 +49,14 @@
     this.mission = opts.mission || 'skirmish';
     this.difficultyId = opts.difficulty || 'veteran';
     this.diff = RTS.DIFFICULTY[this.difficultyId] || RTS.DIFFICULTY.veteran;
-    this.map = RTS.generateMap(this.seed);
-    this.MW = RTS.MAP_W;
-    this.MH = RTS.MAP_H;
+    const field = RTS.FIELDS[opts.field] || RTS.FIELDS.medium;
+    const size = field.tiles;
+    this.field = opts.field || 'medium';
+    this.map = RTS.generateMap(this.seed, size);
+    this.MW = size;
+    this.MH = size;
+    this.worldW = this.MW * TILE;
+    this.worldH = this.MH * TILE;
 
     const pf = RTS.factionById(opts.playerFaction || 'everglen');
     const ef = RTS.factionById(opts.enemyFaction || 'mirefen');
@@ -1086,8 +1091,8 @@
     this.separate(u, dt);
 
     // clamp to world & avoid water by pushing back
-    u.x = U.clamp(u.x, 8, RTS.WORLD_W - 8);
-    u.y = U.clamp(u.y, 8, RTS.WORLD_H - 8);
+    u.x = U.clamp(u.x, 8, this.worldW - 8);
+    u.y = U.clamp(u.y, 8, this.worldH - 8);
     if (this.blockedPoint(u.x, u.y)) {
       // nudge out
       let best = null, bd = 1e9;
@@ -1473,6 +1478,7 @@
             }
             if (idleArmy.length > 0) {
               this.log('Enemy warband is marching!', 'bad');
+              this.effects.push({ type: 'warn', x: targetB.x, y: targetB.y, t: 0, life: 2.4 });
               this.playSfx('deny');
               ai.mode = 'marching';
             }

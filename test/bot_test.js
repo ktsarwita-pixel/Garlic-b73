@@ -81,10 +81,12 @@ function bot(g) {
   }
 }
 
+const MISSIONS = { skirmish: 'Skirmish', flood: 'The Long Tide' };
+const mission = MISSIONS[process.argv[5]] ? process.argv[5] : 'skirmish';
 const difficulty = process.argv[2] || 'veteran';
 const seconds = +(process.argv[3] || 900);
 const seed = +(process.argv[4] || 4242);
-const g = new RTS.Game({ seed, difficulty, mission: 'skirmish', playerFaction: 'everglen', enemyFaction: 'mirefen' });
+const g = new RTS.Game({ seed, difficulty, mission, playerFaction: 'everglen', enemyFaction: 'mirefen' });
 const dt = 1 / 30;
 let steps = Math.round(seconds / dt);
 for (let i = 0; i < steps; i++) {
@@ -95,6 +97,6 @@ for (let i = 0; i < steps; i++) {
 const pArmy = g.units.filter((u) => u.owner === 0 && u.type !== 'worker').length;
 const eArmy = g.units.filter((u) => u.owner === 1 && u.type !== 'worker').length;
 console.log(
-  `[${difficulty}] t=${g.time.toFixed(0)}s result=${g.result || 'timeout'} | player ${g.units.filter((u) => u.owner === 0).length}u(${pArmy} army)/${g.buildings.filter((b) => b.owner === 0).length}b | ` +
+  `[${difficulty}/${mission}] t=${g.time.toFixed(0)}s result=${g.result || 'timeout'} | player ${g.units.filter((u) => u.owner === 0).length}u(${pArmy} army)/${g.buildings.filter((b) => b.owner === 0).length}b | ` +
   `enemy ${g.units.filter((u) => u.owner === 1).length}u(${eArmy} army)/${g.buildings.filter((b) => b.owner === 1).length}b | kills ${g.stats.kills[0]}/${g.stats.lost[0]}`
 );

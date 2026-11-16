@@ -34,8 +34,8 @@
     return this.data[y * this.w + x] === 1;
   };
 
-  RTS.generateMap = function (seed) {
-    const MW = RTS.MAP_W, MH = RTS.MAP_H, N = MW * MH;
+  RTS.generateMap = function (seed, size) {
+    const MW = size || RTS.MAP_W, MH = size || RTS.MAP_H, N = MW * MH;
     const tiles = new Uint8Array(N);
     const rnd = U.mulberry32(seed);
 

@@ -58,7 +58,9 @@
     this.btnHelp = el('button', 'pbtn icon-btn', '?');
     this.btnHelp.setAttribute('aria-label', 'How to play');
     this.btnHelp.onclick = () => this.toggleHelp();
-    tr.append(this.timerEl, this.btnPause, this.btnHelp);
+    this.missionEl = el('div', 'timer mission', '');
+    this.missionEl.style.display = 'none';
+    tr.append(this.timerEl, this.missionEl, this.btnPause, this.btnHelp);
     top.append(resGroup, tr);
     r.append(top);
 
@@ -237,10 +239,7 @@
     panel.append(this.enemyRow);
 
     // difficulty + mission
-    const two = el('div');
-    two.style.display = 'grid';
-    two.style.gridTemplateColumns = '1fr 1fr';
-    two.style.gap = '10px';
+    const two = el('div', 'grid2');
     const dCol = el('div');
     dCol.append(el('div', 'label', 'Difficulty'));
     this.diffRow = el('div', 'row');
@@ -265,6 +264,20 @@
     mCol.append(this.missRow);
     two.append(dCol, mCol);
     panel.append(two);
+
+    // play field
+    const fCol = el('div');
+    fCol.append(el('div', 'label', 'Play field'));
+    this.fieldRow = el('div', 'row');
+    Object.keys(RTS.FIELDS).forEach((k) => {
+      const b = el('button', 'opt', RTS.FIELDS[k].name);
+      b.dataset.field = k;
+      b.style.flex = '1 1 auto';
+      b.onclick = () => { this.app.settings.field = k; this.app.sound.play('click'); this.syncSetup(); };
+      this.fieldRow.append(b);
+    });
+    fCol.append(this.fieldRow);
+    panel.append(fCol);
     this.missDesc = el('div', 'tagline', '');
     this.missDesc.style.margin = '10px 0 0';
     this.missDesc.style.textAlign = 'left';
@@ -306,6 +319,8 @@
     });
     this.diffRow.querySelectorAll('.opt').forEach((b) => b.classList.toggle('on', b.dataset.diff === st.difficulty));
     this.missRow.querySelectorAll('.opt').forEach((b) => b.classList.toggle('on', b.dataset.mission === st.mission));
+    if (!st.field) st.field = 'medium';
+    this.fieldRow.querySelectorAll('.opt').forEach((b) => b.classList.toggle('on', b.dataset.field === st.field));
     const m = RTS.MISSIONS[st.mission];
     this.missDesc.textContent = m.desc;
   };
@@ -506,7 +521,8 @@
       const r = c.getBoundingClientRect();
       const mx = (e.clientX - r.left) / r.width;
       const my = (e.clientY - r.top) / r.height;
-      return { x: mx * RTS.WORLD_W, y: my * RTS.WORLD_H };
+      const g = this.app.game;
+      return { x: mx * (g ? g.worldW : RTS.WORLD_W), y: my * (g ? g.worldH : RTS.WORLD_H) };
     };
     c.addEventListener('pointerdown', (e) => {
       e.stopPropagation();
@@ -545,6 +561,20 @@
 
     const tNow = g.formatTime();
     if (this._time !== tNow) { this.timerEl.textContent = tNow; this._time = tNow; }
+    // mission countdown (The Long Tide)
+    if (g.mission === 'flood') {
+      const left = Math.max(0, 900 - g.time);
+      const txt = '⏳ ' + Math.floor(left / 60) + ':' + String(Math.floor(left % 60)).padStart(2, '0');
+      if (this._missionTxt !== txt) {
+        this._missionTxt = txt;
+        this.missionEl.style.display = '';
+        this.missionEl.textContent = txt;
+        this.missionEl.style.color = left < 120 ? '#ff8a8a' : '';
+      }
+    } else if (this._missionTxt !== 'off') {
+      this._missionTxt = 'off';
+      this.missionEl.style.display = 'none';
+    }
 
     this.layout();
     this.refreshLogs(g);
@@ -555,9 +585,11 @@
     this.refreshActionButtons(g, app);
   };
 
-  UI.layout = function () {
+  UI.layout = function (force) {
     const dock = this.dockEl;
     if (!dock) return;
+    this._layoutTick = (this._layoutTick || 0) + 1;
+    if (!force && this._layoutTick % 8 !== 0) return;
     const rect = dock.getBoundingClientRect();
     const fromBottom = Math.max(0, window.innerHeight - rect.top) + 6;
     const key = Math.round(fromBottom) + '|' + Math.round(rect.height) + '|' + (this.selPanel.classList.contains('show') ? 1 : 0);
@@ -925,7 +957,7 @@
     this.root.append(d);
     this.hintEl = d;
     this._layoutKey = '';
-    this.layout();
+    this.layout(true);
     if (this.hintOffset) d.style.bottom = this.hintOffset + 'px';
     if (opts.ms) setTimeout(() => { if (this.hintEl === d) { d.remove(); this.hintEl = null; } }, opts.ms);
     return d;

@@ -13,6 +13,7 @@
       enemy: 'mirefen',
       difficulty: 'veteran',
       mission: 'skirmish',
+      field: 'medium',
     };
     this.game = null;
     this.cam = { x: 400, y: 400, zoom: 2 };
@@ -48,15 +49,18 @@
   /* a paused 'postcard' game rendered behind the menus */
   A.startDemoBackdrop = function () {
     const seed = (Math.random() * 1e9) | 0;
-    const g = new RTS.Game({ seed, mission: 'skirmish', difficulty: 'veteran', playerFaction: 'everglen', enemyFaction: 'mirefen' });
+    const g = new RTS.Game({ seed, mission: 'skirmish', difficulty: 'veteran', playerFaction: 'everglen', enemyFaction: 'mirefen', field: 'medium' });
     // let the world live a little so there are buildings and units to see
-    for (let i = 0; i < 600; i++) g.update(1 / 30);
+    for (let i = 0; i < 330; i++) g.update(1 / 30);
     g.clearSelection();
     this.demoGame = g;
     this.game = g;
     this.paused = true;
     this.demoCam = { t: 0, ax: g.map.startP2.x, ay: g.map.startP2.y, bx: g.map.startP1.x, by: g.map.startP1.y };
-    this.cam.zoom = U.clamp(Math.max(this.renderer.vw, this.renderer.vh) / (30 * TILE), 1.4, 2.6);
+    this.cam.zoom = U.clamp(
+      Math.min(this.renderer.vw / (32 * TILE), this.renderer.vh / (18 * TILE)),
+      1.2, 2.6
+    );
     this.centerOnWorld(g.map.startP2.x, g.map.startP2.y);
     this.renderer.groundCanvas = null;
   };
@@ -75,6 +79,7 @@
       difficulty: this.settings.difficulty,
       playerFaction: this.settings.faction,
       enemyFaction: this.settings.enemy,
+      field: this.settings.field,
     });
     this.paused = false;
     this.mode = 'play';
@@ -91,7 +96,10 @@
     this.game.speed = 1;
     this.timeScale = 1;
     // camera: fit ~24 tiles of width, clamped
-    this.cam.zoom = U.clamp(Math.max(this.renderer.vw, this.renderer.vh) / (26 * TILE), 1.6, 3.4);
+    this.cam.zoom = U.clamp(
+      Math.min(this.renderer.vw / (26 * TILE), this.renderer.vh / (15 * TILE)),
+      1.45, 3.2
+    );
     this.centerOnWorld(this.game.map.startP1.x, this.game.map.startP1.y);
     // intro selection: workers
     const workers = this.game.units.filter((u) => u.owner === 0 && u.type === 'worker');
@@ -157,6 +165,7 @@
 
   /* ---------------- camera ---------------- */
   A.onResize = function () {
+    if (this.cam.zoom < this.minZoom()) this.cam.zoom = this.minZoom();
     this.clampCam();
     if (this.ui) { this.ui._layoutKey = ''; this.ui.layout && this.ui.layout(); }
   };
@@ -171,16 +180,19 @@
   A.clampCam = function () {
     const v = this.viewWorld();
     const halfW = v.w / 2, halfH = v.h / 2;
-    const W = RTS.WORLD_W, H = RTS.WORLD_H;
+    const W = this.worldW(), H = this.worldH();
     if (v.w >= W) this.cam.x = W / 2;
     else this.cam.x = U.clamp(this.cam.x, halfW - 24, W - halfW + 24);
     if (v.h >= H) this.cam.y = H / 2;
     else this.cam.y = U.clamp(this.cam.y, halfH - 24, H - halfH + 24);
   };
 
+  A.worldW = function () { return this.game ? this.game.worldW : RTS.WORLD_W; };
+  A.worldH = function () { return this.game ? this.game.worldH : RTS.WORLD_H; };
+
   A.minZoom = function () {
     const r = this.renderer;
-    return Math.max(r.vw / RTS.WORLD_W, r.vh / RTS.WORLD_H) * 0.98;
+    return Math.max(r.vw / this.worldW(), r.vh / this.worldH()) * 0.98;
   };
   A.maxZoom = function () { return 5; };
 
@@ -594,6 +606,7 @@
   A.updateMenuBackdrop = function (dt) {
     const g = this.demoGame;
     if (!g || this.game !== g) return;
+    if (g.gameOver) { this.startDemoBackdrop(); return; }
     const d = this.demoCam;
     d.t += dt * 0.06;
     const p = (Math.sin(d.t * Math.PI * 2) + 1) / 2;
