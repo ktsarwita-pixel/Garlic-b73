@@ -57,9 +57,11 @@
     this.game = g;
     this.paused = true;
     this.demoCam = { t: 0, ax: g.map.startP2.x, ay: g.map.startP2.y, bx: g.map.startP1.x, by: g.map.startP1.y };
+    const pr = this.renderer;
+    const pPortrait = pr.vh > pr.vw;
     this.cam.zoom = U.clamp(
-      Math.min(this.renderer.vw / (32 * TILE), this.renderer.vh / (18 * TILE)),
-      1.2, 2.6
+      Math.min(pr.vw / ((pPortrait ? 20 : 32) * TILE), pr.vh / ((pPortrait ? 30 : 18) * TILE)),
+      0.9, 2.6
     );
     this.centerOnWorld(g.map.startP2.x, g.map.startP2.y);
     this.renderer.groundCanvas = null;
@@ -95,10 +97,16 @@
     this.ui._logKey = '';
     this.game.speed = 1;
     this.timeScale = 1;
-    // camera: fit ~24 tiles of width, clamped
+    // camera: fit ~26 tiles across in landscape, but a portrait phone is
+    // narrow, so frame by the short axis instead of letting it zoom in on a
+    // sliver of map.
+    const r = this.renderer;
+    const portrait = r.vh > r.vw;
+    const tilesX = portrait ? 17 : 26;
+    const tilesY = portrait ? 26 : 15;
     this.cam.zoom = U.clamp(
-      Math.min(this.renderer.vw / (26 * TILE), this.renderer.vh / (15 * TILE)),
-      1.45, 3.2
+      Math.min(r.vw / (tilesX * TILE), r.vh / (tilesY * TILE)),
+      1.1, 3.2
     );
     this.centerOnWorld(this.game.map.startP1.x, this.game.map.startP1.y);
     // intro selection: workers

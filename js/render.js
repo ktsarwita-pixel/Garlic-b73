@@ -106,8 +106,12 @@
             if (land === 's') cx.fillRect(x0, y0 + scale - 1, scale, 1);
           }
           if (pr > 0.6) {
-            cx.fillStyle = '#4f92c8';
+            cx.fillStyle = '#5aa6cf';
             cx.fillRect(x0 + 1, y0 + 1, 1, 1);
+          }
+          if (pr2 > 0.9) {
+            cx.fillStyle = 'rgba(190,232,248,0.55)';
+            cx.fillRect(x0 + 2, y0 + (pr < 0.5 ? 1 : 2), 1, 1);
           }
         }
         // forest floor shadow
@@ -127,7 +131,9 @@
   const GROUND_PAL = {
     0: { base: ['#4f9142', '#488a3c'], light: '#6cae56', dark: '#3d7a33' },
     1: { base: ['#7d6442', '#735b3b'], light: '#8f7550', dark: '#5f4a2f' },
-    2: { base: ['#2f6ea8', '#2a6499'], light: '#4a8cc4', dark: '#245a8a' },
+    // water leans blue-green so it does not read as a flat navy slab next to
+    // the warm grass, and keeps more mid-tone detail than the old navy
+    2: { base: ['#326f96', '#2d6689'], light: '#4b93bb', dark: '#255a7c' },
     3: { base: ['#cbb387', '#c2a97c'], light: '#dcc59a', dark: '#ab8f62' },
     4: { base: ['#407e35', '#3b7531'], light: '#548f3f', dark: '#2f6127' },
     5: { base: ['#6b7280', '#5f6675'], light: '#828a99', dark: '#4a5162' },
@@ -574,30 +580,88 @@
     }
   };
 
-  /* ---------- fog of war ---------- */
-  R.drawFog = function (ctx, g, view, cam, z) {
-    const x0 = Math.max(0, Math.floor(view.x / TILE)), x1 = Math.min(g.MW - 1, Math.ceil((view.x + view.w) / TILE));
-    const y0 = Math.max(0, Math.floor(view.y / TILE)), y1 = Math.min(g.MH - 1, Math.ceil((view.y + view.h) / TILE));
-    for (let ty = y0; ty <= y1; ty++) {
-      for (let tx = x0; tx <= x1; tx++) {
-        const f = g.fog[ty * g.MW + tx];
-        if (f === 2) continue;
-        if (f === 1) {
-          ctx.fillStyle = 'rgba(12,16,26,0.34)';
-          ctx.fillRect(tx * TILE, ty * TILE, TILE + 0.5, TILE + 0.5);
-          // subtle blue-grey tint so explored ground reads as "remembered"
-          ctx.fillStyle = 'rgba(40,60,90,0.12)';
-          ctx.fillRect(tx * TILE, ty * TILE, TILE + 0.5, TILE + 0.5);
-        } else {
-          ctx.fillStyle = 'rgba(6,7,14,0.95)';
-          ctx.fillRect(tx * TILE, ty * TILE, TILE + 0.5, TILE + 0.5);
-          if (((tx * 7 + ty * 13) % 11) === 0) {
-            ctx.fillStyle = 'rgba(90,110,150,0.08)';
-            ctx.fillRect(tx * TILE + 4, ty * TILE + 6, 2, 2);
-          }
+  /* ---------- fog of war ----------
+     Painting one fillRect per fogged tile is by far the most expensive thing in
+     the frame (~1ms at 800x375, much worse on a phone at DPR 2), so the fog is
+     baked into a small per-game mask canvas at 4px per tile and blitted in a
+     single nearest-neighbour drawImage. The mask is rebuilt only when the fog
+     actually changes.                                                        */
+  const FOG_CELL = 4;
+
+  R.bakeFog = function (g) {
+    const w = g.MW * FOG_CELL, h = g.MH * FOG_CELL;
+    let c = this.fogCanvas;
+    if (!c) {
+      c = document.createElement('canvas');
+      this.fogCanvas = c;
+    }
+    if (c.width !== w || c.height !== h) {
+      c.width = w;
+      c.height = h;
+    }
+    const cx = c.getContext('2d');
+    if (!cx) return;
+    cx.clearRect(0, 0, w, h);
+    // remembered (explored but not visible): cool dim wash
+    cx.fillStyle = 'rgba(14,20,34,0.42)';
+    for (let ty = 0; ty < g.MH; ty++) {
+      for (let tx = 0; tx < g.MW; tx++) {
+        if (g.fog[ty * g.MW + tx] === 1) cx.fillRect(tx * FOG_CELL, ty * FOG_CELL, FOG_CELL, FOG_CELL);
+      }
+    }
+    // unexplored: near-black, drawn as horizontal runs to cut fill calls
+    cx.fillStyle = 'rgba(5,6,12,0.96)';
+    for (let ty = 0; ty < g.MH; ty++) {
+      let run = -1;
+      for (let tx = 0; tx <= g.MW; tx++) {
+        const dark = tx < g.MW && g.fog[ty * g.MW + tx] === 0;
+        if (dark && run < 0) run = tx;
+        else if (!dark && run >= 0) {
+          cx.fillRect(run * FOG_CELL, ty * FOG_CELL, (tx - run) * FOG_CELL, FOG_CELL);
+          run = -1;
         }
       }
     }
+    /* Sparse dust in the void so it isn't a flat slab. Hashed rather than
+       modular: a modulo pattern lays the specks out on visible diagonal rows
+       and reads as dither noise once the camera zooms out. */
+    for (let ty = 0; ty < g.MH; ty++) {
+      for (let tx = 0; tx < g.MW; tx++) {
+        if (g.fog[ty * g.MW + tx] !== 0) continue;
+        const h = U.hash2(tx, ty, 91);
+        if (h < 0.93) continue;
+        const onX = Math.round(tx * FOG_CELL + 1 + U.hash2(tx, ty, 17) * 2);
+        const onY = Math.round(ty * FOG_CELL + 1 + U.hash2(tx, ty, 29) * 2);
+        cx.fillStyle = h > 0.975 ? 'rgba(132,160,208,0.20)' : 'rgba(96,116,158,0.11)';
+        cx.fillRect(onX, onY, 1, 1);
+      }
+    }
+    this.fogKey = this.fogSignature(g);
+  };
+
+  R.fogSignature = function (g) {
+    // cheap rolling checksum; fog changes in blobs so this is stable
+    let h = 2166136261;
+    const f = g.fog;
+    for (let i = 0; i < f.length; i += 7) {
+      h ^= f[i];
+      h = Math.imul(h, 16777619);
+    }
+    return h;
+  };
+
+  R.drawFog = function (ctx, g, view, cam, z) {
+    if (!this.fogKey || this.fogKey !== this.fogSignature(g)) this.bakeFog(g);
+    const src = this.fogCanvas;
+    if (!src) return;
+    const s = FOG_CELL / TILE;              // mask px per world px
+    const sx = Math.max(0, view.x * s);
+    const sy = Math.max(0, view.y * s);
+    const sw = Math.min(src.width - sx, view.w * s);
+    const sh = Math.min(src.height - sy, view.h * s);
+    if (sw <= 0 || sh <= 0) return;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(src, sx, sy, sw, sh, sx / s, sy / s, sw / s, sh / s);
   };
 
   /* ---------- selection ring helpers ---------- */

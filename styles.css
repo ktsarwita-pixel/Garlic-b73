@@ -114,6 +114,15 @@ html, body {
   display: grid; place-items: center;
   font-size: 13px; padding: 0;
 }
+.icon-btn canvas, .qr canvas, .pbtn.withicon canvas {
+  display: block; image-rendering: pixelated;
+}
+.qr canvas { width: 22px; height: 22px; }
+.pbtn.withicon {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.pbtn.withicon canvas { width: 20px; height: 20px; }
+.pbtn.withicon.muted canvas { filter: grayscale(1) brightness(.7); opacity: .7; }
 
 /* ---------- alert log ---------- */
 .logs {
@@ -295,6 +304,19 @@ html, body {
 .screen .inner { width: min(880px, 100%); }
 
 .title-wrap { text-align: center; }
+/* title emblem: the garlic crest, pixelated and gently bobbing */
+.crest {
+  display: flex; justify-content: center;
+  margin: 0 auto 6px;
+  filter: drop-shadow(0 4px 0 rgba(0,0,0,.45));
+}
+.crest canvas {
+  width: clamp(52px, 16vw, 88px); height: auto;
+  image-rendering: pixelated;
+  animation: crestBob 3.2s ease-in-out infinite;
+}
+@keyframes crestBob { 50% { transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .crest canvas { animation: none; } }
 .logo {
   font-size: clamp(20px, 5.2vw, 44px);
   line-height: 1.25;
@@ -377,8 +399,6 @@ kbd {
 @keyframes slideIn { from { transform: translateX(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes pulse { 50% { opacity: .45; } }
 
-/* ---------- rotate hint ---------- */
-.rotate-hint { display: none; }
 .noscript { position: absolute; inset: 0; display: grid; place-items: center; font-size: 10px; padding: 20px; text-align: center; }
 
 /* ---------- responsive: phones ---------- */
@@ -418,14 +438,124 @@ kbd {
   .abil canvas { width: 20px; height: 20px; }
   .logs { bottom: 88px; }
 }
-@media (orientation: portrait) and (max-width: 600px) {
-  .rotate-hint {
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
-    position: absolute; inset: 0; z-index: 40; text-align: center; padding: 24px;
-    background: #0d0b12; font-size: 9px; line-height: 1.9; color: var(--ink-dim);
-  }
-  .rotate-hint strong { color: var(--ink); font-size: 11px; }
-  .rot-icon { font-size: 42px; transform: rotate(90deg); color: var(--gold); }
+/* ================= PORTRAIT =================
+   Portrait used to be blocked by a "turn your phone sideways" overlay. It is a
+   real layout now: resources run along the top, the command card and abilities
+   sit in a two-row dock at the bottom (thumb zone), and the minimap tucks into
+   the top-right corner where it stops eating battlefield width. */
+.ui.portrait .dock {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+}
+.ui.portrait .dock-left,
+.ui.portrait .dock-right {
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 5px;
+}
+/* the card is hoisted out of .dock-left by UI.applyOrientation so it can take a
+   full row, which leaves .dock-left as the actions + quick-rail strip */
+.ui.portrait .dockrow-card { width: 100%; }
+.ui.portrait .dock-left { flex-wrap: nowrap; }
+.ui.portrait .card { flex: 1 1 auto; min-width: 0; }
+.ui.portrait .card.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ui.portrait .card.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ui.portrait .cmd {
+  min-width: 0;
+  min-height: 58px;
+  padding: 3px 2px 4px;
+  font-size: 6.5px;
+}
+.ui.portrait .cmd canvas { width: 24px; height: 24px; }
+.ui.portrait .actions { flex: 0 0 auto; }
+.ui.portrait .actions .cmd { min-width: 44px; }
+.ui.portrait .abilities { flex: 1 1 auto; justify-content: flex-end; }
+.ui.portrait .abil { width: 46px; height: 46px; }
+.ui.portrait .abil canvas { width: 26px; height: 26px; }
+.ui.portrait .minimap-wrap {
+  position: absolute;
+  top: calc(46px + var(--safe-t));
+  right: calc(6px + var(--safe-r));
+  width: 78px; height: 78px;
+  opacity: .92;
+  z-index: 4;
+}
+.ui.portrait .logs {
+  top: calc(48px + var(--safe-t));
+  left: calc(6px + var(--safe-l));
+  bottom: auto;
+  width: min(46vw, 196px);
+}
+/* four chips on one row in portrait: shrink them so the minimap can live
+   underneath instead of beside the bar */
+.ui.portrait .res-group { flex-wrap: nowrap; gap: 3px; }
+.ui.portrait .res { flex: 1 1 0; min-width: 0; justify-content: flex-start; }
+.ui.portrait .res canvas { width: 13px; height: 13px; }
+.ui.portrait .res .val { min-width: 0; flex: 1 1 auto; }
+.ui.portrait .log { font-size: 7px; }
+.ui.portrait .res-group { flex: 1 1 auto; }
+.ui.portrait .res { font-size: 8px; padding: 3px 5px 3px 3px; }
+.ui.portrait .res canvas { width: 15px; height: 15px; }
+.ui.portrait .res .lbl { display: none; }
+.ui.portrait .res .val { min-width: 24px; }
+.ui.portrait .timer { font-size: 8px; padding: 4px 5px; }
+.ui.portrait .icon-btn { width: 38px; height: 38px; font-size: 12px; }
+.ui.portrait .topbar { gap: 4px; }
+.ui.portrait .selpanel {
+  left: 50%;
+  bottom: auto;
+  top: calc(132px + var(--safe-t));
+  transform: translateX(-50%);
+  min-width: 0;
+  width: min(96vw, 420px);
+}
+/* quick rail becomes a horizontal strip inside the dock in portrait */
+.ui.portrait .quickrail.dockrail,
+.ui.portrait .dockrail {
+  position: static;
+  transform: none;
+  flex-direction: row;
+  gap: 4px;
+  z-index: auto;
+}
+.ui.portrait .dockrail .qr { width: 30px; height: 30px; font-size: 12px; }
+
+/* menus in portrait: the title art gets room, the panels stretch full width and
+   the two-column help grid collapses before the text gets unreadable */
+.ui.portrait .screen { align-content: center; }
+.ui.portrait .screen .inner { width: min(520px, 100%); }
+.ui.portrait .logo { font-size: clamp(26px, 11vw, 52px); line-height: 1.15; }
+.ui.portrait .tagline { font-size: 8px; line-height: 1.9; }
+.ui.portrait .menu-panel { padding: 10px; }
+.ui.portrait .pbtn { font-size: 9px; padding: 10px 8px; }
+.ui.portrait .help-grid { grid-template-columns: 1fr; }
+.ui.portrait .help-grid ul { font-size: 7.5px; line-height: 2.1; }
+.ui.portrait .grid2 { grid-template-columns: 1fr; }
+.ui.portrait .faction-card { flex: 1 1 100%; }
+.ui.portrait .faction-card .fblurb { font-size: 7px; line-height: 1.8; }
+.ui.portrait .stat-grid { grid-template-columns: repeat(2, 1fr); }
+.ui.portrait .pause-menu { width: min(300px, 86vw); }
+.ui.portrait .hint { font-size: 8px; }
+
+/* narrow phones: shrink further rather than pretending there is room */
+@media (max-width: 400px) {
+  .ui.portrait .logo { font-size: clamp(22px, 10vw, 40px); }
+  .ui.portrait .help-grid ul { font-size: 7px; }
+  .ui.portrait .cmd { min-height: 52px; font-size: 6px; }
+  .ui.portrait .cmd canvas { width: 20px; height: 20px; }
+  .ui.portrait .abil { width: 40px; height: 40px; }
+  .ui.portrait .abil canvas { width: 22px; height: 22px; }
+  .ui.portrait .minimap-wrap { width: 62px; height: 62px; top: calc(44px + var(--safe-t)); }
+  .ui.portrait .actions .cmd { min-width: 38px; }
+  .ui.portrait .dockrail .qr { width: 30px; height: 30px; font-size: 12px; }
+  .ui.portrait .selpanel { top: calc(116px + var(--safe-t)); }
+}
+/* landscape phones stay as they were */
+.ui.landscape .quickrail { left: calc(4px + var(--safe-l)); }
+@media (max-height: 430px) {
+  .topbar { top: calc(4px + var(--safe-t)); }
+  .res { min-height: 24px; }
 }
 
 /* ---------- tutorial nudge ---------- */
@@ -448,6 +578,14 @@ kbd {
 .hint b { color: #fff; }
 .hint .dismiss { pointer-events: auto; }
 @media (max-height: 420px) { .hint { bottom: calc(84px + var(--safe-b)); font-size: 7px; } }
+@media (min-width: 620px) { .hint { max-width: 440px; } }
+.ui.portrait .hint {
+  left: 50%;
+  width: min(92vw, 420px);
+  max-width: none;
+  font-size: 7.5px;
+  bottom: auto;
+}
 
 /* ---------- setup screen helpers ---------- */
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

@@ -238,6 +238,7 @@
         }
     };
     for (const r of this.rocks) mark(r.tx, r.ty, 0, 0);
+    this.buildWalkGrid();
   };
 
   RTS.Game.prototype.refreshPop = function () {
@@ -264,13 +265,49 @@
     return this.blockedTile(Math.floor(x / TILE), Math.floor(y / TILE));
   };
 
+  /* Walkability sampled with a DDA-style integer march. The previous version
+     allocated nothing but called hypot + two lerps per 8px step, which showed
+     up as the hottest line in the whole simulation. */
   RTS.Game.prototype.lineClear = function (ax, ay, bx, by) {
-    const steps = Math.ceil(U.dist(ax, ay, bx, by) / 8);
-    for (let i = 1; i <= steps; i++) {
-      const t = i / steps;
-      if (this.blockedPoint(U.lerp(ax, bx, t), U.lerp(ay, by, t))) return false;
+    const T = TILE;
+    let tx = Math.floor(ax / T), ty = Math.floor(ay / T);
+    const ex = Math.floor(bx / T), ey = Math.floor(by / T);
+    if (this.blockedTile(tx, ty) || this.blockedTile(ex, ey)) return false;
+    const dx = bx - ax, dy = by - ay;
+    const nx = dx === 0 ? 0 : (dx > 0 ? 1 : -1);
+    const ny = dy === 0 ? 0 : (dy > 0 ? 1 : -1);
+    // parametric distance to the next tile boundary on each axis
+    const tDeltaX = dx === 0 ? Infinity : Math.abs(T / dx);
+    const tDeltaY = dy === 0 ? Infinity : Math.abs(T / dy);
+    let tMaxX = dx === 0 ? Infinity
+      : ((nx > 0 ? (tx + 1) * T - ax : ax - tx * T) / Math.abs(dx));
+    let tMaxY = dy === 0 ? Infinity
+      : ((ny > 0 ? (ty + 1) * T - ay : ay - ty * T) / Math.abs(dy));
+    let guard = 256;
+    while ((tx !== ex || ty !== ey) && guard-- > 0) {
+      if (tMaxX < tMaxY) { tMaxX += tDeltaX; tx += nx; }
+      else { tMaxY += tDeltaY; ty += ny; }
+      if (this.blockedTile(tx, ty)) return false;
     }
     return true;
+  };
+
+  /* Nearest-tile lookups used to re-derive floor(x/TILE) on every call. A flat
+     typed array of walkability makes the hot path two loads and a stride. */
+  RTS.Game.prototype.buildWalkGrid = function () {
+    const n = this.MW * this.MH;
+    const grid = new Uint8Array(n);
+    for (let i = 0; i < n; i++) {
+      grid[i] = (this.map.tiles[i] === RTS.TILE_TYPES.WATER || this.solid[i]) ? 1 : 0;
+    }
+    this.walkGrid = grid;
+  };
+
+  RTS.Game.prototype.blockedPoint = function (x, y) {
+    const tx = (x / TILE) | 0, ty = (y / TILE) | 0;
+    if (tx < 0 || ty < 0 || tx >= this.MW || ty >= this.MH) return true;
+    if (this.walkGrid) return this.walkGrid[ty * this.MW + tx] === 1;
+    return this.blockedTile(tx, ty);
   };
 
   RTS.Game.prototype.findPath = function (sx, sy, tx, ty) {
@@ -856,7 +893,14 @@
   };
 
   RTS.Game.prototype.followPath = function (u, tx, ty, dt) {
-    if (this.lineClear(u.x, u.y, tx, ty)) {
+    // The straight-line test is the expensive part and its answer barely
+    // changes between frames, so each unit caches it for ~6 frames.
+    u.clearT = (u.clearT || 0) - dt;
+    if (u.clearT <= 0) {
+      u.clearT = 0.1;
+      u.clearOK = this.lineClear(u.x, u.y, tx, ty);
+    }
+    if (u.clearOK) {
       u.path = null;
       return this.stepTowards(u, tx, ty, dt);
     }
@@ -994,9 +1038,15 @@
       if (u.hp <= 0) { this.killEntity(u, null); return; }
     }
     if (u.hp < u.maxHp && u.buff.regen <= 0 && !u.attacking && u.buff.poison <= 0) {
-      // slow passive regen near own buildings
-      const b = this.nearestDropoff(u.owner, u.x, u.y);
-      if (b && U.dist2(b.x, b.y, u.x, u.y) < 200 * 200) u.hp = Math.min(u.maxHp, u.hp + 1.2 * dt);
+      // slow passive regen near own buildings. Cached per unit for a second:
+      // this used to walk every building for every damaged unit every tick.
+      u.regenT = (u.regenT || 0) - dt;
+      if (u.regenT <= 0) {
+        u.regenT = 1;
+        u.regenHome = this.nearestDropoff(u.owner, u.x, u.y);
+      }
+      const b = u.regenHome;
+      if (b && !b.dead && U.dist2(b.x, b.y, u.x, u.y) < 200 * 200) u.hp = Math.min(u.maxHp, u.hp + 1.2 * dt);
     }
 
     const order = u.order;
@@ -1189,6 +1239,7 @@
           u.gatherState = 'return';
           const drop = this.nearestDropoff(u.owner, u.x, u.y);
           u.dropoff = drop;
+          u.regenHome = drop;
           u.path = null;
           if (!drop) { u.carry = 0; u.gatherState = 'harvest'; }
         }

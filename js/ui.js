@@ -52,10 +52,12 @@
 
     const tr = el('div', 'top-right');
     this.timerEl = el('div', 'timer', '0:00');
-    this.btnPause = el('button', 'pbtn icon-btn', '☰');
+    this.btnPause = el('button', 'pbtn icon-btn');
+    this.btnPause.append(this.iconEl('menu', 22));
     this.btnPause.setAttribute('aria-label', 'Menu and pause');
     this.btnPause.onclick = () => this.app.ui.pauseMenu(true);
-    this.btnHelp = el('button', 'pbtn icon-btn', '?');
+    this.btnHelp = el('button', 'pbtn icon-btn');
+    this.btnHelp.append(this.iconEl('help', 22));
     this.btnHelp.setAttribute('aria-label', 'How to play');
     this.btnHelp.onclick = () => this.toggleHelp();
     this.missionEl = el('div', 'timer mission', '');
@@ -77,7 +79,7 @@
     this.actionsEl = el('div', 'actions');
     this.btnBuild = this.actionBtn('Build', 'house', () => this.app.enterPlaceModeMenu());
     this.btnAttack = this.actionBtn('Attack', 'sword', () => this.app.attackModeArm());
-    this.btnStop = this.actionBtn('Hold', 'plate', () => this.app.orderStopSelected());
+    this.btnStop = this.actionBtn('Stop', 'stop', () => this.app.orderStopSelected());
     this.actionsEl.append(this.btnBuild.n, this.btnAttack.n, this.btnStop.n);
     left.append(this.actionsEl);
 
@@ -102,20 +104,25 @@
     dock.append(left, right);
     r.append(dock);
     this.dockEl = dock;
+    this.dockLeftEl = left;
+    this.dockRightEl = right;
 
-    // ---- quick rail ----
+    // ---- quick rail (floats on the left edge in landscape, folds into the
+    //      dock as a horizontal strip in portrait) ----
     const rail = el('div', 'quickrail');
-    const qr = (glyph, title, fn) => {
-      const b = el('button', 'qr', glyph);
+    const qr = (icon, title, fn) => {
+      const b = el('button', 'qr');
+      b.append(this.iconEl(icon, 22));
       b.title = title;
       b.setAttribute('aria-label', title);
       b.onclick = () => { this.app.sound.play('click'); fn(); };
       rail.append(b);
       return b;
     };
-    this.qrArmy = qr('⚔', 'Select all army', () => this.app.selectArmy());
-    this.qrWorkers = qr('⛏', 'Select all peasants', () => this.app.selectWorkers());
-    this.qrBase = qr('🏰', 'Center on base', () => { this.app.centerOnBase(); this.app.ui.toast('Base', 700); });
+    this.qrArmy = qr('army', 'Select all army', () => this.app.selectArmy());
+    this.qrWorkers = qr('worker', 'Select all peasants', () => this.app.selectWorkers());
+    this.qrBase = qr('base', 'Center on base', () => { this.app.centerOnBase(); this.app.ui.toast('Base', 700); });
+    this.quickrailEl = rail;
     r.append(rail);
 
     // ---- selection panel ----
@@ -155,19 +162,22 @@
   UI.buildTitleScreen = function () {
     const s = el('div', 'screen show');
     const inner = el('div', 'inner title-wrap');
+    const crest = el('div', 'crest');
+    crest.append(this.iconEl('garlic', 88));
+    inner.append(crest);
     inner.append(el('h1', 'logo', 'GARLIC<br><span>WARS</span>'));
     inner.append(el('div', 'tagline', 'A tiny 2D pixel RTS about holding the vale.'));
 
     const panel = el('div', 'menu-panel panel');
     const grid = el('div', 'menu-grid');
 
-    const play = el('button', 'pbtn wide', '⚙ Battle Setup');
+    const play = el('button', 'pbtn wide', 'Battle Setup');
     play.style.fontSize = '10px';
     play.style.padding = '12px';
     play.onclick = () => { this.app.sound.play('select'); this.showScreen('setup'); };
     grid.append(play);
 
-    const quick = el('button', 'pbtn primary wide', '⚡ Quick Match');
+    const quick = el('button', 'pbtn primary wide', 'Quick Match');
     quick.onclick = () => {
       this.app.sound.play('select');
       this.app.startGame(this.app.settings);
@@ -175,14 +185,15 @@
     };
     grid.append(quick);
 
-    const help = el('button', 'pbtn wide', '? How to play');
+    const help = el('button', 'pbtn wide', 'How to play');
     help.onclick = () => { this.app.sound.play('click'); this.showScreen('help', () => 'title'); };
     grid.append(help);
 
     const row = el('div', 'row');
-    this.muteBtn = el('button', 'pbtn', '🔊 Sound');
+    this.muteBtn = el('button', 'pbtn withicon');
+    this.muteBtn.append(this.iconEl('sound', 20), el('span', null, 'Sound'));
     this.muteBtn.onclick = () => this.toggleMute();
-    const fsBtn = el('button', 'pbtn', '⛶ Fullscreen');
+    const fsBtn = el('button', 'pbtn', 'Fullscreen');
     fsBtn.onclick = () => this.app.toggleFullscreen();
     row.append(this.muteBtn, fsBtn);
     grid.append(row);
@@ -200,7 +211,7 @@
     const s = el('div', 'screen');
     const inner = el('div', 'inner');
     const head = el('div', 'row between');
-    const back = el('button', 'pbtn', '← Back');
+    const back = el('button', 'pbtn', '< Back');
     back.onclick = () => this.showScreen('title');
     head.append(el('div', 'logo', 'BATTLE SETUP'), back);
     head.querySelector('.logo').style.fontSize = '16px';
@@ -290,7 +301,7 @@
     this.missDesc.style.textAlign = 'left';
     panel.append(this.missDesc);
 
-    const start = el('button', 'pbtn primary wide', '⚔ To Battle');
+    const start = el('button', 'pbtn primary wide', 'To Battle');
     start.style.fontSize = '11px';
     start.style.padding = '14px';
     start.style.marginTop = '12px';
@@ -345,9 +356,9 @@
       inner.append(b);
       return b;
     };
-    mk('▶ Resume', () => this.pauseMenu(false), 'primary');
-    this.pauseMute = mk('🔊 Sound: On', () => this.toggleMute());
-    mk('⛶ Fullscreen', () => this.app.toggleFullscreen());
+    mk('Resume', () => this.pauseMenu(false), 'primary');
+    this.pauseMute = mk('Sound: On', () => this.toggleMute());
+    mk('Fullscreen', () => this.app.toggleFullscreen());
     mk('↺ Restart', () => { this.pauseMenu(false); this.app.restart(); });
     mk('⚑ Surrender', () => { this.pauseMenu(false); this.app.surrender(); }, 'danger');
     mk('⌂ Main menu', () => { this.pauseMenu(false); this.app.toMenu(); });
@@ -361,7 +372,7 @@
     const s = el('div', 'screen');
     const inner = el('div', 'inner');
     const head = el('div', 'row between');
-    const b = el('button', 'pbtn', '✕ Close');
+    const b = el('button', 'pbtn', 'Close');
     b.onclick = () => {
       const from = this.helpReturn || 'title';
       this.showScreen(from === 'game' ? null : from);
@@ -442,7 +453,7 @@
     this.goStats = el('div', 'stat-grid');
     inner.append(this.goTitle, this.goSub, this.goStats);
     const row = el('div', 'row');
-    const again = el('button', 'pbtn primary', '⚔ Rematch');
+    const again = el('button', 'pbtn primary', 'Rematch');
     again.onclick = () => { this.showScreen(null); this.app.restart(); };
     this.goAgain = again;
     const menu = el('button', 'pbtn', '⌂ Main menu');
@@ -517,8 +528,12 @@
   UI.toggleMute = function () {
     this.muted = !this.muted;
     this.app.sound.muted = this.muted;
-    if (this.pauseMute) this.pauseMute.textContent = this.muted ? '🔇 Sound: Off' : '🔊 Sound: On';
-    if (this.muteBtn) this.muteBtn.textContent = this.muted ? '🔇 Sound' : '🔊 Sound';
+    if (this.pauseMute) this.pauseMute.textContent = this.muted ? 'Sound: Off' : 'Sound: On';
+    if (this.muteBtn) {
+      const sp = this.muteBtn.querySelector('span');
+      if (sp) sp.textContent = this.muted ? 'Muted' : 'Sound';
+      this.muteBtn.classList.toggle('muted', !!this.muted);
+    }
   };
 
   /* ---------- minimap interaction ---------- */
@@ -593,18 +608,76 @@
     this.refreshActionButtons(g, app);
   };
 
+  /* ---------- responsive shell ----------
+     portrait = taller than wide *and* narrow enough that a two-column HUD would
+     crush the battlefield. The class on #ui drives the CSS; JS only has to
+     move the quick-rail into the dock and re-measure the stack. */
+  UI.applyOrientation = function () {
+    const w = window.innerWidth, h = window.innerHeight;
+    const portrait = h > w * 1.02;
+    const narrow = w < 620;
+    const cls = portrait ? (narrow ? 'portrait phone' : 'portrait') : (w < 900 ? 'landscape small' : 'landscape');
+    if (cls !== this._orient) {
+      this._orient = cls;
+      this.root.className = 'ui ' + cls;
+    }
+    /* Always re-assert the arrangement rather than only on an orientation
+       change: refreshCard() rewrites cardEl.className, and a resize before the
+       first layout would otherwise leave the dock half-re-homed. */
+    const wantPortrait = portrait;
+    if (wantPortrait) {
+      if (this.cardEl.parentElement !== this.dockEl) this.dockEl.insertBefore(this.cardEl, this.dockEl.firstChild);
+      if (this.quickrailEl.parentElement !== this.dockLeftEl) this.dockLeftEl.insertBefore(this.quickrailEl, this.dockLeftEl.firstChild);
+      if (!this.quickrailEl.classList.contains('dockrail')) this.quickrailEl.classList.add('dockrail');
+      if (!this.cardEl.classList.contains('dockrow-card')) this.cardEl.classList.add('dockrow-card');
+    } else {
+      if (this.cardEl.parentElement !== this.dockLeftEl) this.dockLeftEl.append(this.cardEl);
+      if (this.quickrailEl.parentElement !== this.root) this.root.append(this.quickrailEl);
+      this.quickrailEl.classList.remove('dockrail');
+      this.cardEl.classList.remove('dockrow-card');
+    }
+    this._layoutKey = '';
+    // a slightly wider camera read in portrait keeps the base in view
+    if (this.app && this.app.renderer) this.app.renderer.portrait = portrait;
+    return portrait;
+  };
+
   UI.layout = function (force) {
     const dock = this.dockEl;
     if (!dock) return;
     this._layoutTick = (this._layoutTick || 0) + 1;
     if (!force && this._layoutTick % 8 !== 0) return;
+    const portrait = this.applyOrientation();
     const rect = dock.getBoundingClientRect();
     const fromBottom = Math.max(0, window.innerHeight - rect.top) + 6;
-    const key = Math.round(fromBottom) + '|' + Math.round(rect.height) + '|' + (this.selPanel.classList.contains('show') ? 1 : 0);
+    const key = Math.round(fromBottom) + '|' + Math.round(rect.height) +
+      '|' + (this.selPanel.classList.contains('show') ? 1 : 0) + '|' + (portrait ? 'p' : 'l');
     if (key === this._layoutKey) return;
     this._layoutKey = key;
+
+    if (portrait) {
+      /* The logs and the selection panel are pinned to the top of the screen in
+         portrait so the middle stays clear, which means their inline bottom
+         offsets have to be cleared or the box would stretch between top and
+         bottom. */
+      this.logEl.style.bottom = '';
+      this.selPanel.style.bottom = '';
+      const hintTop = (parseFloat(getComputedStyle(this.selPanel).top) || 120) +
+        (this.selPanel.classList.contains('show') ? this.selPanel.getBoundingClientRect().height + 8 : 0);
+      this.hintOffset = null;
+      this.hintTop = Math.round(hintTop);
+      if (this.hintEl) {
+        this.hintEl.style.bottom = 'auto';
+        this.hintEl.style.top = this.hintTop + 'px';
+      }
+      return;
+    }
+
+    this.hintTop = null;
+    this.selPanel.style.top = '';
     this.selPanel.style.bottom = fromBottom + 'px';
     this.logEl.style.bottom = fromBottom + 'px';
+    if (this.hintEl) this.hintEl.style.top = 'auto';
     const selH = this.selPanel.classList.contains('show') ? this.selPanel.getBoundingClientRect().height : 0;
     const hintBottom = fromBottom + (selH ? selH + 6 : 0);
     this.hintOffset = hintBottom;
@@ -966,7 +1039,12 @@
     this.hintEl = d;
     this._layoutKey = '';
     this.layout(true);
-    if (this.hintOffset) d.style.bottom = this.hintOffset + 'px';
+    if (this.hintTop != null) {
+      d.style.bottom = 'auto';
+      d.style.top = this.hintTop + 'px';
+    } else if (this.hintOffset) {
+      d.style.bottom = this.hintOffset + 'px';
+    }
     if (opts.ms) setTimeout(() => { if (this.hintEl === d) { d.remove(); this.hintEl = null; } }, opts.ms);
     return d;
   };
