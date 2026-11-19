@@ -17,7 +17,7 @@ const cues={
  shatter:[['square',0,.05,1800,310,.05],['triangle',.055,.2,930,260,.09],['triangle',.12,.3,740,120,.06],['sine',.17,.5,144,48,.09]]
 };
 let audio,bus;
-function enableAudio(){if(!sound)return;try{if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();bus=audio.createGain();bus.connect(audio.destination)}if(audio.state==='suspended')audio.resume().catch(()=>{})}catch{}}
+function enableAudio(){if(!sound)return;try{if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();bus=audio.createGain();bus.connect(audio.destination);loadGameSamples()}if(audio.state==='suspended')audio.resume().catch(()=>{})}catch{}}
 for(const event of ['pointerdown','keydown','click'])document.addEventListener(event,enableAudio,true);
 function playNotes(notes,pitch=1){if(!sound||!bus||audio.state!=='running')return;const now=audio.currentTime;
  for(const [type,delay,length,hz,end,level] of notes){const o=audio.createOscillator(),v=audio.createGain(),at=now+delay;
@@ -34,3 +34,16 @@ function sfx(name,pitch){playNotes(cues[name],pitch);if(!sound||!bus||audio.stat
  v.gain.setValueAtTime(.0001,now);v.gain.exponentialRampToValueAtTime(amp,now+(name==='dust'?.1:.009));v.gain.exponentialRampToValueAtTime(.0001,now+duration);
  src.connect(filter);filter.connect(v);v.connect(bus);src.onended=()=>{src.disconnect();filter.disconnect();v.disconnect()};src.start(now,Math.random()*.25,duration)}
 function beep(f){playNotes([['triangle',0,.14,f,f,.08]])}
+
+// Predecode once after audio unlock. Never replay a late download over the next turn.
+const gameSamples={rattle:[.15,190],clear:[.13,784],empty:[.14,145],retry:[.12,485]};
+const decoded=new Map();
+function loadGameSamples(){for(const name of Object.keys(gameSamples)){
+ fetch(`assets/sfx/${name}.wav`).then(r=>{if(!r.ok)throw Error(r.status);return r.arrayBuffer()})
+ .then(raw=>audio.decodeAudioData(raw)).then(buffer=>decoded.set(name,buffer)).catch(()=>{});
+}}
+function sampleCue(name){if(!sound||!bus||audio.state!=='running')return;
+ const [gain,fallback]=gameSamples[name],buffer=decoded.get(name);if(!buffer){beep(fallback);return}
+ const src=audio.createBufferSource(),v=audio.createGain();src.buffer=buffer;v.gain.value=gain;
+ if(name==='rattle')src.playbackRate.value=.96+Math.random()*.08;
+ src.connect(v);v.connect(bus);src.onended=()=>{src.disconnect();v.disconnect()};src.start();}
