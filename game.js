@@ -60,31 +60,6 @@ const lastCoat=coat.map((row,j)=>[...row].map((p,i)=>{
  const line=19-j*1.24;if(j<2||j>10||p===' '||p==='k')return p;
  return Math.abs(i-line)<1.35?(i<line?'R':'r'):p;
 }).join(''));
-// Trace the fatal swipe along the centers of the actual stained stitches,
-// in coat-local pixels. Advance and reveal the cloth on the same clock.
-const cutPath=lastCoat.flatMap((row,j)=>{
- const cols=Array.from(row,(ch,i)=>'Rr'.includes(ch)?i:-1).filter(i=>i>=0);
- return cols.length?[{x:2*cols[Math.floor(cols.length/2)]+1,y:2*j+1,row:j}]:[];
-}).reverse();
-// A bright silhouette outside the hoodie makes the strike readable even on mobile.
-// The lead-in and follow-through extend the stroke, never the wound itself.
-const bladePath=[{x:cutPath[0].x-12,y:cutPath[0].y+9},...cutPath,
- {x:cutPath.at(-1).x+12,y:cutPath.at(-1).y-9}];
-function bladeHead(a){return a<.19?ease(a/.19):a<.75?1+(cutPath.length-1)*ease((a-.19)/.56):cutPath.length+ease((a-.75)/.15)}
-function cutHead(a){return Math.min(cutPath.length-1,Math.max(0,bladeHead(a)-1))}
-function fatalTrace(a,ox,oy){
- if(a<=0||a>=1.36)return;const head=bladeHead(a);
- g.save();g.globalAlpha=1-ease((a-1.04)/.32);
- for(const [width,color] of [[7,'#682e40'],[5,'#ef835d'],[3,'#fff7db']]){
-  for(let k=0;k<bladePath.length-1&&k<=head;k++){
-   const p=bladePath[k],q=bladePath[k+1],steps=Math.max(Math.abs(q.x-p.x),Math.abs(q.y-p.y));
-   for(let n=0;n<=steps;n++){const f=n/steps,u=k+f;if(u>head)break;
-    const taper=Math.min(1,.35+u,.35+bladePath.length-1-u),w=Math.max(1,Math.round(width*taper));
-    rect(ox+p.x+(q.x-p.x)*f,oy+p.y+(q.y-p.y)*f-(w>>1),2,w,color);
-   }
-  }
- }g.restore();
-}
 const lastPaint={...paint,R:'#af263c',r:'#722337'};
 const lastFace=fallenFace.map((r,j)=>j===12?r.slice(0,14)+'R'+r.slice(15):j===13?r.slice(0,14)+'r'+r.slice(15):r);
 const FALL_END=7.4;
@@ -109,7 +84,6 @@ function fallenSans(){
  // Release each sprite cell once, from its actual resting place. The upper
  // silhouette loosens first; a little ash from the boots lingers at the end.
  function layer(rows,ox,oy){rows.forEach((row,j)=>[...row].forEach((key,i)=>{
-  if(rows===lastCoat&&'Rr'.includes(key)&&(a<.19||j<cutPath[Math.floor(cutHead(a))].row))key=coat[j][i];
   if(!lastPaint[key])return;
   const px=ox+i*2,py=oy+j*2,seed=((i*71+j*31+rows.length*13)%97)/97;
   const age=a-(4.25+(py-50)*.018+seed*.63);
@@ -121,9 +95,10 @@ function fallenSans(){
  }))}
  g.save();layer(frontBoot,162,98);layer(fold>.55?tuckedBoot:frontBoot,182,98+(fold>.55?4:0));
  layer(fold>.68?bentKnee:fold>.12?foldingLegs:shorts,164+lean,89+Math.round(9*fold));
- layer(lastCoat,158+lean,68+drop);layer(hit?lastFace:angrySkull,159+lean,43+drop+bow);
+ layer(hit?lastCoat:coat,158+lean,68+drop);layer(hit?lastFace:angrySkull,159+lean,43+drop+bow);
  if(eyes>0){g.globalAlpha=eyes;for(let i=0;i<skull[7].length;i++)if(skull[7][i]==='e')rect(159+lean+2*i,57+drop+bow,2,2,paint.e)}g.restore();
- fatalTrace(a,158+lean,68+drop);
+ // Keep the original sweep; shift its midpoint onto the hoodie wound.
+ if(a<1.45){g.save();g.translate(2+lean,8+drop);slash(a*1.6,false);g.restore()}
  for(const release of [1.12,2.23,3.27])drip(a,release);
 }
 function sans(){
