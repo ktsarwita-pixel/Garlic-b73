@@ -2,3 +2,5 @@
 /* Reserve two dialogue lines so a phase message cannot resize the battlefield. */
 .dialog{min-height:calc(2.4em + 30px);line-height:1.2}@media(max-width:650px){.dialog{min-height:66px}}@media(max-height:520px) and (orientation:landscape){.dialog{min-height:calc(1.2em + 12px)}}
 .icon{width:20px;height:20px;vertical-align:middle;shape-rendering:crispEdges}.actions .icon{width:32px;height:32px}.actions button{padding:8px 0}.human .icon,.dialog .icon{width:16px;height:16px}header h1 .icon{margin-right:4px}@media(max-width:650px),(max-height:520px){.actions .icon{width:20px;height:20px}}
+/* Keep the speech bubble's 16px grid on whole pixels at compact sizes. */
+@media(max-width:650px),(max-height:520px){.actions .icon{width:16px;height:16px}}
