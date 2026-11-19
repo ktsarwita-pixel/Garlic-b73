@@ -63,10 +63,22 @@ const lastCoat=coat.map((row,j)=>[...row].map((p,i)=>{
 const lastPaint={...paint,R:'#af263c',r:'#722337'};
 const lastFace=fallenFace.map((r,j)=>j===12?r.slice(0,14)+'R'+r.slice(15):j===13?r.slice(0,14)+'r'+r.slice(15):r);
 const FALL_END=7.4;
-const bentKnee=['   kkkkkkk    ','  kgGGggggkk  ',' kggggggggGgk ',' kgggkkkkgggkk','  kkk    kkkkk'];
+const foldingLegs=['  kkkkkkkkkkk  ',' kgGGggggggGgk ','kgGGgggkkggGggk','kgggggk  kggggk',' kgggk    kgggk','  kkk      kkk '];
+const bentKnee=['  kkkkkkkkkkk   ',' kgGGggggggGgk  ','kgGGggkkggggGgk ','kggggk  kgggGGgk',' kgggk   kgggggk','  kkk     kkkkk '];
+const tuckedBoot=['   kkkkkk  ',' kksspppsk ','kPPpppppssk',' kkkkkkkkk '];
+function kneelPose(a){const shift=ease((a-.52)/.48),fold=ease((a-.9)/.68),settle=pulse(a,1.55,1.95);
+ return {fold,lean:Math.round(-3*shift+fold),drop:Math.round(2*shift+7*fold+2*settle),bow:Math.round(3*ease((a-1.13)/.78))}}
+// Locate the bottommost stained stitch instead of emitting from arena coordinates.
+const hem=lastCoat.flatMap((row,j)=>[...row].flatMap((c,i)=>'Rr'.includes(c)?[{i,j}]:[])).pop();
+function drip(a,release){const d=a-release;if(d<-.24)return;const pose=kneelPose(Math.min(a,release));
+ const x=158+pose.lean+2*hem.i,y=68+pose.drop+2*hem.j+2,floor=110;
+ if(d<0){rect(x,y,1,1+Math.floor(2*ease((d+.24)/.24)),'#ae3044');return}
+ const distance=floor-y,impact=Math.sqrt(distance/90);
+ if(d<impact){const h=1+Math.min(2,Math.floor(d*8));rect(x,y+90*d*d-h+1,1,h,'#ac2e40');return}
+ const rest=d-impact;if(rest>.85)return;g.save();g.globalAlpha=1-ease((rest-.24)/.61);rect(x-1,floor,3,1,'#842237');if(rest<.09)rect(x+2,floor-1,1,1,'#bc4350');g.restore();}
 function fallenSans(){
  const a=fallAge;if(a>=FALL_END)return;
- const hit=a>=.24,knee=ease((a-.72)/.85),drop=Math.round(9*knee),eyes=1-ease((a-.65)/3.35);
+ const hit=a>=.24,{fold,lean,drop,bow}=kneelPose(a),eyes=1-ease((a-.65)/3.35);
  // Release each sprite cell once, from its actual resting place. The upper
  // silhouette loosens first; a little ash from the boots lingers at the end.
  function layer(rows,ox,oy){rows.forEach((row,j)=>[...row].forEach((key,i)=>{
@@ -79,12 +91,12 @@ function fallenSans(){
   const wind=Math.sin(seed*27+age*3)*age*5+age*age*9;
   rect(px+wind,py-age*(8+seed*14),age<.16?2:1,age<.16?2:1,seed<.4?'#aaa8a4':'#e2dfd7');g.globalAlpha=1;
  }))}
- g.save();layer(boot,160-Math.round(3*knee),98);layer(boot,180+Math.round(5*knee),98);
- layer(knee>.48?bentKnee:shorts,164,89+Math.round(7*knee));
- layer(hit?lastCoat:coat,158,68+drop);layer(hit?lastFace:angrySkull,159,43+drop+Math.round(2*knee));
- if(eyes>0){g.globalAlpha=eyes;for(let i=0;i<skull[7].length;i++)if(skull[7][i]==='e')rect(159+2*i,57+drop+Math.round(2*knee),2,2,paint.e)}g.restore();
+ g.save();layer(boot,160,98);layer(fold>.55?tuckedBoot:boot,180+Math.round(5*fold),98+(fold>.55?4:0));
+ layer(fold>.68?bentKnee:fold>.12?foldingLegs:shorts,164+lean,89+Math.round(9*fold));
+ layer(hit?lastCoat:coat,158+lean,68+drop);layer(hit?lastFace:angrySkull,159+lean,43+drop+bow);
+ if(eyes>0){g.globalAlpha=eyes;for(let i=0;i<skull[7].length;i++)if(skull[7][i]==='e')rect(159+lean+2*i,57+drop+bow,2,2,paint.e)}g.restore();
  if(a<1.45)slash(a*1.6,false);
- for(const delay of [1.53,2.08,3.46]){const d=a-delay;if(d<0||d>.72)continue;const h=Math.min(12,d*d*65);rect(181,96+h,h>=12?3:1,h>=12?1:2,'#a72b40')}
+ for(const release of [1.12,2.23,3.27])drip(a,release);
 }
 function sans(){
  const evade=mode==='strike',a=evade?EVADE_DURATION-flash:0,side=round%2?1:-1;
