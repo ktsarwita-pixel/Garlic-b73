@@ -1,5 +1,10 @@
 // Short one-shot instruments: waveform, onset, duration, starting/ending Hz, gain.
 const cues={
+ evade:[['triangle',0,.055,890,290,.045],['sine',.035,.12,380,820,.036]],
+ heal:[['sine',0,.15,392,400,.065],['triangle',.085,.16,494,500,.05],['sine',.16,.26,659,675,.05]],
+ impact:[['sine',0,.38,168,39,.14],['triangle',.032,.19,290,63,.068]],
+ dust:[['sine',0,.45,456,419,.033],['sine',.12,.44,682,648,.024]],
+ awaken:[['sine',0,.13,103,52,.1],['sine',.18,.22,90,42,.09],['triangle',.28,.37,223,201,.033]],
  drift:[['sine',0,.16,226,190,.035],['triangle',.08,.18,380,300,.014]],
  static:[['square',0,.025,970,160,.025],['square',.065,.04,540,90,.024]],
  stone:[['sawtooth',0,.36,108,41,.055],['triangle',.07,.42,144,58,.08]],
@@ -19,5 +24,13 @@ function playNotes(notes,pitch=1){if(!sound||!bus||audio.state!=='running')retur
  o.type=type;o.frequency.setValueAtTime(hz*pitch,at);o.frequency.exponentialRampToValueAtTime(end*pitch,at+length);
  v.gain.setValueAtTime(.0001,at);v.gain.exponentialRampToValueAtTime(level,at+.006);v.gain.exponentialRampToValueAtTime(.0001,at+length);
  o.connect(v);v.connect(bus);o.onended=()=>{o.disconnect();v.disconnect()};o.start(at);o.stop(at+length+.01)}}
-function sfx(name,pitch){playNotes(cues[name],pitch)}
+// One reusable noise source; filters and envelopes give each transient its own texture.
+const textures={stone:['lowpass',870,180,.43,.12],slash:['bandpass',4300,770,.13,.19],evade:['highpass',2500,820,.14,.065],impact:['lowpass',2800,240,.25,.22],dust:['highpass',1400,4700,.56,.08],shatter:['bandpass',4200,1350,.39,.16]};
+let grain;
+function sfx(name,pitch){playNotes(cues[name],pitch);if(!sound||!bus||audio.state!=='running'||!textures[name])return;
+ if(!grain){grain=audio.createBuffer(1,audio.sampleRate,audio.sampleRate);const data=grain.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1}
+ const [type,from,to,duration,amp]=textures[name],now=audio.currentTime,src=audio.createBufferSource(),filter=audio.createBiquadFilter(),v=audio.createGain();
+ src.buffer=grain;filter.type=type;filter.frequency.setValueAtTime(from,now);filter.frequency.exponentialRampToValueAtTime(to,now+duration);
+ v.gain.setValueAtTime(.0001,now);v.gain.exponentialRampToValueAtTime(amp,now+(name==='dust'?.1:.009));v.gain.exponentialRampToValueAtTime(.0001,now+duration);
+ src.connect(filter);filter.connect(v);v.connect(bus);src.onended=()=>{src.disconnect();filter.disconnect();v.disconnect()};src.start(now,Math.random()*.25,duration)}
 function beep(f){playNotes([['triangle',0,.14,f,f,.08]])}

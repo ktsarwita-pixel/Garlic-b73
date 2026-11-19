@@ -114,10 +114,10 @@ function heartOpponent(){
  if(loose&&shell[j-1]?.[i]!==id)rect(px,py,3,1,palette[0]);
  }));g.restore();if(mode==='heartHit')slash(sceneAge*1.6,false);
 }
-function heartAction(a){if(mode!=='ready')return;if(a==='fight'){cracks++;boss=Math.max(0,100-100*cracks/(purple?5:4));mode='heartHit';sceneAge=0;sfx('crack',1-.055*cracks);msg(`Fracture ${cracks} / ${purple?5:4}.`)}else{if(purple)return;if(a==='item'){if(!food){msg('No pie left.');return}food--;hp=Math.min(20,hp+8);msg(`Pie restores your soul. ${food} left.`)}else msg(a==='act'?'You call out. No answer.':'You offer mercy. Its pulse stays steady.');startWave(.55)}ui()}
+function heartAction(a){if(mode!=='ready')return;if(a==='fight'){cracks++;boss=Math.max(0,100-100*cracks/(purple?5:4));mode='heartHit';sceneAge=0;sfx('crack',1-.055*cracks);msg(`Fracture ${cracks} / ${purple?5:4}.`)}else{if(purple)return;if(a==='item'){if(!food){msg('No pie left.');return}sfx('heal');food--;hp=Math.min(20,hp+8);msg(`Pie restores your soul. ${food} left.`)}else msg(a==='act'?'You call out. No answer.':'You offer mercy. Its pulse stays steady.');startWave(.55)}ui()}
 function chapterTick(dt){if(mode==='hall'){moveInHall(dt);return true}
  if(mode==='portal'){const before=sceneAge;sceneAge+=dt;if(before<.52&&sceneAge>=.52)sfx('stone');if(before<1.22&&sceneAge>=1.22){sfx('passage');msg('The seam opens. Your shadow stays on the stone.')}if(before<2.72&&sceneAge>=2.72)sfx('seal');if(sceneAge>=CROSS_END)enterHeart();return true}
  if(!heartBusy())return false;sceneAge+=dt;
  if(mode==='heartHit'&&sceneAge>=1.05){if(boss>0)startWave(.5);else{sfx('shatter');mode=purple?'destroy':'reform';sceneAge=0;msg(purple?'The last eye closes.':'The pieces stop falling. Something pulls them back.')}ui()}
- else if(mode==='reform'&&sceneAge>=2.25){sfx('reform');purple=true;cracks=0;boss=100;mode='ready';msg('The heart reforms in violet. Only FIGHT responds.');ui()}
+ else if(mode==='reform'&&sceneAge>=2.25){sfx('reform');sfx('awaken');purple=true;cracks=0;boss=100;mode='ready';msg('The heart reforms in violet. Only FIGHT responds.');ui()}
  else if(mode==='destroy'&&sceneAge>=1.9){mode='end';msg('The violet heart is gone. Select an action to replay.');ui()}return true}
