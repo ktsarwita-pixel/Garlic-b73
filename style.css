@@ -5,7 +5,7 @@
 /* Keep the speech bubble's 16px grid on whole pixels at compact sizes. */
 @media(max-width:650px),(max-height:520px){.actions .icon{width:16px;height:16px}}
 /* The lock erupts through the lower edge, then stays embedded. */
-.actions button[data-a="mercy"]{position:relative;overflow:hidden}
+.actions button[data-a="mercy"],.actions button[data-a="act"]{position:relative;overflow:hidden}
 .actions button.bound{background:#272329;color:#aaa1a5;opacity:.9;cursor:not-allowed;animation:bone-impact .76s linear}
 .actions button.bound::after{content:'';position:absolute;inset:0;background:url(assets/mercy-bone.svg) bottom center/auto 100% no-repeat;pointer-events:none;animation:bone-rise .8s both}
 @keyframes bone-rise{0%,43%{transform:translateY(105%)}62%{transform:translateY(-8%)}78%{transform:translateY(4%)}100%{transform:translateY(0)}}
