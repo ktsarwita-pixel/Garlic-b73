@@ -15,14 +15,16 @@
 /* A clipped second copy tears the icon and lettering on the same scanline. */
 .command-face{display:inline-flex;align-items:center;justify-content:center;gap:inherit}
 .signal-copy{display:none}
-.actions button.corrupt{--lag:0s;--shear:4px;position:relative;overflow:hidden;isolation:isolate;opacity:1;color:#bd9dd0;border-color:#745d85;background:repeating-linear-gradient(0deg,#241d2a 0 3px,#2b2232 3px 4px);box-shadow:inset 0 0 0 2px #18121e;text-shadow:1px 1px #382042}
-.actions button.corrupt[data-a=item]{--lag:-.73s;--shear:-5px}
-.actions button.corrupt[data-a=mercy]{--lag:-1.41s;--shear:6px}
-.corrupt .signal-copy{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:inherit;pointer-events:none;color:#e1bdec;background:#33263c;clip-path:inset(41% 0 44%);transform:translateX(2px);animation:command-tear 2.8s steps(1,end) var(--lag) infinite}
-.actions button.corrupt::before{content:"";position:absolute;inset:3px;pointer-events:none;background:linear-gradient(#956ca4,#956ca4) left bottom/12px 2px no-repeat,linear-gradient(#785882,#785882) right top/7px 2px no-repeat,linear-gradient(#65466f,#65466f) right 3px top 3px/14px 1px no-repeat;animation:signal-loss 2.8s steps(1,end) var(--lag) infinite}
-@keyframes command-tear{0%,68%,100%{clip-path:inset(42% 0 48%);transform:translateX(1px)}70%,77%{clip-path:inset(30% 0 48%);transform:translateX(var(--shear))}73%{clip-path:inset(57% 0 27%);transform:translateX(calc(-1 * var(--shear)))}81%{clip-path:inset(61% 0 30%);transform:translateX(2px)}}
+.actions button.corrupt{--lag:0s;--shear:9px;--cycle:1.55s;position:relative;overflow:hidden;isolation:isolate;opacity:1;color:#bd9dd0;border-color:#745d85;background:repeating-linear-gradient(0deg,#241d2a 0 3px,#2b2232 3px 4px);box-shadow:inset 0 0 0 2px #18121e;text-shadow:1px 1px #382042}
+.actions button.corrupt[data-a=item]{--lag:-.73s;--shear:-10px;--cycle:1.83s}
+.actions button.corrupt[data-a=mercy]{--lag:-1.41s;--shear:11px;--cycle:2.09s}
+.corrupt .signal-copy{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:inherit;pointer-events:none;color:#e1bdec;background:#33263c;clip-path:inset(41% 0 44%);transform:translateX(2px);animation:command-tear var(--cycle) steps(1,end) var(--lag) infinite}
+.actions button.corrupt::before{content:"";position:absolute;inset:3px;pointer-events:none;background:linear-gradient(#956ca4,#956ca4) left bottom/12px 2px no-repeat,linear-gradient(#785882,#785882) right top/7px 2px no-repeat,linear-gradient(#65466f,#65466f) right 3px top 3px/14px 1px no-repeat;animation:signal-loss var(--cycle) steps(1,end) var(--lag) infinite}
+.corrupt .command-face{animation:signal-drift var(--cycle) steps(1,end) var(--lag) infinite}
+@keyframes signal-drift{0%,36%,63%,85%,100%{transform:none}41%,77%{transform:translate(-2px,1px);text-shadow:2px 0 #a65798,-2px 0 #607ea0}49%,81%{transform:translate(2px,-1px)}}
+@keyframes command-tear{0%,29%,66%,100%{clip-path:inset(42% 0 47%);transform:translateX(2px)}32%,45%,74%{clip-path:inset(20% 0 51%);transform:translateX(var(--shear))}39%,80%{clip-path:inset(51% 0 20%);transform:translateX(calc(-1 * var(--shear)))}52%,86%{clip-path:inset(36% 0 46%);transform:translate(4px,2px)}58%,92%{clip-path:inset(59% 0 31%);transform:translateX(-3px)}}
 @keyframes signal-loss{0%,68%,85%,100%{transform:none}70%,77%{transform:translateY(4px) scaleX(.88)}73%,81%{transform:translateY(-2px) scaleX(.96)}}
-@media(prefers-reduced-motion:reduce){.corrupt .signal-copy,.actions button.corrupt::before{animation:none}}
+@media(prefers-reduced-motion:reduce){.corrupt .command-face,.corrupt .signal-copy,.actions button.corrupt::before{animation:none}}
 
 .world.explore .boss,.world.explore .turn{display:none}
 .world.explore{container-type:size;background:#101112}
