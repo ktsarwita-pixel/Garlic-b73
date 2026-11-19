@@ -55,14 +55,36 @@ function hallway(){
   const ax=180+side*74;rect(ax-5,185,11,40,'#9da09c');rect(ax-4,186,9,37,'#454847');for(let k=0;k<8;k++)rect(ax-3,188+4*k,7,1,'#747976');
   for(const py of [103,307]){const ax=180+side*48;rect(ax,py,5,1,'#656968');rect(ax+3,py+1,1,3,'#656968');rect(ax+4,py+3,3,1,'#656968')}
  }
- // Only the sealed central slab tears, leaving stable masonry on both sides.
- const gap=port?ease(sceneAge/.75):0;rect(153,14,54,21,'#1c1e20');
- for(let k=0;k<7;k++){
-  const d=Math.round(3*Math.sin(k*2+Math.floor(t*6))),a=155+d,b=14+k*3,split=Math.round(2+gap*20);
-  rect(a,b,24-split,3,k%3?'#b4b5b1':'#e0e1dc');rect(a+24+split,b,26-split,3,k%2?'#989a99':'#c9cbc7');
+ const age=port?sceneAge:-1;threshold(age);crossingSoul(age);g.restore();
+}
+// Carved twin leaves share one broken seal. Slice the artwork, not the frame.
+const CROSS_END=3.25;
+function threshold(age){
+ const active=age>=0,open=active?ease((age-.48)/.92)*(1-ease((age-2.54)/.66)):0;
+ const tick=Math.floor(t*9),near=1-ease((hallY-38)/95);
+ rect(150,12,60,24,'#36383a');rect(152,14,56,21,'#15171a');
+ for(let row=0;row<21;row++){
+  const band=row>>2,tear=(tick+band*7)%19<2?(band%2?-1:1)*(2+Math.round(near*2)):0;
+  const tooth=[0,0,-2,-2,1,1][Math.floor(row/2)%6];
+  for(const side of [-1,1]){
+   const dx=tear+side*Math.round(open*19),left=side<0?153:180+tooth,right=side<0?180+tooth:207;
+   g.save();g.beginPath();g.rect(152,14+row,56,1);g.clip();
+   rect(left+dx,14+row,right-left,1,row===0?'#ebece6':row%8===7?'#656967':'#a4a7a3');
+   const seal=180+side*(2+Math.abs(10-row));rect(seal+dx,14+row,2,1,'#626664');rect(seal+dx+side*2,14+row,1,1,'#dedfd8');
+   rect((side<0?right-1:left)+dx,14+row,1,1,side<0?'#e5e7df':'#555958');g.restore();
+  }
  }
- const p=port?ease((sceneAge-.3)/1.2):0,px=hallX+(180-hallX)*p,py=hallY+(12-hallY)*p;
- g.globalAlpha=1-p*p;rect(px-3,py+4,7,2,'#555758');tinySoul(px,py);g.restore();
+ for(const cx of [149,207]){rect(cx,12,4,24,'#686d69');rect(cx,12,1,23,'#d8dbd4');rect(cx-1,33,6,3,'#a1a59f')}
+ rect(148,10,64,3,'#b8bbb6');rect(150,10,60,1,'#e0e2dc');
+ if(open>.05){for(let i=0;i<7;i++){const progress=(t*.8+i*.147)%1;rect(180+Math.sin(i*4)*open*(13-9*progress),32-progress*15,1,2,'#636669')}}
+}
+function crossingSoul(age){
+ const align=ease(age/.76),pull=ease((age-1.22)/1.19),lift=Math.sin(t*3)*.65+pull*2;
+ const px=hallX+(180-hallX)*align,ground=hallY+(15-hallY)*pull;
+ // Layer translucent shadow pixels over the actual stone and inlay beneath them.
+ const w=4+Math.round(lift*.5);g.save();g.globalAlpha=.19*(1-pull);rect(px-w,ground+4,w*2+1,2,'#151619');rect(px-w+2,ground+3,w*2-3,4,'#151619');
+ g.globalAlpha=.29*(1-pull);rect(px-2,ground+4,5,2,'#141416');g.restore();
+ g.save();g.beginPath();g.rect(100,17,160,410);g.clip();g.globalAlpha=1-ease((age-2.12)/.36);tinySoul(px,ground-lift);g.restore();
 }
 const watchers=[[19,43,9],[51,78,17],[85,29,12],[127,53,9],[95,105,8],[16,102,6],[142,95,6],[221,34,7],[239,94,10],[263,57,18],[305,29,10],[337,78,15],[301,106,7],[350,41,5]];
 function watchingEyes(){watchers.forEach(([cx,cy,r],i)=>{
@@ -92,7 +114,7 @@ function heartOpponent(){
 }
 function heartAction(a){if(mode!=='ready')return;if(a==='fight'){cracks++;boss=Math.max(0,100-100*cracks/(purple?5:4));mode='heartHit';sceneAge=0;beep(205);msg(`Fracture ${cracks} / ${purple?5:4}.`)}else{if(purple)return;if(a==='item'){if(!food){msg('No pie left.');return}food--;hp=Math.min(20,hp+8);msg(`Pie restores your soul. ${food} left.`)}else msg(a==='act'?'You call out. No answer.':'You offer mercy. Its pulse stays steady.');startWave(.55)}ui()}
 function chapterTick(dt){if(mode==='hall'){moveInHall(dt);return true}
- if(mode==='portal'){sceneAge+=dt;if(sceneAge>=1.65)enterHeart();return true}
+ if(mode==='portal'){const before=sceneAge;sceneAge+=dt;if(before<.52&&sceneAge>=.52)beep(130);if(before<1.22&&sceneAge>=1.22){beep(220);msg('The seam opens. Your shadow stays on the stone.')}if(sceneAge>=CROSS_END)enterHeart();return true}
  if(!heartBusy())return false;sceneAge+=dt;
  if(mode==='heartHit'&&sceneAge>=1.05){if(boss>0)startWave(.5);else{mode=purple?'destroy':'reform';sceneAge=0;msg(purple?'The last eye closes.':'The pieces stop falling. Something pulls them back.')}ui()}
  else if(mode==='reform'&&sceneAge>=2.25){purple=true;cracks=0;boss=100;mode='ready';msg('The heart reforms in violet. Only FIGHT responds.');ui()}
