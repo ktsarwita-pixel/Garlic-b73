@@ -64,10 +64,12 @@ const lastPaint={...paint,R:'#af263c',r:'#722337'};
 const lastFace=fallenFace.map((r,j)=>j===12?r.slice(0,14)+'R'+r.slice(15):j===13?r.slice(0,14)+'r'+r.slice(15):r);
 const FALL_END=7.4;
 const foldingLegs=['  kkkkkkkkkkk  ',' kgGGggggggGgk ','kgGGgggkkggGggk','kgggggk  kggggk',' kgggk    kgggk','  kkk      kkk '];
-const bentKnee=['  kkkkkkkkkkk   ',' kgGGggggggGgk  ','kgGGggkkggggGgk ','kggggk  kgggGGgk',' kgggk   kgggggk','  kkk     kkkkk '];
-const tuckedBoot=['   kkkkkk  ',' kksspppsk ','kPPpppppssk',' kkkkkkkkk '];
+// Front-view knees and slippers: centered toe caps, no side-facing heels.
+const bentKnee=['   kkkkkkkkkk   ','  kgGGggggGGgk  ',' kgggggkkgggggk ','kgGGgggkkggGGggk','kgggggk  kgggggk',' kkkkk    kkkkk '];
+const frontBoot=['  kkkk  ',' kssssk ','kppPPppk','kpPPPPpk','kssppssk',' kkkkkk '];
+const tuckedBoot=[' kkkkkk ','kppPPppk','kssppssk',' kkkkkk '];
 function kneelPose(a){const shift=ease((a-.52)/.48),fold=ease((a-.9)/.68),settle=pulse(a,1.55,1.95);
- return {fold,lean:Math.round(-3*shift+fold),drop:Math.round(2*shift+7*fold+2*settle),bow:Math.round(3*ease((a-1.13)/.78))}}
+ return {fold,lean:0,drop:Math.round(2*shift+7*fold+2*settle),bow:Math.round(3*ease((a-1.13)/.78))}}
 // Locate the bottommost stained stitch instead of emitting from arena coordinates.
 const hem=lastCoat.flatMap((row,j)=>[...row].flatMap((c,i)=>'Rr'.includes(c)?[{i,j}]:[])).pop();
 function drip(a,release){const d=a-release;if(d<-.24)return;const pose=kneelPose(Math.min(a,release));
@@ -91,7 +93,7 @@ function fallenSans(){
   const wind=Math.sin(seed*27+age*3)*age*5+age*age*9;
   rect(px+wind,py-age*(8+seed*14),age<.16?2:1,age<.16?2:1,seed<.4?'#aaa8a4':'#e2dfd7');g.globalAlpha=1;
  }))}
- g.save();layer(boot,160,98);layer(fold>.55?tuckedBoot:boot,180+Math.round(5*fold),98+(fold>.55?4:0));
+ g.save();layer(frontBoot,162,98);layer(fold>.55?tuckedBoot:frontBoot,182,98+(fold>.55?4:0));
  layer(fold>.68?bentKnee:fold>.12?foldingLegs:shorts,164+lean,89+Math.round(9*fold));
  layer(hit?lastCoat:coat,158+lean,68+drop);layer(hit?lastFace:angrySkull,159+lean,43+drop+bow);
  if(eyes>0){g.globalAlpha=eyes;for(let i=0;i<skull[7].length;i++)if(skull[7][i]==='e')rect(159+lean+2*i,57+drop+bow,2,2,paint.e)}g.restore();
@@ -210,8 +212,9 @@ function msg(m){$('#message').textContent=m}function ui(){$('#encounter').textCo
 function blocked(a){return encounter===5&&mode!=='end'&&(a==='act'||a==='mercy')||a==='mercy'&&mercyBound()}
 function mercyBound(){return encounter===4&&calm<3&&mode!=='end'}
 function finish(){mode=encounter<5?'between':'end';msg(encounter<5?`Encounter 0${encounter} clear. Select any action for encounter 0${encounter+1}.`:'The corridor is quiet. All encounters clear. Select any action to replay.')}
+function startSansDeath(){boss=0;fallAge=0;shots=[];mode='fallen';msg('The fifth slash lands.');beep(125);ui()}
 function act(a){if(paused||mode==='fallen'||mode==='dodge'||mode==='strike'||mode==='dying')return;if(mode==='between'){encounter++;resetBattle();say(encounter===5?'THIS TIME I WONT GIVE UP!':encounter===4?'you know what no more mercy':encounter===3?'Ah you again im taking it serius':'new rule, kid. blue bones pass through if you hold still.');ui();return}
-if(mode==='end'){if(hp>0)encounter=1;resetBattle();say(encounter===5?'THIS TIME I WONT GIVE UP!':encounter===2?'round two again. remember: blue means hold still.':'back already? kept your spot warm.');ui();return}if(blocked(a))return;if(a==='item'&&!food){msg('Your pockets are empty. Choose another action.');return}beep(330);if(a==='fight'){if(encounter===5&&++swings===5){boss=0;fallAge=0;mode='fallen';msg('The fifth slash lands.');beep(125);ui();return}mode='strike';flash=EVADE_DURATION;msg('You swing.');ui();return}if(encounter===4&&a==='act'){calm++;say(['you want me to listen? then listen back.', '...okay. one more thing to say?', 'alright. the bone’s gone. your call.'][Math.min(calm,3)-1])}if(encounter===3&&a==='act'){calm++;say(['red means keep moving, kid.', 'yeah. i hear you. blue still means stop.', 'enough. use mercy and we’re done.'][Math.min(calm,3)-1])}if(a==='act'&&encounter===1){calm++;say(['heh. a joke? now we’re talking.', 'okay. that one got a real laugh.', 'call it a draw? mercy’s right there.'][Math.min(calm,3)-1])}if(a==='item'){food--;hp=Math.min(20,hp+8);msg(`You eat a pie slice. ${food} left.`+(encounter===3?' Red: move. Blue: stop.':''))}if(a==='mercy')msg(encounter===3?'Not yet. Try ACT. Red: move. Blue: stop.':'Not yet. Maybe a few jokes would help.');if(!boss||(a==='mercy'&&calm>=3&&encounter!==2)){finish()}else{startWave(.1)}ui()}
+if(mode==='end'){if(hp>0)encounter=1;resetBattle();say(encounter===5?'THIS TIME I WONT GIVE UP!':encounter===2?'round two again. remember: blue means hold still.':'back already? kept your spot warm.');ui();return}if(blocked(a))return;if(a==='item'&&!food){msg('Your pockets are empty. Choose another action.');return}beep(330);if(a==='fight'){if(encounter===5&&++swings===5){startSansDeath();return}mode='strike';flash=EVADE_DURATION;msg('You swing.');ui();return}if(encounter===4&&a==='act'){calm++;say(['you want me to listen? then listen back.', '...okay. one more thing to say?', 'alright. the bone’s gone. your call.'][Math.min(calm,3)-1])}if(encounter===3&&a==='act'){calm++;say(['red means keep moving, kid.', 'yeah. i hear you. blue still means stop.', 'enough. use mercy and we’re done.'][Math.min(calm,3)-1])}if(a==='act'&&encounter===1){calm++;say(['heh. a joke? now we’re talking.', 'okay. that one got a real laugh.', 'call it a draw? mercy’s right there.'][Math.min(calm,3)-1])}if(a==='item'){food--;hp=Math.min(20,hp+8);msg(`You eat a pie slice. ${food} left.`+(encounter===3?' Red: move. Blue: stop.':''))}if(a==='mercy')msg(encounter===3?'Not yet. Try ACT. Red: move. Blue: stop.':'Not yet. Maybe a few jokes would help.');if(!boss||(a==='mercy'&&calm>=3&&encounter!==2)){finish()}else{startWave(.1)}ui()}
 function update(dt){if(mode==='fallen'){const before=fallAge;fallAge+=dt;if(before<1.48&&fallAge>=1.48)say('heh. guess you finally got me.');if(before<3.1&&fallAge>=3.1)say('give me a minute, kid.');if(fallAge>=FALL_END){finish();ui()}return}if(mode==='dying'){const prev=deathAge;deathAge+=dt;if(prev<.78&&deathAge>=.78)beep(85);if(prev<1.52&&deathAge>=1.52){beep(196);say('hey. take a breath, kid.')}if(deathAge>=3.43){mode='end';msg('Your soul shattered. Select an action to retry.');ui()}return}if(mode==='strike'){
  const prev=flash;flash=Math.max(0,flash-dt);
  if(prev>EVADE_DURATION-1.1&&flash<=EVADE_DURATION-1.1){beep(420);say(['nice swing. wrong address.', 'pretty sure the air learned its lesson.', 'i was standing there. past tense.'][misses++%3]);ui()}
@@ -231,6 +234,7 @@ function testCommand(raw){
   if(encounter===5)say('THIS TIME I WONT GIVE UP!');else if(encounter===4)say('you know what no more mercy');else if(encounter===3)say('Ah you again im taking it serius');else msg('Encounter ready. Choose an action.');
  }else if(/^wave [1-3]$/.test(cmd)){round=Number(cmd.slice(-1));if(hp<=0)hp=20;inv=0;startWave(.55)}
  else if(cmd==='heal'){if(hp<=0)return 'Use reset to restart after death.';hp=20;food=3}
+ else if(cmd==='sans death'||cmd==='finale'){encounter=5;resetBattle();swings=5;startSansDeath()}
  else if(cmd==='die'){hp=0;deathAge=0;shots=[];mode='dying';msg('Your soul begins to crack.')}
  else if(cmd==='calm'){calm=3;msg('Sans has lowered his guard.')}
  else if(/^god (on|off)$/.test(cmd)){testGod=cmd==='god on'}
