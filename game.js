@@ -67,31 +67,48 @@ function slash(age){
 // Each scanline has its own fracture point so the two pieces interlock.
 let deathAge=0;
 const soulRows=[' rr rr ','rrrrrrr','rrrrrrr',' rrrrr ','  rrr  ','   r   '], seam=[3,3,2,3,2,3];
+// Cut each half into contiguous pieces. Their pixels start exactly where the
+// cracked-heart pose left them; no second emitter or overlapping intact heart.
+const fragments=[[1,0,-44,-28],[0,2,-28,-16],[2,3,-18,-10],
+ [5,0,41,-29],[6,2,32,-18],[4,2,20,-25],[3,5,12,-12]].map(([i,j,vx,vy],n)=>({i,j,vx,vy,n,pixels:[]}));
+soulRows.forEach((row,j)=>[...row].forEach((p,i)=>{
+ if(p!=='r')return;const side=i>=seam[j];let nearest=null,d=Infinity;
+ for(const f of fragments){if((f.i>=seam[f.j])!==side)continue;const dd=(i-f.i)**2+(j-f.j)**2;if(dd<d){nearest=f;d=dd}}
+ nearest.pixels.push([i,j]);
+}));
+function shatter(age){
+ g.save();g.beginPath();g.rect(98,121,164,50);g.clip();
+ for(const f of fragments){const sign=Math.sign(f.vx),ox=180+(f.i-3)*2.5+sign*4,oy=145+(f.j-3)*2.5+(sign>0?2:0);
+  const floor=166,gravity=54,hit=(-f.vy+Math.sqrt(f.vy*f.vy+2*gravity*(floor-oy)))/gravity;
+  function at(q){const b=Math.max(0,q-hit);return [ox+f.vx*q/(1+.24*q),q<hit?oy+f.vy*q+.5*gravity*q*q:Math.min(floor,floor-(f.vy+gravity*hit)*.28*b+.5*gravity*b*b)]}
+  const [px,py]=at(age),angle=sign*age*(2+.27*f.n),co=Math.cos(angle),si=Math.sin(angle),alpha=1-ease((age-1.23)/.63);
+  // Sparse, stepped afterimages underneath the tumbling red faces.
+  for(let k=3;k>0;k--){if(age<k*.042)continue;const [tx,ty]=at(age-k*.042);g.globalAlpha=alpha*(4-k)*.13;rect(tx,ty,2,1,'#ff6383')}
+  g.globalAlpha=alpha;
+  for(const [i,j] of f.pixels){const dx=(i-f.i)*2.5,dy=(j-f.j)*2.5;rect(px+dx*co-dy*si,py+dx*si+dy*co,3,3,i===seam[j]?'#ffc4ae':sign>0?'#ff626a':'#df475c')}
+  // Pinpricks follow the torn edge, then burn out before the heavier chips land.
+  for(let k=0;k<2;k++){const q=age-k*.09;if(q<=0||q>.86)continue;g.globalAlpha=1-ease(q/.86);const sx=ox+sign*(22+f.n*3+k*9)*q,sy=oy-(19+k*15)*q+13*q*q;rect(sx,sy,1,1,'#ffe3bd');if(k===0&&q<.2)rect(sx-1,sy,3,1,'#ffac94')}
+ }g.restore();
+}
 function brokenSoul(){
- const a=deathAge, focus=ease(a/.38), split=ease((a-.78)/.46), fall=ease((a-1.45)/.67);
+ const a=deathAge, focus=ease(a/.38), split=ease((a-.78)/.46);
+ if(a>=1.52){shatter(a-1.52);return}
  const cx=x+(180-x)*focus,cy=y+(145-y)*focus,scale=1+focus*(1.5+.55*pulse(a,.38,.76));
- g.save();g.globalAlpha=1-fall;
+ g.save();
  soulRows.forEach((row,j)=>[...row].forEach((p,i)=>{
   if(p!=='r')return;
   const right=i>=seam[j],dir=right?1:-1;
   const crack=i===seam[j]&&j<=Math.floor((a-.38)*16)&&a<.84;
-  rect(cx+(i-3)*scale+dir*(4*split+9*fall),cy+(j-3)*scale+(right?2:0)*split+11*fall,Math.ceil(scale),Math.ceil(scale),crack?'#fff1da':right?'#ff626a':'#df475c');
+  rect(cx+(i-3)*scale+dir*(4*split),cy+(j-3)*scale+(right?2:0)*split,Math.ceil(scale),Math.ceil(scale),crack?'#fff1da':right?'#ff626a':'#df475c');
  }));g.restore();
- // Shards keep the heart's red core, leaving short fading trails under gravity.
- if(a>1.52){g.save();g.beginPath();g.rect(98,121,164,50);g.clip();
-  for(let i=0;i<16;i++){
-   const age=a-1.52-(i%4)*.025;if(age<=0)continue;
-   const theta=i*2.39996,vx=Math.cos(theta)*(12+i%5*7),vy=-15+Math.sin(theta)*16;
-   for(let k=3;k>=0;k--){const q=Math.max(0,age-k*.035);g.globalAlpha=(1-ease((age-.54)/.79))*(1-k*.24);
-    rect(cx+(i%2?5:-5)+vx*q,cy+vy*q+18*q*q,k?1:2,1+i%2,k?'#bf415b':i%3?'#ff6877':'#ffe1c8');}
-  }g.restore();}
+
 }
 function draw(){sky(t);g.clearRect(0,0,360,180);sans();rect(94,118,172,57,'#556766');rect(96,119,168,54,'#e5e8d6');rect(98,121,164,50,'#0c141a');for(let i=100;i<260;i+=8)for(let j=124;j<171;j+=8)rect(i,j,1,1,'#1b2b2d');for(let b of shots){rect(b.x,b.y,3,b.h,'#dedfce');rect(b.x-1,b.y,5,3,'#f4eed8');rect(b.x-1,b.y+b.h-3,5,3,'#f4eed8')}if(mode==='dying')brokenSoul();else if(hp>0&&(inv<=0||Math.floor(t*12)%2)){const heart=[' rr rr ','rrrrrrr','rrrrrrr',' rrrrr ','  rrr  ','   r   '];heart.forEach((r,j)=>[...r].forEach((p,i)=>{if(p==='r')rect(x+i-3,y+j-3,1,1,'#ff626a')}))}if(paused||mode==='end'){rect(101,134,158,22,'#142423');g.fillStyle='#ffe27d';g.font='8px p, monospace';g.textAlign='center';g.fillText(paused?'PAUSED':hp<=0?'SOUL LOST':'ENCOUNTER CLEAR',180,148)}}
 let misses=0;
 function say(line){msg('Sans: “'+line+'”')}
 function msg(m){$('#message').textContent=m}function ui(){document.querySelectorAll('[data-a]').forEach(b=>b.disabled=mode==='dodge'||mode==='strike'||mode==='dying'||paused);for(let [id,v,max] of [['hp',hp,20],['boss',boss,100]]){if(id==='hp')$('#hpnum').textContent=v+' / '+max;$('#'+id+'bar').style.width=v/max*100+'%'}$('#turn').textContent=String(round).padStart(2,'0');$('#phase').textContent=mode==='dying'?'SOUL LOST':mode==='strike'?'STRIKE':mode==='dodge'?'DODGE':mode==='end'?'END':'READY'}let audio;function beep(f){if(!sound)return;try{audio??=new AudioContext();let o=audio.createOscillator(),v=audio.createGain();o.type='triangle';o.frequency.value=f;o.connect(v);v.connect(audio.destination);v.gain.setValueAtTime(.09,audio.currentTime);v.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.14);o.start();o.stop(audio.currentTime+.15)}catch{}}
 function act(a){if(paused||mode==='dodge'||mode==='strike'||mode==='dying')return;if(mode==='end'){round=1;hp=20;boss=100;food=3;calm=0;deathAge=0;inv=0;mode='ready';x=180;y=148;shots=[];say('back already? kept your spot warm.');ui();return}if(a==='item'&&!food){msg('Your pockets are empty. Choose another action.');return}beep(330);if(a==='fight'){mode='strike';flash=EVADE_DURATION;msg('You swing.');ui();return}if(a==='act'){calm++;say(['heh. a joke? now we’re talking.', 'okay. that one got a real laugh.', 'call it a draw? mercy’s right there.'][Math.min(calm,3)-1])}if(a==='item'){food--;hp=Math.min(20,hp+8);msg(`You eat a pie slice. ${food} left. Stay moving!`)}if(a==='mercy')msg('Not yet. Maybe a few jokes would help.');if(!boss||(a==='mercy'&&calm>=3)){mode='end';msg('The corridor falls quiet. Select an action to replay.')}else{mode='dodge';elapsed=0;spawn=.1;shots=[]}ui()}
-function update(dt){if(mode==='dying'){const prev=deathAge;deathAge+=dt;if(prev<.78&&deathAge>=.78)beep(85);if(prev<1.52&&deathAge>=1.52){beep(196);say('hey. take a breath, kid.')}if(deathAge>=3.02){mode='end';msg('Your soul shattered. Select an action to retry.');ui()}return}if(mode==='strike'){
+function update(dt){if(mode==='dying'){const prev=deathAge;deathAge+=dt;if(prev<.78&&deathAge>=.78)beep(85);if(prev<1.52&&deathAge>=1.52){beep(196);say('hey. take a breath, kid.')}if(deathAge>=3.43){mode='end';msg('Your soul shattered. Select an action to retry.');ui()}return}if(mode==='strike'){
  const prev=flash;flash=Math.max(0,flash-dt);
  if(prev>EVADE_DURATION-1.1&&flash<=EVADE_DURATION-1.1){beep(420);say(['nice swing. wrong address.', 'pretty sure the air learned its lesson.', 'i was standing there. past tense.'][misses++%3]);ui()}
  if(!flash){if(!boss){mode='end';msg('The corridor falls quiet. Select an action to replay.')}else{mode='dodge';elapsed=0;spawn=.55;shots=[];msg('Dodge the bones! Try ACT to win him over.')}ui()}return;
