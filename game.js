@@ -66,15 +66,22 @@ const cutPath=lastCoat.flatMap((row,j)=>{
  const cols=Array.from(row,(ch,i)=>'Rr'.includes(ch)?i:-1).filter(i=>i>=0);
  return cols.length?[{x:2*cols[Math.floor(cols.length/2)]+1,y:2*j+1,row:j}]:[];
 }).reverse();
-function cutHead(a){return Math.max(0,Math.min(cutPath.length-1,(a-.19)/.24*(cutPath.length-1)))}
+// A bright silhouette outside the hoodie makes the strike readable even on mobile.
+// The lead-in and follow-through extend the stroke, never the wound itself.
+const bladePath=[{x:cutPath[0].x-12,y:cutPath[0].y+9},...cutPath,
+ {x:cutPath.at(-1).x+12,y:cutPath.at(-1).y-9}];
+function bladeHead(a){return a<.19?ease(a/.19):a<.75?1+(cutPath.length-1)*ease((a-.19)/.56):cutPath.length+ease((a-.75)/.15)}
+function cutHead(a){return Math.min(cutPath.length-1,Math.max(0,bladeHead(a)-1))}
 function fatalTrace(a,ox,oy){
- if(a<.19||a>.63)return;const head=cutHead(a),tail=Math.max(0,head-3-(.43-a)*16);
- g.save();g.globalAlpha=1-ease((a-.43)/.2);
- for(let k=0;k<cutPath.length-1;k++){
-  const p=cutPath[k],q=cutPath[k+1],steps=Math.max(Math.abs(q.x-p.x),Math.abs(q.y-p.y));
-  for(let n=0;n<=steps;n++){const f=n/steps,u=k+f;if(u<tail||u>head)continue;
-   const x=ox+p.x+(q.x-p.x)*f,y=oy+p.y+(q.y-p.y)*f;
-   rect(x,y,1,1,head-u<1?'#fff4d7':'#e79174');
+ if(a<=0||a>=1.36)return;const head=bladeHead(a);
+ g.save();g.globalAlpha=1-ease((a-1.04)/.32);
+ for(const [width,color] of [[7,'#682e40'],[5,'#ef835d'],[3,'#fff7db']]){
+  for(let k=0;k<bladePath.length-1&&k<=head;k++){
+   const p=bladePath[k],q=bladePath[k+1],steps=Math.max(Math.abs(q.x-p.x),Math.abs(q.y-p.y));
+   for(let n=0;n<=steps;n++){const f=n/steps,u=k+f;if(u>head)break;
+    const taper=Math.min(1,.35+u,.35+bladePath.length-1-u),w=Math.max(1,Math.round(width*taper));
+    rect(ox+p.x+(q.x-p.x)*f,oy+p.y+(q.y-p.y)*f-(w>>1),2,w,color);
+   }
   }
  }g.restore();
 }
