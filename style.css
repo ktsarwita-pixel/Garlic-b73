@@ -15,4 +15,8 @@
 .actions button.corrupt{color:#cb97ed;border-color:#63377e;background:repeating-linear-gradient(0deg,#211629 0 3px,#35203e 3px 4px);text-shadow:2px 0 #705795,-1px 0 #bc628e;animation:corrupt-label 1.35s steps(1) infinite}@keyframes corrupt-label{0%,95%{text-indent:0}90%{text-indent:4px}93%{text-indent:-3px}}@media(prefers-reduced-motion:reduce){.actions button.corrupt{animation:none}}
 .world.explore .boss,.world.explore .turn{display:none}
 .world.explore{container-type:size;background:#101112}
-.world.explore #scene{width:min(100cqw,200cqh);height:auto;max-height:none;top:50%;bottom:auto;transform:translate(-50%,-50%)}
+.world.explore #scene{width:min(100cqw,49.315cqh);height:auto;max-height:none;top:50%;bottom:auto;transform:translate(-50%,-50%)}
+
+.world.explore + .console :is(.actions,.readout,footer){display:none}
+.world.explore + .console{padding-block:4px max(4px,env(safe-area-inset-bottom))}
+.world.explore + .console .dialog{min-height:0;margin:0}

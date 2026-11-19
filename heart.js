@@ -8,13 +8,13 @@ function tinySoul(cx,cy){[' rr rr ','rrrrrrr','rrrrrrr',' rrrrr ','  rrr  ','   
 // World coordinates are in floor pixels; the camera never scales or rotates.
 const HALL_NORTH=38,HALL_SOUTH=410;
 const hallClamp=(v,min,max)=>Math.max(min,Math.min(max,v));
-const hallCamera=()=>Math.round(hallClamp(hallY-100,0,258));
+const HALL_LEFT=72,HALL_WIDTH=216,HALL_HEIGHT=438;
 function hallWidth(y){return (y>=154&&y<=254)?87:65}
 function moveInHall(dt){
  let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));
  let dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));
  let step=92*dt;
- if(drag&&target){dx=target[0]-hallX;dy=target[1]+hallCamera()-hallY;step=Math.min(step,Math.hypot(dx,dy))}
+ if(drag&&target){dx=target[0]+HALL_LEFT-hallX;dy=target[1]-hallY;step=Math.min(step,Math.hypot(dx,dy))}
  const len=Math.hypot(dx,dy);if(!len)return;
  const width=hallWidth(hallY);hallX=hallClamp(hallX+dx/len*step,180-width+4,180+width-4);
  const next=hallClamp(hallY+dy/len*step,HALL_NORTH,HALL_SOUTH);
@@ -22,15 +22,15 @@ function moveInHall(dt){
  if(hallY<=HALL_NORTH+1&&Math.abs(hallX-180)<23){mode='portal';sceneAge=0;drag=false;target=null;msg('The stone slips out of place. Beyond it, a heartbeat.');ui()}
 }
 function hallway(){
- const cam=hallCamera(),port=mode==='portal';g.save();g.translate(0,-cam);
- rect(0,cam,360,180,'#101112');
+ const port=mode==='portal';g.save();g.translate(-HALL_LEFT,0);
+ rect(HALL_LEFT,0,HALL_WIDTH,HALL_HEIGHT,'#101112');
  // The gallery opens into a wider landing halfway up the map.
  for(const [top,bottom,w] of [[32,154,65],[154,255,87],[255,417,65]]){
   const l=180-w,r=180+w,h=bottom-top;
   for(const edge of [l-9,r]){rect(edge,top,9,h,'#424446');rect(edge+2,top,5,h,'#a4a6a6');rect(edge+3,top,1,h,'#d8d9d7')}
   rect(l,top,w*2,h,'#646667');rect(l,top,3,h,'#414345');rect(r-2,top,2,h,'#505253');
   g.save();g.beginPath();g.rect(l+3,top,w*2-6,h);g.clip();
-  for(let j=Math.floor(Math.max(top,cam)/16);j<=Math.min(bottom,cam+180)/16;j++)for(let i=0;i<7;i++){
+  for(let j=Math.floor(top/16);j<bottom/16;j++)for(let i=0;i<7;i++){
    let a=78+i*32-(j%2)*16,b=j*16;rect(a,b,31,15,['#777979','#747676','#797b7a'][(i+j*2)%3]);rect(a+1,b,29,1,'#818382')}
   g.restore();
  }
@@ -42,6 +42,19 @@ function hallway(){
  for(const py of [67,135,203,278,360])for(const side of [-1,1]){
   const a=180+side*(hallWidth(py)+8);rect(a-6,py-7,12,15,'#313335');rect(a-5,py-7,10,11,'#aaacab');rect(a-3,py-5,6,7,'#777978');rect(a-2,py-4,4,4,'#ededdf');rect(a-3,py+5,6,2,'#525455')}
  rect(106,HALL_SOUTH+5,148,7,'#aaacab');rect(106,15,148,18,'#929494');rect(106,15,148,2,'#d6d7d3');rect(106,32,148,3,'#454748');
+ // Compass rose in the central landing; a stepped threshold at the entrance.
+ for(let j=-16;j<=16;j++){
+  const w=16-Math.abs(j);rect(180-w,205+j,w*2+1,1,'#aaada9');
+  if(w>1)rect(182-w,205+j,w*2-3,1,'#565959');
+  const ray=j===0?11:Math.max(1,5-Math.abs(j));if(Math.abs(j)<13){rect(180-ray,205+j,ray,1,'#cdd0c9');rect(180,205+j,ray,1,'#949994')}
+ }
+ for(let n=0;n<3;n++){rect(156+n*3,414+n*3,48-n*6,2,'#787b79');rect(156+n*3,414+n*3,48-n*6,1,'#c8cac5')}
+ // Mortar joints and recessed grilles distinguish the two side galleries.
+ for(const side of [-1,1]){
+  for(let py=42;py<411;py+=18){const ex=180+side*(hallWidth(py)+4);rect(ex-3,py,6,1,'#676a68')}
+  const ax=180+side*74;rect(ax-5,185,11,40,'#9da09c');rect(ax-4,186,9,37,'#454847');for(let k=0;k<8;k++)rect(ax-3,188+4*k,7,1,'#747976');
+  for(const py of [103,307]){const ax=180+side*48;rect(ax,py,5,1,'#656968');rect(ax+3,py+1,1,3,'#656968');rect(ax+4,py+3,3,1,'#656968')}
+ }
  // Only the sealed central slab tears, leaving stable masonry on both sides.
  const gap=port?ease(sceneAge/.75):0;rect(153,14,54,21,'#1c1e20');
  for(let k=0;k<7;k++){
