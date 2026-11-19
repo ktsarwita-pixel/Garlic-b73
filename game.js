@@ -16,9 +16,9 @@ const skull=[
 '  kwkkekkwwkkekkkswk ',
 '  kkwwwwwkkswwwsswkk ',
 '   kwwwwkkkkwwwWwsk  ',
-'  kwskwwwwwwwwwkswsk ',
-'   kwwkWWWWWWWkwwsk  ',
-'    kswkwswswkswsk   ',
+'  kwswwwwwwwwwwwswsk ',
+'   kwwwwmwwwwmwwwsk  ',
+'    kswwwmmmmwwwsk   ',
 '     kswwwwwWwsssk   ',
 '      kksssssskk     ',
 '        kkkkkk       '];
@@ -38,7 +38,7 @@ const coat=[
 '    kkkkkkkkkkkkkk     '];
 const boot=['  kkkkkk  ','  kssssk  ',' kpppppsk ','kPPPPpppsk','kssppppssk',' kkkkkkkk '];
 const shorts=[' kkkkkkkkkkkkkkk ',' kgggGggkgggGggk ',' kgggGggkgggGggk ',' kgggGggkgggGggk ',' kgggggkkkgggggk ',' kkkkkkk kkkkkkk '];
-const paint={k:ink,w:bone,W:'#fff9e8',s:shade,b:blue,d:'#315b83',z:'#bdccd4',c:'#729cba',B:'#7db2cb',f:'#d5d6cb',g:'#303b50',G:'#687588',p:'#bd8b99',P:'#efd1c7',e:'#f9f7e8'};
+const paint={m:"#716d68",k:ink,w:bone,W:'#fff9e8',s:shade,b:blue,d:'#315b83',z:'#bdccd4',c:'#729cba',B:'#7db2cb',f:'#d5d6cb',g:'#303b50',G:'#687588',p:'#bd8b99',P:'#efd1c7',e:'#f9f7e8'};
 function sans(){
  const evade=mode==='strike',a=evade?EVADE_DURATION-flash:0,side=round%2?1:-1;
  const spring=pulse(a,0,.29),out=pulse(a,.22,.69),back=pulse(a,2.04,2.80);
