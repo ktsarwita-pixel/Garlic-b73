@@ -40,8 +40,12 @@ const coat=[
 const boot=['  kkkkkk  ','  kssssk  ',' kpppppsk ','kPPPPpppsk','kssppppssk',' kkkkkkkk '];
 const shorts=[' kkkkkkkkkkkkkkk ',' kgggGggkgggGggk ',' kgggGggkgggGggk ',' kgggGggkgggGggk ',' kgggggkkkgggggk ',' kkkkkkk kkkkkkk '];
 const paint={m:"#716d68",k:ink,w:bone,W:'#fff9e8',s:shade,b:blue,d:'#315b83',z:'#bdccd4',c:'#729cba',B:'#7db2cb',f:'#d5d6cb',g:'#303b50',G:'#687588',p:'#bd8b99',P:'#efd1c7',e:'#f9f7e8'};
-// A single held cel: the fingertip faces the viewer, the knuckles sit behind it.
-const pointCel=['  kkk  ',' kWWskk',' kwwksk','  kssbk','   kbbk','    kk '];
+// Replace the pocketed sleeve, rather than drawing a second hand over it.
+// Warm tip in front, shaded curled fingers behind, blue elbow to the outside.
+const pointingCoat=coat.map((row,j)=>j<4||j>10?row:row.slice(0,12)+[
+ 'sfkbbbBBk', 'sfkBBbbbBk', 'skkkkBBbbk', 'kWWwskBBbk',
+ 'kwwskwsbbk', 'skkswskdk', 'wzksskkk'
+][j-4]);
 function sans(){
  const evade=mode==='strike',a=evade?EVADE_DURATION-flash:0,side=round%2?1:-1;
  const spring=pulse(a,0,.29),out=pulse(a,.22,.69),back=pulse(a,2.04,2.80);
@@ -51,11 +55,9 @@ function sans(){
  rect(cx-20,109,40,2,'#101010');rect(cx-14,111,28,1,'#161616');
  for(const foot of [-1,1]){const step=foot*side;mask(boot,paint,cx+foot*10-10+step*2*out,base-11-(step>0?3*out:2*back))}
  mask(shorts,paint,cx-16,base-20);
- const torso=base-41+bob+2*spring;mask(coat,paint,cx-22+lean,torso);
- const gesture=t-gestureStart;
- if(encounter===4&&calm<3&&gesture>=.25&&gesture<.95){
-  mask(pointCel,paint,cx+lean+3,torso+9);
- }
+ const torso=base-41+bob+2*spring,gesture=t-gestureStart;
+ const pointing=encounter===4&&calm<3&&gesture>=.25&&gesture<.95;
+ mask(pointing?pointingCoat:coat,paint,cx-22+lean,torso);
  const hx=cx-21+lean*1.5,hy=torso-25+bob*.45;
  mask(encounter>=3&&calm<3?angrySkull:skull,{...paint,e:t%4.5<.14?ink:paint.e},hx,hy);
  if(mode==='dodge'||(evade&&a>.62&&a<2.15)){rect(hx+26,hy+14,3,2,'#44cdea');rect(hx+27,hy+14,1,1,'#deffff')}
