@@ -49,9 +49,9 @@ const pointingCoat=coat.map((row,j)=>j<4||j>10?row:row.slice(0,12)+[
 // Project the fingertip onto the body centreline. Its near face grows on
 // the thrust while the far knuckles and elbow stay tucked against the coat.
 const towardPlayer=coat.map((row,j)=>j<4||j>11?row:row.slice(0,8)+[
- 'wwwsfkbBBbbk','wwkkkssfBBbbk','wkWWWkswsdBBbk',
- 'kWWwwwkswksBbk','kwwwwwkssksbbk','wkswwsksksdbk',
- 'zwkkkksskkddk','bzggzkkkddk'
+ 'wwwsfkbBBbbk','wwkksssfBBbbk','wkWWkswsdBBbbk',
+ 'kwWWwkswksBBbk','kwwwwkssksBbbk','wkssksksksdbk',
+ 'zwkksskskkddk','bzggzkkkddk'
 ][j-4]);
 function sans(){
  const evade=mode==='strike',a=evade?EVADE_DURATION-flash:0,side=round%2?1:-1;
