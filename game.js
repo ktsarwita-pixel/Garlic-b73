@@ -55,17 +55,28 @@ const towardPlayer=coat.map((row,j)=>j<4||j>11?row:row.slice(0,8)+[
 ][j-4]);
 let swings=0,fallAge=0;
 const fallenFace=skull.map((r,j)=>j===7?'  kwssssswwsssssswsk ':j===11?'   kwwwssssssswwwsk  ':r);
+// The cut catches the open hoodie. Keep it attached to the cloth on every step.
+const lastCoat=coat.map((row,j)=>[...row].map((p,i)=>{
+ const line=19-j*1.24;if(j<2||j>10||p===' '||p==='k')return p;
+ return Math.abs(i-line)<1.35?(i<line?'R':'r'):p;
+}).join(''));
+const lastPaint={...paint,R:'#af263c',r:'#722337'};
+const lastFace=fallenFace.map((r,j)=>j===12?r.slice(0,14)+'R'+r.slice(15):j===13?r.slice(0,14)+'r'+r.slice(15):r);
+const FALL_END=6.25;
 function fallenSans(){
- const a=fallAge,drop=ease((a-.45)/.8),dust=ease((a-1.28)/1.15);
- // One closed-eyed collapse pose; dissolve its own pixels from the shoulders down.
+ const a=fallAge;if(a>=FALL_END)return;
+ const hit=a>=.24,slump=ease((a-.74)/.9),walk=ease((a-2.9)/1.68),step=Math.sin(walk*Math.PI*5);
+ const dx=Math.round(3*pulse(a,.24,.48)+walk*32),dy=Math.round(slump*4-Math.abs(step)*2);
+ const dust=1.4*ease((a-4.52)/1.5);
  function layer(rows,ox,oy){rows.forEach((row,j)=>[...row].forEach((key,i)=>{
-  if(!paint[key])return;const seed=((i*41+j*67+ox*11)%97)/97;
-  const drift=Math.max(0,dust-seed);
-  if(drift>.32)return;
-  rect(ox+2*i+drift*(seed-.5)*65,oy+2*j-drift*46,drift?1:2,drift?1:2,drift?'#c9c4b7':paint[key]);
+  if(!lastPaint[key])return;const seed=((i*41+j*67+rows.length*11)%97)/97;
+  const drift=Math.max(0,dust-seed);if(drift>.32)return;
+  rect(ox+dx+2*i+drift*(seed-.5)*65,oy+2*j-drift*46,drift?1:2,drift?1:2,drift?'#d0c9bc':lastPaint[key]);
  }))}
- if(a<2.55){layer(shorts,164,89);layer(boot,160,98);layer(boot,180,98);layer(coat,158,68+Math.round(drop*7));layer(fallenFace,159,43+Math.round(drop*11));}
- if(a<1.45)slash(a);
+ layer(shorts,164,89+dy);layer(boot,160+Math.round(step*2),98-Math.max(0,Math.round(step*3)));layer(boot,180-Math.round(step*2),98+Math.min(0,Math.round(step*3)));
+ layer(hit?lastCoat:coat,158,68+dy);layer(hit?lastFace:angrySkull,159+Math.round(slump*2),43+dy+Math.round(slump*3));
+ if(a<1.45)slash(a*1.6,false);
+ for(const [delay,offset] of [[1.53,0],[2.08,1],[3.46,7]]){const d=a-delay;if(d<0||d>.72)continue;const h=Math.min(20,d*d*85);rect(181+offset,88+h,h>=20?3:1,h>=20?1:2,'#a72b40')}
 }
 function sans(){
  const evade=mode==='strike',a=evade?EVADE_DURATION-flash:0,side=round%2?1:-1;
@@ -86,14 +97,14 @@ function sans(){
  if(evade&&a>=.78)slash(a-.78);
 }
 // Draw the cut over time, then let its afterimage dissolve before the counterattack.
-function slash(age){
+function slash(age,miss=true){
   let u=Math.min(1,age/.72);u=u*u*(3-2*u);
   const fade=Math.min(1,Math.max(0,(1.45-age)/.65));g.save();g.globalAlpha=fade;
   for(let i=0;i<Math.ceil(52*u);i++){
     const f=i/51,xx=154+i,yy=98-40*f-5*Math.sin(f*Math.PI),w=1+Math.round(3*Math.sin(f*Math.PI));
     rect(xx,yy-w,2,w*2+1,'#cf765d');rect(xx,yy-w+1,2,w+1,'#ffdea0');rect(xx,yy,2,1,'#fffcea');
   }
-  if(age>.32&&age<1.18){g.globalAlpha=ease((age-.32)/.12)*(1-ease((age-.98)/.2));g.font='7px p, monospace';g.textAlign='center';g.fillStyle='#fff3cd';g.fillText('MISS',180,59-Math.round(ease(age-.32)*4))}
+  if(miss&&age>.32&&age<1.18){g.globalAlpha=ease((age-.32)/.12)*(1-ease((age-.98)/.2));g.font='7px p, monospace';g.textAlign='center';g.fillStyle='#fff3cd';g.fillText('MISS',180,59-Math.round(ease(age-.32)*4))}
   g.restore();}
 // Each scanline has its own fracture point so the two pieces interlock.
 let deathAge=0;
@@ -181,7 +192,7 @@ function mercyBound(){return encounter===4&&calm<3&&mode!=='end'}
 function finish(){mode=encounter<6?'between':'end';msg(encounter<6?`Encounter 0${encounter} clear. Select any action for encounter 0${encounter+1}.`:'The corridor is quiet. All encounters clear. Select any action to replay.')}
 function act(a){if(paused||mode==='fallen'||mode==='dodge'||mode==='strike'||mode==='dying')return;if(mode==='between'){encounter++;resetBattle();if(encounter===6){msg('One last wave of bones. Survive the aftermath.');startWave(.85)}else say(encounter===5?'THIS TIME I WONT GIVE UP!':encounter===4?'you know what no more mercy':encounter===3?'Ah you again im taking it serius':'new rule, kid. blue bones pass through if you hold still.');ui();return}
 if(mode==='end'){if(hp>0)encounter=1;resetBattle();if(encounter===6){msg('Survive the aftermath.');startWave(.85)}else say(encounter===5?'THIS TIME I WONT GIVE UP!':encounter===2?'round two again. remember: blue means hold still.':'back already? kept your spot warm.');ui();return}if(blocked(a))return;if(a==='item'&&!food){msg('Your pockets are empty. Choose another action.');return}beep(330);if(a==='fight'){if(encounter===5&&++swings===5){boss=0;fallAge=0;mode='fallen';msg('The fifth slash lands.');beep(125);ui();return}mode='strike';flash=EVADE_DURATION;msg('You swing.');ui();return}if(encounter===4&&a==='act'){calm++;say(['you want me to listen? then listen back.', '...okay. one more thing to say?', 'alright. the bone’s gone. your call.'][Math.min(calm,3)-1])}if(encounter===3&&a==='act'){calm++;say(['red means keep moving, kid.', 'yeah. i hear you. blue still means stop.', 'enough. use mercy and we’re done.'][Math.min(calm,3)-1])}if(a==='act'&&encounter===1){calm++;say(['heh. a joke? now we’re talking.', 'okay. that one got a real laugh.', 'call it a draw? mercy’s right there.'][Math.min(calm,3)-1])}if(a==='item'){food--;hp=Math.min(20,hp+8);msg(`You eat a pie slice. ${food} left.`+(encounter===3?' Red: move. Blue: stop.':''))}if(a==='mercy')msg(encounter===3?'Not yet. Try ACT. Red: move. Blue: stop.':'Not yet. Maybe a few jokes would help.');if(!boss||(a==='mercy'&&calm>=3&&encounter!==2)){finish()}else{startWave(.1)}ui()}
-function update(dt){if(mode==='fallen'){fallAge+=dt;if(fallAge>=2.7){finish();ui()}return}if(mode==='dying'){const prev=deathAge;deathAge+=dt;if(prev<.78&&deathAge>=.78)beep(85);if(prev<1.52&&deathAge>=1.52){beep(196);say('hey. take a breath, kid.')}if(deathAge>=3.43){mode='end';msg('Your soul shattered. Select an action to retry.');ui()}return}if(mode==='strike'){
+function update(dt){if(mode==='fallen'){const before=fallAge;fallAge+=dt;if(before<1.48&&fallAge>=1.48)say('heh. guess you finally got me.');if(before<3.1&&fallAge>=3.1)say('give me a minute, kid.');if(fallAge>=FALL_END){finish();ui()}return}if(mode==='dying'){const prev=deathAge;deathAge+=dt;if(prev<.78&&deathAge>=.78)beep(85);if(prev<1.52&&deathAge>=1.52){beep(196);say('hey. take a breath, kid.')}if(deathAge>=3.43){mode='end';msg('Your soul shattered. Select an action to retry.');ui()}return}if(mode==='strike'){
  const prev=flash;flash=Math.max(0,flash-dt);
  if(prev>EVADE_DURATION-1.1&&flash<=EVADE_DURATION-1.1){beep(420);say(['nice swing. wrong address.', 'pretty sure the air learned its lesson.', 'i was standing there. past tense.'][misses++%3]);ui()}
  if(!flash){if(!boss){finish()}else{if(encounter>=3)msg('Red: move. Blue: stop. White: dodge.');if(encounter===1)msg('Dodge the bones! Try ACT to win him over.');startWave(.55)}ui()}return;
