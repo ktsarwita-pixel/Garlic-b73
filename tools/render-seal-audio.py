@@ -14,14 +14,15 @@ wave=bp(noise(.84),1550,6700)*np.exp(-((t-.115)/.055)**2)*.78
 q=t>=hit; tail=t[q]-hit
 wave[q]+= .82*np.sin(2*np.pi*(55*tail+4*(1-np.exp(-tail*30))))*np.exp(-tail*7)+.65*bp(noise(.84),460,3800)[q]*np.exp(-tail*28)
 save('fatal',wave)
-# Original short voiced 'uh': glottal buzz through two descending vowel resonances.
-t=t_(.076);phase=2*np.pi*(99*t+.31*(1-np.exp(-t*45)))
-voice=np.zeros_like(t)
-for h in range(1,24):
-    hz=99*h
-    weight=.18/h+.42*np.exp(-((hz-(600-185*t/.076))/165)**2)+.17*np.exp(-((hz-1030)/210)**2)
-    voice+=weight*np.sin(h*phase+.13*h)
-save('murmur',voice*env_ad(.076,.005,.038)*np.minimum(1,(.076-t)/.012))
+# Three mouth shapes share one low, slightly creaky source; no sampled speech.
+for name,f1,f2,d in [('murmur',550,1060,.084),('murmur-open',715,1260,.09),('murmur-round',420,890,.082)]:
+    t=t_(d);phase=2*np.pi*(94*t+.18*(1-np.exp(-t*56)))
+    voice=np.zeros_like(t)
+    for h in range(1,28):
+        hz=96*h
+        weight=.45/h+.35*np.exp(-((hz-f1*(1-.17*t/d))/145)**2)+.14*np.exp(-((hz-f2)/200)**2)
+        voice+=weight*np.sin(h*phase+.15*h)
+    save(name,(voice+.13*np.sin(phase*.5))*env_ad(d,.005,.049)*np.minimum(1,(d-t)/.015))
 # The slash crosses the center of the drawn heart at ~0.225s. Wind, edge, contact, shards.
 for violet,total in [(False,4),(True,5)]:
     for stage in range(1,total+1):

@@ -36,7 +36,7 @@ function sfx(name,pitch){playNotes(cues[name],pitch);if(!sound||!bus||audio.stat
 function beep(f){playNotes([['triangle',0,.14,f,f,.08]])}
 
 // Predecode once after audio unlock. Never replay a late download over the next turn.
-const gameSamples={murmur:[.105,105],seam:[.105,360],'seam-slip':[.105,320],'seam-freeze':[.105,280],rift:[.16,315],fatal:[.33,85],rattle:[.15,190],clear:[.13,784],empty:[.14,145],retry:[.12,485]};
+const gameSamples={murmur:[.105,105],'murmur-open':[.105,109],'murmur-round':[.105,98],seam:[.105,360],'seam-slip':[.105,320],'seam-freeze':[.105,280],rift:[.16,315],fatal:[.33,85],rattle:[.15,190],clear:[.13,784],empty:[.14,145],retry:[.12,485]};
 for(const [form,total] of [['white',4],['violet',5]])for(let n=1;n<=total;n++)gameSamples[form+n]=[.15+n*.013,form==='white'?830:440];
 const decoded=new Map();
 function loadGameSamples(){for(const name of Object.keys(gameSamples)){
@@ -54,5 +54,10 @@ let speech=null;
 function dialogBlips(line,faint){speech={line,faint,i:0,wait:0}}
 function tickSpeech(dt){if(!speech)return;const v=speech;if((v.wait-=dt)>0)return;
  const ch=v.line[v.i++];if(!ch){speech=null;return}
- if(/[a-z0-9]/i.test(ch)){sampleCue('murmur',(v.faint?.82:1)*(1+(ch.charCodeAt(0)%5-2)*.014),v.faint?.62:1);if(/[a-z0-9]/i.test(v.line.charAt(v.i)))v.i++;v.wait=v.faint?.105:.076}
- else v.wait=/[.,!?]/.test(ch)?.14:.036}
+ if(/[a-z0-9]/i.test(ch)){
+  let pair=ch;if(/[a-z0-9]/i.test(v.line.charAt(v.i)))pair+=v.line[v.i++];
+  const cue=/[ou]/i.test(pair)?'murmur-round':/[ae]/i.test(pair)?'murmur-open':'murmur';
+  const first=v.i===pair.length||/\s/.test(v.line[v.i-pair.length-1]),end=/[.,!?]/.test(v.line.charAt(v.i))||v.i===v.line.length;
+  const pitch=(v.faint?.82:1)*(end?.91:first?1.04:1);sampleCue(cue,pitch,v.faint?.58:first?1:.86);
+  v.wait=(v.faint?.108:.072)+(end?.021:0);
+ }else v.wait=/[.,!?]/.test(ch)?.14:.036}
