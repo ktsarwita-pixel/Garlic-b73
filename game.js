@@ -1,10 +1,59 @@
 const $=s=>document.querySelector(s),c=$('#scene'),g=c.getContext('2d');let t=0,last=0,round=1,hp=20,boss=100,mode='ready',paused=false,sound=true,elapsed=0,x=180,y=148,shots=[],inv=0,food=3,calm=0,spawn=0,flash=0,drag=false,target=null;const keys=new Set();function rect(x,y,w,h,col){g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),w,h)}function poly(pts,col){g.fillStyle=col;g.beginPath();pts.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill()}
-// Hand-pixelled sprite: skull, fleece collar, jacket, shorts and slippers.
-const sprite=[ '          kkkkkkkkkk          ','        kkwwwwwwwwwwkk        ','       kwwwwwwwwwwwwwsk       ','      kwwwwwwwwwwwwwwssk      ','      kwwwkkkkwwwwkkkwwk      ','      kwwkkkkkwwwkkkkwwk      ','      kwwkkekkwwwkekkwsk      ','       kswwwwwkkwwwwwsk       ','       kwwkwwwwwwwwkwsk       ','        kwskkkkkkkkswk        ','         kwwkwkwkwwwk         ','        kkswwwwwwsskk         ','      kkwwsskkkksswwkkk       ','     kbbkwwswggwswwkbbbk      ','    kBbbbkwwkggkwwkbbbBBk     ','    kBbbbBkwkggkwkBbbbBBk     ','   kBBbbBkbbkggkbbkBbbbBBk    ','   kBbbBkbbbkggkbbbBkbBBBk    ','    kBbkBbbbkggkbbbBkbBBk     ','     kkBbbBBkggkBBbbBkk       ','      kBBBbbkggkbbBBBk        ','       kkkkkkkkkkkkkk         ','       kggggggkkggggk         ','       kggsgggkkggsgk         ','       kggsggkkkkgsgk         ','       kkkkkk    kkkk         ','        kssk     kssk         ','      kkwwsk     kswwkk       ','     ksswwwk     kwwwssk      ','     kkkkkkk     kkkkkkk      '];let col={k:'#101620',w:'#f0ecda',s:'#b9c1b8',e:'#86f4ef',b:'#3878a3',B:'#5ea5c8',g:'#34414c'};const EVADE_DURATION=2.1;
-function ease(v){v=Math.max(0,Math.min(1,v));return v*v*(3-2*v)}
-function sans(){const age=EVADE_DURATION-flash,evading=mode==='strike',side=round%2?1:-1;
- const travel=evading?ease(age/.31)*(1-ease((age-1.53)/.55)):0;
- let dx=travel*65*side+Math.sin(t*1.7)*1.2,dy=Math.floor(Math.sin(t*3)*1.1);rect(156+dx,109,48,2,'#444a62');sprite.forEach((row,j)=>[...row].forEach((p,i)=>{if(!col[p])return;let shrug=j>=13&&j<21&&i>22&&mode==='dodge'? -2:0;let xx=150+i*2+dx+(j<12?Math.round(Math.sin(t*2)):0),yy=50+j*2+(j<22?dy:0)+shrug;let color=col[p];if(p==='w'&&j<4&&i<17)color='#fff9e7';if(p==='b'&&i<11)color='#5b94ba';if(p==='B'&&j<16)color='#81bad3';if(p==='w'&&j>26)color='#e5c2c3';if(j===6&&p==='e'&&t%4.4<.14)color=col.k;rect(xx,yy,2,2,color);if(j===6&&p==='e'&&mode==='dodge'&&i>15){rect(xx-1,yy,4,2,'#4ed7f9');rect(xx+1,yy-2,1,3,'#c9ffff')}}));if(evading && age>=.35)slash(age-.35)}
+// Separate the planted feet, coat and skull so weight shifts through the pose.
+const EVADE_DURATION=2.85;
+function ease(v){v=Math.max(0,Math.min(1,v));return v*v*v*(v*(v*6-15)+10)}
+function pulse(a,start,end){return Math.sin(Math.PI*ease((a-start)/(end-start)))}
+const ink='#141828',bone='#eee9d8',shade='#b8b8b4',blue='#437baa';
+function mask(rows,palette,x,y){rows.forEach((row,j)=>{for(let i=0;i<row.length;i++){const color=palette[row[i]];if(color)rect(x+i*2,y+j*2,2,2,color)}})}
+const skull=[
+'      kkkkkkkkkk     ',
+'    kkwwwwwwwwwwkk   ',
+'   kwwWWWWwwwwwwssk  ',
+'  kwwWWWwwwwwwwwsssk ',
+'  kwwwwwwwwwwwwwwssk ',
+'  kwkkkkwwwwkkkkkssk ',
+'  kkkkkkkwwkkkkkkwsk ',
+'  kwkkekkwwkkekkkswk ',
+'  kkwwwwwkkswwwsswkk ',
+'   kwwwwkkkkwwwwwsk  ',
+'  kwskwwwwwwwwwkswsk ',
+'   kwwkkkkkkkkkwwsk  ',
+'    kwwkwkwkwkwwsk   ',
+'     kswwwwwwwss k   ',
+'      kksssssskk     ',
+'        kkkkkk       '];
+const coat=[
+'      kkkkkkkkkk       ',
+'    kkffsskkssffkk     ',
+'   kbfwwsfwwfswwfbk    ',
+'  kBbbffwsggswffbbBk   ',
+' kBBbbbkfswwsfkbbbBBk  ',
+' kBbbbbbkfwwfkbbbbBBk  ',
+'kBBbbbkbbswwsbbkbbbBBk ',
+'kBbbkkbbbswwsbbbkkbbBk ',
+'kbbkBBkbbswwsbbkBBkbBk ',
+' kbbbbbBbswwsbBbbbbbk  ',
+'  kkbbBBbswwsbBBbbkk   ',
+'    kbbbbsggsbbbbk     ',
+'    kkkkkkkkkkkkkk     '];
+const boot=['  kkkkkk  ','  kssssk  ',' kpppppsk ','kPPpppppsk','kssssssssk',' kkkkkkkk '];
+const shorts=[' kkkkkkkkkkkkkkk ',' kgggGggkgggGggk ',' kgggGggkgggGggk ',' kgggGggkgggGggk ',' kgggggkkkgggggk ',' kkkkkkk kkkkkkk '];
+const paint={k:ink,w:bone,W:'#fff9e8',s:shade,b:blue,B:'#7db2cb',f:'#d5d6cb',g:'#303b50',G:'#687588',p:'#bd8b99',P:'#efd1c7',e:'#f9f7e8'};
+function sans(){
+ const evade=mode==='strike',a=evade?EVADE_DURATION-flash:0,side=round%2?1:-1;
+ const spring=pulse(a,0,.29),out=pulse(a,.22,.69),back=pulse(a,2.04,2.80);
+ const offset=side*(65*ease((a-.19)/.52)*(1-ease((a-2.02)/.78))-3*spring);
+ const cx=180+offset,lean=side*(3*out-2*back-spring),lift=5*out+3*back;
+ const bob=(1-Math.cos(t*2.9))*.65,base=109-lift;
+ rect(cx-20,109,40,2,'#485067');rect(cx-14,111,28,1,'#555d74');
+ for(const foot of [-1,1]){const step=foot*side;mask(boot,paint,cx+foot*10-10+step*2*out,base-11-(step>0?3*out:2*back))}
+ mask(shorts,paint,cx-16,base-20);
+ const torso=base-41+bob+2*spring;mask(coat,paint,cx-22+lean,torso);
+ const hx=cx-21+lean*1.5,hy=torso-25+bob*.45;
+ mask(skull,{...paint,e:t%4.5<.14?ink:paint.e},hx,hy);
+ if(mode==='dodge'||(evade&&a>.62&&a<2.15)){rect(hx+26,hy+14,3,2,'#44cdea');rect(hx+27,hy+14,1,1,'#deffff')}
+ if(evade&&a>=.78)slash(a-.78);
+}
 // Draw the cut over time, then let its afterimage dissolve before the counterattack.
 function slash(age){
   let u=Math.min(1,age/.72);u=u*u*(3-2*u);
@@ -20,7 +69,7 @@ function msg(m){$('#message').textContent=m}function ui(){document.querySelector
 function act(a){if(paused||mode==='dodge'||mode==='strike')return;if(mode==='end'){round=1;hp=20;boss=100;food=3;calm=0;mode='ready';x=180;y=148;shots=[];msg('A familiar grin blocks your path.');ui();return}if(a==='item'&&!food){msg('Your pockets are empty. Choose another action.');return}beep(330);if(a==='fight'){mode='strike';flash=EVADE_DURATION;msg('You swing.');ui();return}if(a==='act'){calm++;msg(calm>=3?'Sans lowers his guard. Try mercy next turn.':'You crack a joke. His grin softens.')}if(a==='item'){food--;hp=Math.min(20,hp+8);msg(`You eat a pie slice. ${food} left. Stay moving!`)}if(a==='mercy')msg('Not yet. Maybe a few jokes would help.');if(!boss||(a==='mercy'&&calm>=3)){mode='end';msg('The corridor falls quiet. Select an action to replay.')}else{mode='dodge';elapsed=0;spawn=.1;shots=[]}ui()}
 function update(dt){if(mode==='strike'){
  const prev=flash;flash=Math.max(0,flash-dt);
- if(prev>1.42&&flash<=1.42){beep(420);msg('Miss. Sans stepped aside.');ui()}
+ if(prev>EVADE_DURATION-1.1&&flash<=EVADE_DURATION-1.1){beep(420);msg('Miss. Sans stepped aside.');ui()}
  if(!flash){if(!boss){mode='end';msg('The corridor falls quiet. Select an action to replay.')}else{mode='dodge';elapsed=0;spawn=.55;shots=[];msg('Dodge the bones! Try ACT to win him over.')}ui()}return;
 }inv-=dt;if(mode!=='dodge')return;elapsed+=dt;spawn-=dt;let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));if(drag&&target){let vx=target[0]-x,vy=target[1]-y,l=Math.max(1,Math.hypot(vx,vy)/(90*dt));x+=vx/l;y+=vy/l}else{x+=dx*65*dt;y+=dy*65*dt}x=Math.max(102,Math.min(257,x));y=Math.max(125,Math.min(167,y));if(spawn<=0){spawn=.78;let h=13+Math.random()*14;let right=round%2;shots.push({x:right?257:99,y:Math.random()<.5?121:171-h,h,v:right?-52:52})}for(let b of shots){b.x+=b.v*dt;if(inv<=0&&x+2>b.x&&x-2<b.x+3&&y+2>b.y&&y-2<b.y+b.h){hp=Math.max(0,hp-3);inv=.85;beep(110);if(!hp){mode='end';msg('Your soul shattered. Select an action to retry.')}ui()}}shots=shots.filter(b=>b.x>=99&&b.x<=258);if(elapsed>5.4&&mode==='dodge'){mode='ready';round++;shots=[];msg('Your move. Choose an action.');ui()}}
 function frame(now){let dt=Math.min(.04,(now-last)/1000);last=now;if(!paused){t+=dt;update(dt)}draw();requestAnimationFrame(frame)}requestAnimationFrame(frame);document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{document.querySelector('.sel')?.classList.remove('sel');b.classList.add('sel');act(b.dataset.a)});$('#pause').onclick=()=>{paused=!paused;$('#pause').textContent=paused?'▶':'Ⅱ';$('#pause').ariaLabel=paused?'Resume game':'Pause game';ui()};$('#sound').onclick=()=>{sound=!sound;$('#sound').textContent=sound?'♫':'♪';$('#sound').style.opacity=sound?1:.55;beep(440)};onkeydown=e=>{let k=e.key.toLowerCase();if(k.startsWith('arrow')||k===' ')e.preventDefault();keys.add(k);if(!e.repeat){if(k===' ')act('fight');if(k==='escape')$('#pause').click()}};onkeyup=e=>keys.delete(e.key.toLowerCase());onblur=()=>{keys.clear();drag=false;if(mode==='dodge'&&!paused)$('#pause').click()};function point(e){let r=c.getBoundingClientRect();target=[(e.clientX-r.left)*360/r.width,(e.clientY-r.top)*180/r.height]}c.onpointerdown=e=>{drag=true;c.setPointerCapture(e.pointerId);point(e)};c.onpointermove=e=>{if(drag)point(e)};c.onpointerup=c.onpointercancel=()=>drag=false;
