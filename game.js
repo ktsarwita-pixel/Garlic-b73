@@ -46,6 +46,13 @@ const pointingCoat=coat.map((row,j)=>j<4||j>10?row:row.slice(0,12)+[
  'sfkbbbBBk', 'sfkBBbbbBk', 'skkkkBBbbk', 'kWWwskBBbk',
  'kwwskwsbbk', 'skkswskdk', 'wzksskkk'
 ][j-4]);
+// Project the fingertip onto the body centreline. Its near face grows on
+// the thrust while the far knuckles and elbow stay tucked against the coat.
+const towardPlayer=coat.map((row,j)=>j<4||j>11?row:row.slice(0,8)+[
+ 'wwwsfkbBBbbk','wwkkkssfBBbbk','wkWWWkswsdBBbk',
+ 'kWWwwwkswksBbk','kwwwwwkssksbbk','wkswwsksksdbk',
+ 'zwkkkksskkddk','bzggzkkkddk'
+][j-4]);
 function sans(){
  const evade=mode==='strike',a=evade?EVADE_DURATION-flash:0,side=round%2?1:-1;
  const spring=pulse(a,0,.29),out=pulse(a,.22,.69),back=pulse(a,2.04,2.80);
@@ -57,7 +64,8 @@ function sans(){
  mask(shorts,paint,cx-16,base-20);
  const torso=base-41+bob+2*spring,gesture=t-gestureStart;
  const pointing=encounter===4&&calm<3&&gesture>=.25&&gesture<.95;
- mask(pointing?pointingCoat:coat,paint,cx-22+lean,torso);
+ const thrust=pointing&&gesture>=.34&&gesture<.86;
+ mask(thrust?towardPlayer:pointing?pointingCoat:coat,paint,cx-22+lean,torso);
  const hx=cx-21+lean*1.5,hy=torso-25+bob*.45;
  mask(encounter>=3&&calm<3?angrySkull:skull,{...paint,e:t%4.5<.14?ink:paint.e},hx,hy);
  if(mode==='dodge'||(evade&&a>.62&&a<2.15)){rect(hx+26,hy+14,3,2,'#44cdea');rect(hx+27,hy+14,1,1,'#deffff')}
