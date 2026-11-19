@@ -62,20 +62,29 @@ const lastCoat=coat.map((row,j)=>[...row].map((p,i)=>{
 }).join(''));
 const lastPaint={...paint,R:'#af263c',r:'#722337'};
 const lastFace=fallenFace.map((r,j)=>j===12?r.slice(0,14)+'R'+r.slice(15):j===13?r.slice(0,14)+'r'+r.slice(15):r);
-const FALL_END=6.25;
+const FALL_END=7.4;
+const bentKnee=['   kkkkkkk    ','  kgGGggggkk  ',' kggggggggGgk ',' kgggkkkkgggkk','  kkk    kkkkk'];
 function fallenSans(){
  const a=fallAge;if(a>=FALL_END)return;
- const hit=a>=.24;
- // Feet, head and coat stay on the same grid. Only light leaves the pose.
- const sockets={...lastPaint,e:ink};
- g.save();g.globalAlpha=1-ease((a-4.85)/1.2);
- mask(shorts,paint,164,89);mask(boot,paint,160,98);mask(boot,paint,180,98);
- mask(hit?lastCoat:coat,lastPaint,158,68);mask(hit?lastFace:angrySkull,sockets,159,43);
- g.globalAlpha*=1-ease((a-.65)/3.35);
- for(let i=0;i<skull[7].length;i++)if(skull[7][i]==='e')rect(159+2*i,57,2,2,paint.e);
- g.restore();
+ const hit=a>=.24,knee=ease((a-.72)/.85),drop=Math.round(9*knee),eyes=1-ease((a-.65)/3.35);
+ // Release each sprite cell once, from its actual resting place. The upper
+ // silhouette loosens first; a little ash from the boots lingers at the end.
+ function layer(rows,ox,oy){rows.forEach((row,j)=>[...row].forEach((key,i)=>{
+  if(!lastPaint[key])return;
+  const px=ox+i*2,py=oy+j*2,seed=((i*71+j*31+rows.length*13)%97)/97;
+  const age=a-(4.25+(py-50)*.018+seed*.63);
+  if(age<0){rect(px,py,2,2,key==='e'?ink:lastPaint[key]);return}
+  if(age>1.38)return;
+  g.globalAlpha=1-ease((age-.75)/.63);
+  const wind=Math.sin(seed*27+age*3)*age*5+age*age*9;
+  rect(px+wind,py-age*(8+seed*14),age<.16?2:1,age<.16?2:1,seed<.4?'#aaa8a4':'#e2dfd7');g.globalAlpha=1;
+ }))}
+ g.save();layer(boot,160-Math.round(3*knee),98);layer(boot,180+Math.round(5*knee),98);
+ layer(knee>.48?bentKnee:shorts,164,89+Math.round(7*knee));
+ layer(hit?lastCoat:coat,158,68+drop);layer(hit?lastFace:angrySkull,159,43+drop+Math.round(2*knee));
+ if(eyes>0){g.globalAlpha=eyes;for(let i=0;i<skull[7].length;i++)if(skull[7][i]==='e')rect(159+2*i,57+drop+Math.round(2*knee),2,2,paint.e)}g.restore();
  if(a<1.45)slash(a*1.6,false);
- for(const [delay,offset] of [[1.53,0],[2.08,1],[3.46,7]]){const d=a-delay;if(d<0||d>.72)continue;const h=Math.min(20,d*d*85);rect(181+offset,88+h,h>=20?3:1,h>=20?1:2,'#a72b40')}
+ for(const delay of [1.53,2.08,3.46]){const d=a-delay;if(d<0||d>.72)continue;const h=Math.min(12,d*d*65);rect(181,96+h,h>=12?3:1,h>=12?1:2,'#a72b40')}
 }
 function sans(){
  const evade=mode==='strike',a=evade?EVADE_DURATION-flash:0,side=round%2?1:-1;
