@@ -36,20 +36,23 @@ function sfx(name,pitch){playNotes(cues[name],pitch);if(!sound||!bus||audio.stat
 function beep(f){playNotes([['triangle',0,.14,f,f,.08]])}
 
 // Predecode once after audio unlock. Never replay a late download over the next turn.
-const gameSamples={seam:[.095,360],rift:[.16,315],fatal:[.33,85],rattle:[.15,190],clear:[.13,784],empty:[.14,145],retry:[.12,485]};
+const gameSamples={murmur:[.105,105],seam:[.095,360],rift:[.16,315],fatal:[.33,85],rattle:[.15,190],clear:[.13,784],empty:[.14,145],retry:[.12,485]};
+for(const [form,total] of [['white',4],['violet',5]])for(let n=1;n<=total;n++)gameSamples[form+n]=[.15+n*.013,form==='white'?830:440];
 const decoded=new Map();
 function loadGameSamples(){for(const name of Object.keys(gameSamples)){
  fetch(`assets/sfx/${name}.wav`).then(r=>{if(!r.ok)throw Error(r.status);return r.arrayBuffer()})
  .then(raw=>audio.decodeAudioData(raw)).then(buffer=>decoded.set(name,buffer)).catch(()=>{});
 }}
-function sampleCue(name){if(!sound||!bus||audio.state!=='running')return;
+function sampleCue(name,rate=1,level=1){if(!sound||!bus||audio.state!=='running')return;
  const [gain,fallback]=gameSamples[name],buffer=decoded.get(name);if(!buffer){beep(fallback);return}
- const src=audio.createBufferSource(),v=audio.createGain();src.buffer=buffer;v.gain.value=gain;
+ const src=audio.createBufferSource(),v=audio.createGain();src.buffer=buffer;v.gain.value=gain*level;src.playbackRate.value=rate;
  if(name==='rattle')src.playbackRate.value=.96+Math.random()*.08;
  src.connect(v);v.connect(bus);src.onended=()=>{src.disconnect();v.disconnect()};src.start();}
 
-// Short word-shaped chirps leave the rest of the line quiet for reading.
-function dialogBlips(line,faint){let at=0;const notes=[];
- for(const word of line.trim().split(/\s+/).slice(0,6)){const f=(faint?92:131)+(word.charCodeAt(0)%8)*4,d=Math.min(.095,.035+word.length*.007);
- notes.push(['triangle',at,d,f,f*.81,faint?.034:.054],['square',at,d*.7,2*f,1.7*f,faint?.007:.012]);
- at+=d+(faint?.09:.032)+(/[.,!?]$/.test(word)?.085:0)}playNotes(notes)}
+// Drive the voice from game time so replaced lines and paused scenes stay quiet.
+let speech=null;
+function dialogBlips(line,faint){speech={line,faint,i:0,wait:0}}
+function tickSpeech(dt){if(!speech)return;const v=speech;if((v.wait-=dt)>0)return;
+ const ch=v.line[v.i++];if(!ch){speech=null;return}
+ if(/[a-z0-9]/i.test(ch)){sampleCue('murmur',(v.faint?.82:1)*(1+(ch.charCodeAt(0)%5-2)*.014),v.faint?.62:1);if(/[a-z0-9]/i.test(v.line.charAt(v.i)))v.i++;v.wait=v.faint?.105:.076}
+ else v.wait=/[.,!?]/.test(ch)?.14:.036}
