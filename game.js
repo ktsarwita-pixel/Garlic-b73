@@ -40,6 +40,8 @@ const coat=[
 const boot=['  kkkkkk  ','  kssssk  ',' kpppppsk ','kPPPPpppsk','kssppppssk',' kkkkkkkk '];
 const shorts=[' kkkkkkkkkkkkkkk ',' kgggGggkgggGggk ',' kgggGggkgggGggk ',' kgggGggkgggGggk ',' kgggggkkkgggggk ',' kkkkkkk kkkkkkk '];
 const paint={m:"#716d68",k:ink,w:bone,W:'#fff9e8',s:shade,b:blue,d:'#315b83',z:'#bdccd4',c:'#729cba',B:'#7db2cb',f:'#d5d6cb',g:'#303b50',G:'#687588',p:'#bd8b99',P:'#efd1c7',e:'#f9f7e8'};
+const raisedHand=[' kBBbk',' kbbbk',' kswwk',' kwssk','  kkk '];
+const pointingHand=[' kBBbk',' kbbbk',' kswwk',' kWsswk',' kwkkk',' kwk','  kk'];
 function sans(){
  const evade=mode==='strike',a=evade?EVADE_DURATION-flash:0,side=round%2?1:-1;
  const spring=pulse(a,0,.29),out=pulse(a,.22,.69),back=pulse(a,2.04,2.80);
@@ -51,14 +53,10 @@ function sans(){
  mask(shorts,paint,cx-16,base-20);
  const torso=base-41+bob+2*spring;mask(coat,paint,cx-22+lean,torso);
  const gesture=t-gestureStart;
- if(encounter===4&&calm<3&&gesture>=0&&gesture<1.42){
-  // Lift out of the pocket, point down toward the soul, then tuck back in.
-  const extend=ease((gesture-.08)/.36)*(1-ease((gesture-.94)/.48));
-  if(extend>.025){
-   const ax=Math.round(cx+14+lean-4*extend),ay=Math.round(torso+13-4*extend);
-   g.save();g.translate(ax,ay);g.scale(.75+.25*extend,.55+.45*extend);
-   mask(['  kkkk  ',' kBBbbk ','kBBbddk ','kbbdssk ',' ksswwk ',' ksWwswk','  kwskwk','   kWkk ','   kwk  ','   kwk  ','    k   '],paint,-6,-6);g.restore();
-  }
+ if(encounter===4&&calm<3&&gesture>=.12&&gesture<1.15){
+  // Three held pixel poses: raise, point, lower. No scaling between frames.
+  const pointing=gesture>=.32&&gesture<.94;
+  mask(pointing?pointingHand:raisedHand,paint,cx+lean+(pointing?6:9),torso+(pointing?10:12));
  }
  const hx=cx-21+lean*1.5,hy=torso-25+bob*.45;
  mask(encounter>=3&&calm<3?angrySkull:skull,{...paint,e:t%4.5<.14?ink:paint.e},hx,hy);
@@ -130,7 +128,13 @@ function startWave(delay){mode='dodge';elapsed=0;spawn=delay;shots=[];patternSte
 function emit(){const right=round%2,src=right?257:99,add=(y,h,speed,blue=false,red=false)=>shots.push({x:src,y,h,v:(right?-1:1)*speed,blue,red});
  if(encounter===1){spawn=.78;let h=13+Math.random()*14;add(Math.random()<.5?121:171-h,h,52);return}
  const n=patternStep++,section=(round-1)%3;
- const coloredBone=(speed,blue)=>{if(++colorStep%3===0){add(121,50,speed,blue,!blue);return}const h=[16,23,19,26,14][(n+round)%5];const pos=[121,171-h,Math.round(146-h/2)][(n+round)%3];add(pos,h,speed,blue,!blue)};
+ const coloredBone=(speed,blue)=>{
+  const beat=colorStep++;if(beat%3===2){add(121,50,speed,blue,!blue);return}
+  const h=[28,32,30,35][(beat+round)%4];
+  const center=146+[-2,1,0,2][beat%4];
+  const y=beat%6===4?(round%2?121:171-h):Math.round(center-h/2);
+  add(y,h,speed,blue,!blue);
+ };
  if(encounter===4){const beat=n%6,speed=95,top=[12,18,24,14,20,10][(n+round)%6],gap=11-section;
   spawn=[.56,.65,.51,.59,.68,.54][beat];if(beat===1||beat===4){coloredBone(speed,beat===4);return}
   add(121,top,speed,beat===0,beat===3);add(121+top+gap,50-top-gap,speed,beat===3||beat===2,beat===0||beat===5);return}
