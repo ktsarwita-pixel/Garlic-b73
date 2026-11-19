@@ -16,8 +16,8 @@ function hallway(){
  tinySoul(180,138-zoom*60);g.restore();
 }
 function heartOpponent(){
- if(purple){for(let i=0;i<20;i++){const ex=16+(i*59)%328,ey=16+(i*37)%88,blink=Math.sin(t*1.7+i);rect(ex-5,ey,11,1,'#4f365d');if(blink>-.86){rect(ex-3,ey-2,7,4,'#785989');rect(ex+(x>180?1:-1),ey-2,2,4,'#27132e')}}}
  if(mode==='end'&&boss===0)return;
+ if(purple){for(let i=0;i<20;i++){const ex=16+(i*59)%328,ey=16+(i*37)%88,blink=Math.sin(t*1.7+i);rect(ex-5,ey,11,1,'#4f365d');if(blink>-.86){rect(ex-3,ey-2,7,4,'#785989');rect(ex+(x>180?1:-1),ey-2,2,4,'#27132e')}}}
  const burst=mode==='reform'||mode==='destroy';const spread=burst?(mode==='destroy'?ease(sceneAge/1.25):ease(sceneAge/.7)*(1-ease((sceneAge-1.05)/.9))):0;
  const tint=purple||(mode==='reform'&&sceneAge>1.25),shades=tint?['#d69aff','#a15ad7','#754398']:['#fffdf4','#e3e0da','#a8a8a7'];
  const rows=['  xxxx   xxxx  ',' xxxxxx xxxxxx ','xxxxxxxxxxxxxxx','xxxxxxxxxxxxxxx',' xxxxxxxxxxxxx ','  xxxxxxxxxxx  ','   xxxxxxxxx   ','    xxxxxxx    ','     xxxxx     ','      xxx      ','       x       '];
