@@ -50,12 +50,15 @@ function sans(){
  for(const foot of [-1,1]){const step=foot*side;mask(boot,paint,cx+foot*10-10+step*2*out,base-11-(step>0?3*out:2*back))}
  mask(shorts,paint,cx-16,base-20);
  const torso=base-41+bob+2*spring;mask(coat,paint,cx-22+lean,torso);
- if(encounter===4&&calm<3){
-  const age=t-gestureStart,wind=pulse(age,0,.32),reach=ease((age-.24)/.28),jab=pulse(age,.30,.66);
-  const armX=cx+9+lean+3*wind-9*reach,armY=torso+10-5*wind-5*reach;
-  mask(['  kkkk  ',' kBBBbk ','kBBbbbk ',' kbbbdkk','  kddssk','   ksssk'],paint,armX+4,armY);
-  const hand=reach<.45?[' kkkk ','kswwsk','kswswk',' ksssk','  kkk ']:['   kkkk   ','  ksWWwk  ',' kkwwWwkk ','kswswwsssk','kwsksskswk',' ksskksssk','  ksswwwk ','   kkkkk  '];
-  mask(hand,paint,armX-4-3*jab,armY+5+2*jab);
+ const gesture=t-gestureStart;
+ if(encounter===4&&calm<3&&gesture>=0&&gesture<1.42){
+  // Lift out of the pocket, point down toward the soul, then tuck back in.
+  const extend=ease((gesture-.08)/.36)*(1-ease((gesture-.94)/.48));
+  if(extend>.025){
+   const ax=Math.round(cx+14+lean-4*extend),ay=Math.round(torso+13-4*extend);
+   g.save();g.translate(ax,ay);g.scale(.75+.25*extend,.55+.45*extend);
+   mask(['  kkkk  ',' kBBbbk ','kBBbddk ','kbbdssk ',' ksswwk ',' ksWwswk','  kwskwk','   kWkk ','   kwk  ','   kwk  ','    k   '],paint,-6,-6);g.restore();
+  }
  }
  const hx=cx-21+lean*1.5,hy=torso-25+bob*.45;
  mask(encounter>=3&&calm<3?angrySkull:skull,{...paint,e:t%4.5<.14?ink:paint.e},hx,hy);
@@ -123,19 +126,19 @@ function boneSprite(b){
  if(b.blue)for(let j=6;j<b.h-4;j+=7)rect(b.x,b.y+j,2,1,light);
 }
 function startWave(delay){mode='dodge';elapsed=0;spawn=delay;shots=[];patternStep=0;colorStep=0;
- if(encounter===2)msg(['Blue Shift: stay still as blue bones pass.','Narrow Gates: follow the gaps in the white bones.','Stop & Go: dodge white. Hold still for blue.'][(round-1)%3]);}
+ if(encounter===2)msg(['Blue Shift: hold for blue, then move to the white gap.','Narrow Gates: follow the gaps in the white bones.','Stop & Go: dodge white. Hold still for blue.'][(round-1)%3]);}
 function emit(){const right=round%2,src=right?257:99,add=(y,h,speed,blue=false,red=false)=>shots.push({x:src,y,h,v:(right?-1:1)*speed,blue,red});
  if(encounter===1){spawn=.78;let h=13+Math.random()*14;add(Math.random()<.5?121:171-h,h,52);return}
  const n=patternStep++,section=(round-1)%3;
  const coloredBone=(speed,blue)=>{if(++colorStep%3===0){add(121,50,speed,blue,!blue);return}const h=[16,23,19,26,14][(n+round)%5];const pos=[121,171-h,Math.round(146-h/2)][(n+round)%3];add(pos,h,speed,blue,!blue)};
- if(encounter===4){const beat=n%6,speed=83,top=[12,18,24,14,20,10][(n+round)%6],gap=11-section;
-  spawn=.78;if(beat===1||beat===4){coloredBone(speed,beat===4);return}
+ if(encounter===4){const beat=n%6,speed=95,top=[12,18,24,14,20,10][(n+round)%6],gap=11-section;
+  spawn=[.56,.65,.51,.59,.68,.54][beat];if(beat===1||beat===4){coloredBone(speed,beat===4);return}
   add(121,top,speed,beat===0,beat===3);add(121+top+gap,50-top-gap,speed,beat===3||beat===2,beat===0||beat===5);return}
- if(encounter===3){const beat=n%4;spawn=.9;
-  if(beat===0||beat===2&&section>0){const blue=beat===2;coloredBone(78,blue);return}
-  const gap=14-section,top=[9,23,13,19][(n+round)%4];add(121,top,78);add(121+top+gap,50-top-gap,78);return}
- if(section===0||(section===2&&n%3===1)){coloredBone(section===0?61:74,true);spawn=section===0?1.05:1.0;return}
- const top=[8,23,13,26][n%4],gap=section===1?17:16;
+ if(encounter===3){const beat=n%4;spawn=[.7,.58,.72,.62][beat];
+  if(beat===0||beat===2&&section>0){const blue=beat===2;coloredBone(89,blue);return}
+  const gap=14-section,top=[9,23,13,19][(n+round)%4];add(121,top,89);add(121+top+gap,50-top-gap,89);return}
+ if((section===0&&n%3!==2)||(section===2&&n%3===1)){coloredBone(section===0?69:82,true);spawn=section===0?.84:.76;return}
+ const top=[8,23,13,26][n%4],gap=section===0?19:section===1?17:16;
  add(121,top,section===1?65:74);add(121+top+gap,50-top-gap,section===1?65:74);spawn=.96;
 }
 function resetBattle(){gestureStart=t;round=1;hp=20;boss=100;food=3;calm=0;deathAge=0;inv=0;mode='ready';x=180;y=148;shots=[];drag=false;target=null;}
