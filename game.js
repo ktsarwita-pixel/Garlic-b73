@@ -12,7 +12,7 @@ const skull=[
 '  kwwWWWwwwwwwwwsssk ',
 '  kwwwwwwwwwwwwwwssk ',
 '  kwsskkkwwwkkkkkssk ',
-'  kkkkkkkwwkkkkkkwsk ',
+'  kwkkkkkwwkkkkkkwsk ',
 '  kwkkekkwwkkekkkswk ',
 '  kkwwwwwkkswwwsswkk ',
 '   kwwwwkkkkwwwWwsk  ',
