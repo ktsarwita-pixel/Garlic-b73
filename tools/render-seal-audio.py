@@ -62,3 +62,10 @@ skip=1-.54*np.exp(-((t-.58)/.016)**2)-.72*np.exp(-((t-.665)/.013)**2)
 wave=pull*skip*(.46*bp(noise(d),320,2200)+.28*sweep(173,740,d,1.8))
 u=np.maximum(0,t-.74);wave+=np.minimum(u/.025,1)*np.exp(-u*8)*(.24*np.sin(2*np.pi*294*u)+.14*np.sin(2*np.pi*439*u))
 save('rift',wave)
+# Closing takes .66s: subdued granular drag, a skipped beat, then stone contact.
+reseed(195)
+d=.71;t=t_(d);slide=np.sin(np.pi*np.minimum(t/.66,1))**1.3
+skip=1-.78*np.exp(-((t-.35)/.016)**2)-.57*np.exp(-((t-.41)/.012)**2)
+wave=slide*skip*(.34*bp(noise(d),190,920)+.19*sweep(132,66,d))
+u=np.maximum(t-.64,0);wave+=np.minimum(u/.002,1)*np.exp(-u*45)*(.93*np.sin(2*np.pi*(88*u+.23*(1-np.exp(-u*75))))+.26*bp(noise(d),390,1450))
+save('seal-close',wave)
