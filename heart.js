@@ -115,7 +115,8 @@ function heartOpponent(){
  }));g.restore();if(mode==='heartHit')slash(sceneAge*1.6,false);
 }
 function heartAction(a){if(mode!=='ready')return;if(a==='fight'){cracks++;boss=Math.max(0,100-100*cracks/(purple?5:4));mode='heartHit';sceneAge=0;sampleCue((purple?'violet':'white')+cracks);msg(`Fracture ${cracks} / ${purple?5:4}.`)}else{if(purple)return;if(a==='item'){if(!food){sampleCue('empty');msg('No pie left.');return}sfx('heal');food--;hp=Math.min(20,hp+8);msg(`Pie restores your soul. ${food} left.`)}else msg(a==='act'?'You call out. No answer.':'You offer mercy. Its pulse stays steady.');startWave(.55)}ui()}
-function chapterTick(dt){if(mode==='hall'){moveInHall(dt);if(mode==='hall'&&hallY<133&&Math.floor(t*9/2)!==Math.floor((t-dt)*9/2))sampleCue('seam',1,.45+.55*ease((133-hallY)/90));return true}
+const seamPattern=['seam','seam-slip','seam','seam-freeze','seam-slip'];
+function chapterTick(dt){if(mode==='hall'){moveInHall(dt);if(mode==='hall'&&hallY<133&&Math.floor(t*9/2)!==Math.floor((t-dt)*9/2))sampleCue(seamPattern[Math.floor(t*9/2)%seamPattern.length],1,.45+.55*ease((133-hallY)/90));return true}
  if(mode==='portal'){const before=sceneAge;sceneAge+=dt;if(before<.52&&sceneAge>=.52)sfx('stone');if(before<1.22&&sceneAge>=1.22){sampleCue('rift');msg('The seam opens. Your shadow stays on the stone.')}if(before<2.72&&sceneAge>=2.72)sfx('seal');if(sceneAge>=CROSS_END)enterHeart();return true}
  if(!heartBusy())return false;sceneAge+=dt;
  if(mode==='heartHit'&&sceneAge>=1.05){if(boss>0)startWave(.5);else{sfx('shatter');mode=purple?'destroy':'reform';sceneAge=0;msg(purple?'The last eye closes.':'The pieces stop falling. Something pulls them back.')}ui()}
