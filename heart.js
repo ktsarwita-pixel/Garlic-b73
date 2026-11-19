@@ -23,6 +23,14 @@ function moveInHall(dt){
  glideDistance+=Math.hypot(hallX-oldX,hallY-oldY);if(glideDistance>=48){glideDistance%=48;sfx('drift')}
  if(hallY<=HALL_NORTH+1&&Math.abs(hallX-180)<23){mode='portal';sfx('static');sceneAge=0;drag=false;target=null;msg('The stone slips out of place. Beyond it, a heartbeat.');ui()}
 }
+// Shallow chips and mineral veins cut into individual flagstones, not the grout.
+const stoneMarks=[['  ll',' ll ','dd  '],['    d','  ddd',' dd  ','dl   '],['lld',' dd'],['l   l','   ld']];
+function flagstone(a,b,i,j){
+ const seed=(i*73+j*137+i*j*13)%97;
+ rect(a,b,31,15,['#777979','#747676','#797b7a','#767877'][seed%4]);
+ rect(a+1,b,29,1,'#818382');rect(a+2,b+14,28,1,'#696c6b');
+ if(seed%4===0){const mark=stoneMarks[(seed>>2)%4];mark.forEach((row,y)=>[...row].forEach((v,x)=>{if(v!==' ')rect(a+4+seed%17+x,b+3+seed%5+y,1,1,v==='l'?'#8a8c88':'#626564')}))}
+}
 function hallway(){
  const port=mode==='portal';g.save();g.translate(-HALL_LEFT,0);
  rect(HALL_LEFT,0,HALL_WIDTH,HALL_HEIGHT,'#101112');
@@ -33,7 +41,7 @@ function hallway(){
   rect(l,top,w*2,h,'#646667');rect(l,top,3,h,'#414345');rect(r-2,top,2,h,'#505253');
   g.save();g.beginPath();g.rect(l+3,top,w*2-6,h);g.clip();
   for(let j=Math.floor(top/16);j<bottom/16;j++)for(let i=0;i<7;i++){
-   let a=78+i*32-(j%2)*16,b=j*16;rect(a,b,31,15,['#777979','#747676','#797b7a'][(i+j*2)%3]);rect(a+1,b,29,1,'#818382')}
+   flagstone(78+i*32-(j%2)*16,j*16,i,j)}
   g.restore();
  }
  for(const py of [154,251])for(const px of [85,245]){rect(px,py,30,4,'#a9aaa8');rect(px,py+3,30,1,'#48494a')}
@@ -105,18 +113,29 @@ function watchingEyes(){watchers.forEach(([cx,cy,r],i)=>{
 // Each letter is a fitted shard. Separating actual pieces exposes the void between them.
 const shell=['  AAAA   BBBB  ',' AAAAAA BBBBBB ','AAAAAAACBBBBBBB','DAAAAACCCBBBBBE',' DDAAACCCCBBEE ','  DDDACCCCEEE  ','   DDDCCCEEE   ','    DDCCCEE    ','     FFFCE     ','      FFF      ','       F       '];
 const drift={A:[-7,-6],B:[6,-8],C:[0,-1],D:[-9,4],E:[8,5],F:[1,10]};
+// Cache a ramp for each value band so the lighting stays consistent as color returns.
+const heartRamp=Array.from({length:65},(_,k)=>[[255,254,250,246,223,255],[227,224,217,203,145,243],[197,193,187,161,101,200],[156,153,150,113,62,147]].map(c=>'rgb('+[0,1,2].map(i=>Math.round(c[i]+(c[i+3]-c[i])*k/64)).join(',')+')'));
+const pivots={A:[3,2],B:[11,2],C:[7,5],D:[4,5],E:[11,5],F:[7,9]};
 function heartOpponent(){
- if(mode==='end'&&boss===0)return;if(purple)watchingEyes();
- const bind=mode==='reform'?1-ease((sceneAge-1)/1):1,burst=mode==='destroy'?ease(sceneAge/1.45):mode==='reform'?ease(sceneAge/.75)*bind:0;
- const violet=purple||mode==='reform'&&sceneAge>1.4,palette=violet?['#f6dfff','#cb91f3','#a165c8','#713e93']:['#fffefa','#e3e0d9','#c5c1bb','#9c9996'];
- const order=purple?'BAFEDC':'ADEBFC',n=cracks=== (purple?5:4)?6:cracks;
- g.save();if(mode==='destroy')g.globalAlpha=1-ease((sceneAge-.8)/.95);
- shell.forEach((row,j)=>[...row].forEach((id,i)=>{if(id===' ')return;const index=order.indexOf(id),loose=index<n;
- const gap=loose?(.24+.13*(n-index))*bind:0,[dx,dy]=drift[id],offset=gap+burst*3;
- const px=158+i*3+dx*offset,py=52+j*3+dy*offset+Math.sin(t*2)*1.5;
- const shade=j<3&&i<6?0:j>7||i>12?3:i+j>13?2:1;rect(px,py,3,3,palette[shade]);
- if(loose&&shell[j-1]?.[i]!==id)rect(px,py,3,1,palette[0]);
- }));g.restore();if(mode==='heartHit')slash(sceneAge*1.6,false);
+ if(mode==='end'&&boss===0)return;
+ const forming=mode==='reform',breaking=mode==='destroy',hit=mode==='heartHit';
+ const tint=purple?1:forming?ease((sceneAge-.64)/1.48):0;
+ if(tint>0){g.save();g.globalAlpha=forming?ease((sceneAge-1.55)/.7):1;watchingEyes();g.restore()}
+ const order=purple?'BAFEDC':'ADEBFC',total=purple?5:4,n=cracks===total?6:cracks;
+ const progress=hit?ease((sceneAge-.20)/.32):1;
+ g.save();if(breaking)g.globalAlpha=1-ease((sceneAge-.8)/.95);
+ shell.forEach((row,j)=>[...row].forEach((id,i)=>{if(id===' ')return;
+  const index=order.indexOf(id),[dx,dy]=drift[id],[cx,cy]=pivots[id];
+  const gap=count=>index<count?.24+.13*(count-index):0;
+  const prev=hit?gap(Math.max(0,cracks-1)):gap(n);
+  const bind=forming?1-ease((sceneAge-.91-index*.055)/.84):1;
+  const burst=breaking?ease(sceneAge/1.45):forming?ease(sceneAge/.69)*bind:0;
+  const offset=(prev+(gap(n)-prev)*progress)*bind+burst*2.7;
+  const angle=(dx<0?-1:1)*burst*(.36+.07*index),cos=Math.cos(angle),sin=Math.sin(angle),lx=(i-cx)*3,ly=(j-cy)*3;
+  const px=158+cx*3+lx*cos-ly*sin+dx*offset,py=52+cy*3+lx*sin+ly*cos+dy*offset+Math.sin(t*2)*1.5;
+  const palette=heartRamp[Math.round(64*tint)],shade=j<3&&i<6?0:j>7||i>12?3:i+j>13?2:1;
+  rect(px,py,3,3,palette[shade]);if(offset>.12&&shell[j-1]?.[i]!==id)rect(px,py,3,1,palette[0]);
+ }));g.restore();if(hit)slash(sceneAge*1.6,false);
 }
 function heartAction(a){if(mode!=='ready')return;if(a==='fight'){cracks++;boss=Math.max(0,100-100*cracks/(purple?5:4));mode='heartHit';sceneAge=0;sampleCue((purple?'violet':'white')+cracks);msg(`Fracture ${cracks} / ${purple?5:4}.`)}else{if(purple)return;if(a==='item'){if(!food){sampleCue('empty');msg('No pie left.');return}sfx('heal');food--;hp=Math.min(20,hp+8);msg(`Pie restores your soul. ${food} left.`)}else msg(a==='act'?'You call out. No answer.':'You offer mercy. Its pulse stays steady.');startWave(.55)}ui()}
 const seamPattern=['seam','seam-slip','seam','seam-freeze','seam-slip'];
