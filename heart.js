@@ -1,25 +1,55 @@
 // Beyond the wall: hallway traversal and the two forms of the sixth opponent.
-let distance=0,sceneAge=0,purple=false,cracks=0;
+let hallX=180,hallY=398,sceneAge=0,purple=false,cracks=0;
 const walking=()=>mode==='hall'||mode==='portal';
 const heartBusy=()=>['heartHit','reform','destroy'].includes(mode);
-function enterHall(){encounter=6;resetBattle();distance=0;purple=false;cracks=0;mode='hall';msg('Move with ← / → or A / D. On touch, hold either side of your soul.');ui()}
+function enterHall(){encounter=6;resetBattle();hallX=180;hallY=398;sceneAge=0;keys.clear();purple=false;cracks=0;mode='hall';msg('Follow the stone inlay north. Move with arrows / WASD, or hold and drag.');ui()}
 function enterHeart(){encounter=6;resetBattle();cracks=0;purple=false;sceneAge=0;msg('A white heart beats on the other side.');ui()}
 function tinySoul(cx,cy){[' rr rr ','rrrrrrr','rrrrrrr',' rrrrr ','  rrr  ','   r   '].forEach((row,j)=>[...row].forEach((v,i)=>{if(v==='r')rect(cx+i-3,cy+j-3,1,1,'#ff626a')}))}
-const hallCamera=()=>Math.round(Math.max(0,Math.min(330,distance-92)));
+// World coordinates are in floor pixels; the camera never scales or rotates.
+const HALL_NORTH=38,HALL_SOUTH=410;
+const hallClamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+const hallCamera=()=>Math.round(hallClamp(hallY-100,0,258));
+function hallWidth(y){return (y>=154&&y<=254)?87:65}
+function moveInHall(dt){
+ let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));
+ let dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));
+ let step=92*dt;
+ if(drag&&target){dx=target[0]-hallX;dy=target[1]+hallCamera()-hallY;step=Math.min(step,Math.hypot(dx,dy))}
+ const len=Math.hypot(dx,dy);if(!len)return;
+ const width=hallWidth(hallY);hallX=hallClamp(hallX+dx/len*step,180-width+4,180+width-4);
+ const next=hallClamp(hallY+dy/len*step,HALL_NORTH,HALL_SOUTH);
+ if(Math.abs(hallX-180)<=hallWidth(next)-4)hallY=next;
+ if(hallY<=HALL_NORTH+1&&Math.abs(hallX-180)<23){mode='portal';sceneAge=0;drag=false;target=null;msg('The stone slips out of place. Beyond it, a heartbeat.');ui()}
+}
 function hallway(){
- const cam=hallCamera(),port=mode==='portal',gate=650-cam;
- rect(0,0,360,180,'#191919');rect(0,28,360,78,'#888');rect(0,95,360,10,'#636363');rect(0,104,360,3,'#ccc');rect(0,107,360,46,'#464646');rect(0,151,360,2,'#747474');
- for(let i=0;i<10;i++){
-  const a=i*80-cam;if(a < -80 || a>360)continue;
-  // Tall recessed lancets, with a stone sill and a thin leaded crossbar.
-  for(let j=0;j<25;j++){const h=4+Math.min(j,24-j,7);rect(a+22+j,48-h,1,34+h,'#565656');rect(a+22+j,51-h,1,27+h,'#cdcdcd')}
-  rect(a+33,38,2,43,'#777');rect(a+22,57,25,2,'#777');rect(a+19,82,31,3,'#b7b7b7');
-  rect(a+63,30,8,73,'#686868');rect(a+63,30,2,73,'#aaa');rect(a+60,30,14,4,'#c8c8c8');rect(a+61,99,12,5,'#aaa');
-  rect(a,119,80,1,'#505050');rect(a+17,107,1,12,'#383838');rect(a+52,120,1,31,'#393939');
+ const cam=hallCamera(),port=mode==='portal';g.save();g.translate(0,-cam);
+ rect(0,cam,360,180,'#101112');
+ // The gallery opens into a wider landing halfway up the map.
+ for(const [top,bottom,w] of [[32,154,65],[154,255,87],[255,417,65]]){
+  const l=180-w,r=180+w,h=bottom-top;
+  for(const edge of [l-9,r]){rect(edge,top,9,h,'#424446');rect(edge+2,top,5,h,'#a4a6a6');rect(edge+3,top,1,h,'#d8d9d7')}
+  rect(l,top,w*2,h,'#646667');rect(l,top,3,h,'#414345');rect(r-2,top,2,h,'#505253');
+  g.save();g.beginPath();g.rect(l+3,top,w*2-6,h);g.clip();
+  for(let j=Math.floor(Math.max(top,cam)/16);j<=Math.min(bottom,cam+180)/16;j++)for(let i=0;i<7;i++){
+   let a=78+i*32-(j%2)*16,b=j*16;rect(a,b,31,15,['#777979','#747676','#797b7a'][(i+j*2)%3]);rect(a+1,b,29,1,'#818382')}
+  g.restore();
  }
- rect(gate,28,40,125,'#6b6b6b');for(let j=0;j<8;j++){const shift=(j*3+Math.floor(t*7))%9===0? -4:0;rect(gate+shift,28+j*16,40,14,'#979797');rect(gate+shift,28+j*16,2,14,'#dbdbdb')}
- if(port){const open=ease(sceneAge/.6);rect(gate-2,126-12*open,22,24*open,'#171717')}
- const px=34+distance-cam+(port?ease((sceneAge-.4)/1)*34:0);g.save();if(port)g.globalAlpha=1-ease((sceneAge-1)/.55);tinySoul(px,126+Math.sin(t*3));g.restore();
+ for(const py of [154,251])for(const px of [85,245]){rect(px,py,30,4,'#a9aaa8');rect(px,py+3,30,1,'#48494a')}
+ // Inlaid guide stripe with repeating diamond medallions.
+ for(const px of [158,201]){rect(px,34,2,381,'#555758');rect(px+1,34,1,381,'#b7b9b6')}
+ for(const py of [80,205,330])for(let j=-7;j<=7;j++){
+  const w=7-Math.abs(j);rect(180-w,py+j,w*2+1,1,'#c7c8c4');if(w>1)rect(182-w,py+j,w*2-3,1,'#656768')}
+ for(const py of [67,135,203,278,360])for(const side of [-1,1]){
+  const a=180+side*(hallWidth(py)+8);rect(a-6,py-7,12,15,'#313335');rect(a-5,py-7,10,11,'#aaacab');rect(a-3,py-5,6,7,'#777978');rect(a-2,py-4,4,4,'#ededdf');rect(a-3,py+5,6,2,'#525455')}
+ rect(106,HALL_SOUTH+5,148,7,'#aaacab');rect(106,15,148,18,'#929494');rect(106,15,148,2,'#d6d7d3');rect(106,32,148,3,'#454748');
+ // Only the sealed central slab tears, leaving stable masonry on both sides.
+ const gap=port?ease(sceneAge/.75):0;rect(153,14,54,21,'#1c1e20');
+ for(let k=0;k<7;k++){
+  const d=Math.round(3*Math.sin(k*2+Math.floor(t*6))),a=155+d,b=14+k*3,split=Math.round(2+gap*20);
+  rect(a,b,24-split,3,k%3?'#b4b5b1':'#e0e1dc');rect(a+24+split,b,26-split,3,k%2?'#989a99':'#c9cbc7');
+ }
+ const p=port?ease((sceneAge-.3)/1.2):0,px=hallX+(180-hallX)*p,py=hallY+(12-hallY)*p;
+ g.globalAlpha=1-p*p;rect(px-3,py+4,7,2,'#555758');tinySoul(px,py);g.restore();
 }
 const watchers=[[19,43,9],[51,78,17],[85,29,12],[127,53,9],[95,105,8],[16,102,6],[142,95,6],[221,34,7],[239,94,10],[263,57,18],[305,29,10],[337,78,15],[301,106,7],[350,41,5]];
 function watchingEyes(){watchers.forEach(([cx,cy,r],i)=>{
@@ -48,7 +78,7 @@ function heartOpponent(){
  }));g.restore();if(mode==='heartHit')slash(sceneAge*1.6,false);
 }
 function heartAction(a){if(mode!=='ready')return;if(a==='fight'){cracks++;boss=Math.max(0,100-100*cracks/(purple?5:4));mode='heartHit';sceneAge=0;beep(205);msg(`Fracture ${cracks} / ${purple?5:4}.`)}else{if(purple)return;if(a==='item'){if(!food){msg('No pie left.');return}food--;hp=Math.min(20,hp+8);msg(`Pie restores your soul. ${food} left.`)}else msg(a==='act'?'You call out. No answer.':'You offer mercy. Its pulse stays steady.');startWave(.55)}ui()}
-function chapterTick(dt){if(mode==='hall'){const dir=drag&&target?Math.sign(target[0]-(34+distance-hallCamera())):Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));distance=Math.max(0,Math.min(610,distance+dt*100*dir));if(distance>=610){mode='portal';sceneAge=0;msg('The wall skips a beat. Your soul slips through.');ui()}return true}
+function chapterTick(dt){if(mode==='hall'){moveInHall(dt);return true}
  if(mode==='portal'){sceneAge+=dt;if(sceneAge>=1.65)enterHeart();return true}
  if(!heartBusy())return false;sceneAge+=dt;
  if(mode==='heartHit'&&sceneAge>=1.05){if(boss>0)startWave(.5);else{mode=purple?'destroy':'reform';sceneAge=0;msg(purple?'The last eye closes.':'The pieces stop falling. Something pulls them back.')}ui()}

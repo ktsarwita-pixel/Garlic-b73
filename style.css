@@ -13,3 +13,6 @@
 @media(prefers-reduced-motion:reduce){.actions button.bound,.actions button.bound::after{animation:none}}
 #test-panel{width:min(360px,92vw);max-height:85dvh;background:#161616;color:#f5eccf;border:2px solid #aba394;padding:16px;font:15px monospace}#test-panel::backdrop{background:#000a}#test-panel header{padding:0;height:auto;background:none;border:0}#test-panel h2{font:12px p,monospace}#test-panel button,#test-panel input{border:1px solid #777;background:#252525;color:#eee;padding:8px;font:inherit}.test-line,.test-quick{display:flex;gap:6px;margin:8px 0}.test-line input{min-width:0;flex:1}.test-quick button{flex:1}#test-panel p{color:#bcbcbc}#test-panel output{color:#ffe18b}
 .actions button.corrupt{color:#cb97ed;border-color:#63377e;background:repeating-linear-gradient(0deg,#211629 0 3px,#35203e 3px 4px);text-shadow:2px 0 #705795,-1px 0 #bc628e;animation:corrupt-label 1.35s steps(1) infinite}@keyframes corrupt-label{0%,95%{text-indent:0}90%{text-indent:4px}93%{text-indent:-3px}}@media(prefers-reduced-motion:reduce){.actions button.corrupt{animation:none}}
+.world.explore .boss,.world.explore .turn{display:none}
+.world.explore{container-type:size;background:#101112}
+.world.explore #scene{width:min(100cqw,200cqh);height:auto;max-height:none;top:50%;bottom:auto;transform:translate(-50%,-50%)}
