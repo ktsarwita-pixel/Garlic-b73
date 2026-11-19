@@ -39,10 +39,12 @@ for violet,total in [(False,4),(True,5)]:
 # Broken sample reader: repeat a tiny PCM fragment, read it backwards, then lose clock.
 for n,name in enumerate(['seam','seam-slip','seam-freeze']):
     d=.204;t=t_(d);i=np.arange(t.size);sr=round(i.size/d)
-    raw=sweep(780+130*n,138,d)+.4*bp(noise(d),400,3100)
+    raw=sweep(240+32*n,118,d)+.23*bp(noise(d),240,1050)
     addr=i.copy();frozen=(t>.034)&(t<.091);size=[149,97,203][n]
     addr[frozen]=int(.031*sr)+(i[frozen]%size)
     back=(t>=.091)&(t<.134);addr[back]=int(.134*sr)-((i[back]-int(.091*sr))%(size*4))
     stride=np.where(t>.14,24+n*5,7+n);samples=raw[(addr//stride)*stride]
     gate=((t<.088)|((t>.097)&(t<.13))|(t>.151))*np.minimum(t/.003,1)*np.minimum((d-t)/.017,1)
-    save(name,np.round(np.tanh(samples*1.6)*7)/7*gate)
+    # Round the discontinuities; let the broken playback rhythm carry the glitch.
+    smooth=np.hanning(101);smooth/=smooth.sum()
+    save(name,np.convolve(samples*gate,smooth,mode="same")*np.exp(-t*10))

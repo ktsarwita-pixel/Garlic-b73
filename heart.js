@@ -63,15 +63,19 @@ function hallway(){
 const CROSS_END=3.25;
 function threshold(age){
  const active=age>=0,open=active?ease((age-.48)/.92)*(1-ease((age-2.54)/.66)):0;
- const tick=Math.floor(t*9),near=1-ease((hallY-38)/95);
+ const beat=Math.floor(t*4.5),phase=t*4.5-beat,near=1-ease((hallY-38)/95);
  rect(150,12,60,24,'#36383a');rect(152,14,56,21,'#15171a');
  for(let row=0;row<21;row++){
-  const band=row>>2,tear=(tick+band*7)%19<2?(band%2?-1:1)*(2+Math.round(near*2)):0;
+  const band=row>>2,slips=band===(beat*3)%5;
+  const tear=slips?(beat%2?-1:1)*(phase<.32?3+Math.round(near*3):phase<.56?1:0):0;
   const tooth=[0,0,-2,-2,1,1][Math.floor(row/2)%6];
   for(const side of [-1,1]){
    const dx=tear+side*Math.round(open*19),left=side<0?153:180+tooth,right=side<0?180+tooth:207;
    g.save();g.beginPath();g.rect(152,14+row,56,1);g.clip();
    rect(left+dx,14+row,right-left,1,row===0?'#ebece6':row%8===7?'#656967':'#a4a7a3');
+   // Mortar seams move with the displaced strip; the adjoining blocks stay put.
+   const joint=side<0?159+((row>>3)%2)*10:193+((row>>3)%2)*8;
+   rect(joint+dx,14+row,1,1,'#777b78');rect(joint+1+dx,14+row,1,1,'#b9bcb6');
    const seal=180+side*(2+Math.abs(10-row));rect(seal+dx,14+row,2,1,'#626664');rect(seal+dx+side*2,14+row,1,1,'#dedfd8');
    rect((side<0?right-1:left)+dx,14+row,1,1,side<0?'#e5e7df':'#555958');g.restore();
   }
