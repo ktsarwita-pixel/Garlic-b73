@@ -1,8 +1,9 @@
 // Beyond the wall: hallway traversal and the two forms of the sixth opponent.
+let glideDistance=0;
 let hallX=180,hallY=398,sceneAge=0,purple=false,cracks=0;
 const walking=()=>mode==='hall'||mode==='portal';
 const heartBusy=()=>['heartHit','reform','destroy'].includes(mode);
-function enterHall(){encounter=6;resetBattle();hallX=180;hallY=398;sceneAge=0;keys.clear();purple=false;cracks=0;mode='hall';msg('Follow the stone inlay north. Move with arrows / WASD, or hold and drag.');ui()}
+function enterHall(){encounter=6;resetBattle();glideDistance=0;hallX=180;hallY=398;sceneAge=0;keys.clear();purple=false;cracks=0;mode='hall';msg('Follow the stone inlay north. Move with arrows / WASD, or hold and drag.');ui()}
 function enterHeart(){encounter=6;resetBattle();cracks=0;purple=false;sceneAge=0;msg('A white heart beats on the other side.');ui()}
 function tinySoul(cx,cy){[' rr rr ','rrrrrrr','rrrrrrr',' rrrrr ','  rrr  ','   r   '].forEach((row,j)=>[...row].forEach((v,i)=>{if(v==='r')rect(cx+i-3,cy+j-3,1,1,'#ff626a')}))}
 // World coordinates are in floor pixels; the camera never scales or rotates.
@@ -16,10 +17,11 @@ function moveInHall(dt){
  let step=92*dt;
  if(drag&&target){dx=target[0]+HALL_LEFT-hallX;dy=target[1]-hallY;step=Math.min(step,Math.hypot(dx,dy))}
  const len=Math.hypot(dx,dy);if(!len)return;
- const width=hallWidth(hallY);hallX=hallClamp(hallX+dx/len*step,180-width+4,180+width-4);
+ const oldX=hallX,oldY=hallY;const width=hallWidth(hallY);hallX=hallClamp(hallX+dx/len*step,180-width+4,180+width-4);
  const next=hallClamp(hallY+dy/len*step,HALL_NORTH,HALL_SOUTH);
  if(Math.abs(hallX-180)<=hallWidth(next)-4)hallY=next;
- if(hallY<=HALL_NORTH+1&&Math.abs(hallX-180)<23){mode='portal';sceneAge=0;drag=false;target=null;msg('The stone slips out of place. Beyond it, a heartbeat.');ui()}
+ glideDistance+=Math.hypot(hallX-oldX,hallY-oldY);if(glideDistance>=48){glideDistance%=48;sfx('drift')}
+ if(hallY<=HALL_NORTH+1&&Math.abs(hallX-180)<23){mode='portal';sfx('static');sceneAge=0;drag=false;target=null;msg('The stone slips out of place. Beyond it, a heartbeat.');ui()}
 }
 function hallway(){
  const port=mode==='portal';g.save();g.translate(-HALL_LEFT,0);
@@ -112,10 +114,10 @@ function heartOpponent(){
  if(loose&&shell[j-1]?.[i]!==id)rect(px,py,3,1,palette[0]);
  }));g.restore();if(mode==='heartHit')slash(sceneAge*1.6,false);
 }
-function heartAction(a){if(mode!=='ready')return;if(a==='fight'){cracks++;boss=Math.max(0,100-100*cracks/(purple?5:4));mode='heartHit';sceneAge=0;beep(205);msg(`Fracture ${cracks} / ${purple?5:4}.`)}else{if(purple)return;if(a==='item'){if(!food){msg('No pie left.');return}food--;hp=Math.min(20,hp+8);msg(`Pie restores your soul. ${food} left.`)}else msg(a==='act'?'You call out. No answer.':'You offer mercy. Its pulse stays steady.');startWave(.55)}ui()}
+function heartAction(a){if(mode!=='ready')return;if(a==='fight'){cracks++;boss=Math.max(0,100-100*cracks/(purple?5:4));mode='heartHit';sceneAge=0;sfx('crack',1-.055*cracks);msg(`Fracture ${cracks} / ${purple?5:4}.`)}else{if(purple)return;if(a==='item'){if(!food){msg('No pie left.');return}food--;hp=Math.min(20,hp+8);msg(`Pie restores your soul. ${food} left.`)}else msg(a==='act'?'You call out. No answer.':'You offer mercy. Its pulse stays steady.');startWave(.55)}ui()}
 function chapterTick(dt){if(mode==='hall'){moveInHall(dt);return true}
- if(mode==='portal'){const before=sceneAge;sceneAge+=dt;if(before<.52&&sceneAge>=.52)beep(130);if(before<1.22&&sceneAge>=1.22){beep(220);msg('The seam opens. Your shadow stays on the stone.')}if(sceneAge>=CROSS_END)enterHeart();return true}
+ if(mode==='portal'){const before=sceneAge;sceneAge+=dt;if(before<.52&&sceneAge>=.52)sfx('stone');if(before<1.22&&sceneAge>=1.22){sfx('passage');msg('The seam opens. Your shadow stays on the stone.')}if(before<2.72&&sceneAge>=2.72)sfx('seal');if(sceneAge>=CROSS_END)enterHeart();return true}
  if(!heartBusy())return false;sceneAge+=dt;
- if(mode==='heartHit'&&sceneAge>=1.05){if(boss>0)startWave(.5);else{mode=purple?'destroy':'reform';sceneAge=0;msg(purple?'The last eye closes.':'The pieces stop falling. Something pulls them back.')}ui()}
- else if(mode==='reform'&&sceneAge>=2.25){purple=true;cracks=0;boss=100;mode='ready';msg('The heart reforms in violet. Only FIGHT responds.');ui()}
+ if(mode==='heartHit'&&sceneAge>=1.05){if(boss>0)startWave(.5);else{sfx('shatter');mode=purple?'destroy':'reform';sceneAge=0;msg(purple?'The last eye closes.':'The pieces stop falling. Something pulls them back.')}ui()}
+ else if(mode==='reform'&&sceneAge>=2.25){sfx('reform');purple=true;cracks=0;boss=100;mode='ready';msg('The heart reforms in violet. Only FIGHT responds.');ui()}
  else if(mode==='destroy'&&sceneAge>=1.9){mode='end';msg('The violet heart is gone. Select an action to replay.');ui()}return true}

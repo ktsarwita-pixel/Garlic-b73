@@ -1,1 +1,1 @@
-{"framework":null,"installCommand":"true","buildCommand":"mkdir -p dist && cp -r index.html style.css game.js heart.js assets dist/","outputDirectory":"dist"}
+{"framework":null,"installCommand":"true","buildCommand":"mkdir -p dist && cp -r index.html style.css game.js heart.js sfx.js assets dist/","outputDirectory":"dist"}
