@@ -64,7 +64,7 @@ const lastCoat=coat.map((row,j)=>[...row].map((p,i)=>{
 // in coat-local pixels. Advance and reveal the cloth on the same clock.
 const cutPath=lastCoat.flatMap((row,j)=>{
  const cols=Array.from(row,(ch,i)=>'Rr'.includes(ch)?i:-1).filter(i=>i>=0);
- return cols.length?[{x:cols[0]+cols[cols.length-1]+1,y:2*j+1,row:j}]:[];
+ return cols.length?[{x:2*cols[Math.floor(cols.length/2)]+1,y:2*j+1,row:j}]:[];
 }).reverse();
 function cutHead(a){return Math.max(0,Math.min(cutPath.length-1,(a-.19)/.24*(cutPath.length-1)))}
 function fatalTrace(a,ox,oy){
