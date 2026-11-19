@@ -36,7 +36,7 @@ function sfx(name,pitch){playNotes(cues[name],pitch);if(!sound||!bus||audio.stat
 function beep(f){playNotes([['triangle',0,.14,f,f,.08]])}
 
 // Predecode once after audio unlock. Never replay a late download over the next turn.
-const gameSamples={rattle:[.15,190],clear:[.13,784],empty:[.14,145],retry:[.12,485]};
+const gameSamples={seam:[.095,360],rift:[.16,315],fatal:[.33,85],rattle:[.15,190],clear:[.13,784],empty:[.14,145],retry:[.12,485]};
 const decoded=new Map();
 function loadGameSamples(){for(const name of Object.keys(gameSamples)){
  fetch(`assets/sfx/${name}.wav`).then(r=>{if(!r.ok)throw Error(r.status);return r.arrayBuffer()})
@@ -47,3 +47,9 @@ function sampleCue(name){if(!sound||!bus||audio.state!=='running')return;
  const src=audio.createBufferSource(),v=audio.createGain();src.buffer=buffer;v.gain.value=gain;
  if(name==='rattle')src.playbackRate.value=.96+Math.random()*.08;
  src.connect(v);v.connect(bus);src.onended=()=>{src.disconnect();v.disconnect()};src.start();}
+
+// Short word-shaped chirps leave the rest of the line quiet for reading.
+function dialogBlips(line,faint){let at=0;const notes=[];
+ for(const word of line.trim().split(/\s+/).slice(0,6)){const f=(faint?92:131)+(word.charCodeAt(0)%8)*4,d=Math.min(.095,.035+word.length*.007);
+ notes.push(['triangle',at,d,f,f*.81,faint?.034:.054],['square',at,d*.7,2*f,1.7*f,faint?.007:.012]);
+ at+=d+(faint?.09:.032)+(/[.,!?]$/.test(word)?.085:0)}playNotes(notes)}
