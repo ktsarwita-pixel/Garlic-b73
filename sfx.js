@@ -36,7 +36,7 @@ function sfx(name,pitch){playNotes(cues[name],pitch);if(!sound||!bus||audio.stat
 function beep(f){playNotes([['triangle',0,.14,f,f,.08]])}
 
 // Predecode once after audio unlock. Never replay a late download over the next turn.
-const gameSamples={murmur:[.105,105],'murmur-open':[.105,109],'murmur-round':[.105,98],seam:[.055,200],'seam-slip':[.055,175],'seam-freeze':[.055,155],rift:[.16,315],fatal:[.33,85],rattle:[.15,190],clear:[.13,784],empty:[.14,145],retry:[.12,485]};
+const gameSamples={murmur:[.105,105],'murmur-open':[.105,109],'murmur-round':[.105,98],seam:[.055,200],'seam-slip':[.055,175],'seam-freeze':[.055,155],'seal-open':[.19,120],rift:[.16,315],fatal:[.33,85],rattle:[.15,190],clear:[.13,784],empty:[.14,145],retry:[.12,485]};
 for(const [form,total] of [['white',4],['violet',5]])for(let n=1;n<=total;n++)gameSamples[form+n]=[.15+n*.013,form==='white'?830:440];
 const decoded=new Map();
 function loadGameSamples(){for(const name of Object.keys(gameSamples)){

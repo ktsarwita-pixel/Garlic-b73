@@ -6,8 +6,7 @@ def save(name, wave):
     wave[-48:] *= np.linspace(1, 0, 48)
     write_wav('assets/sfx/'+name+'.wav', norm(wave)*.78)
 noise(.17)  # Preserve the seed sequence of the existing cutscene recordings.
-t=t_(.83)
-save('rift', (.62*sweep(110,515,.83)+.30*sweep(112,535,.83)+.35*bp(noise(.83),280,1550))*np.sin(np.pi*t/.83)**1.6)
+noise(.83)  # Keep later combat assets deterministic.
 # Air leads; fracture and low body arrive when the blade reaches the sprite.
 t=t_(.84); hit=.19
 wave=bp(noise(.84),1550,6700)*np.exp(-((t-.115)/.055)**2)*.78
@@ -48,3 +47,18 @@ for n,name in enumerate(['seam','seam-slip','seam-freeze']):
     # Round the discontinuities; let the broken playback rhythm carry the glitch.
     smooth=np.hanning(101);smooth/=smooth.sum()
     save(name,np.convolve(samples*gate,smooth,mode="same")*np.exp(-t*10))
+
+# Split stone: latch gives way, slabs drag, then settle into the recess.
+reseed(194)
+d=.91;t=t_(d);grit=bp(noise(d),170,1100); travel=np.sin(np.pi*t/d)**1.35
+slip=.68+.32*np.cos(2*np.pi*(11*t-3*t*t))
+wave=travel*slip*(.45*grit+.20*sweep(143,72,d))
+for at,strength in [(0,.6),(.045,.25),(.73,.32)]:
+    u=np.maximum(0,t-at);wave+=strength*np.minimum(u/.003,1)*np.exp(-u*32)*np.sin(2*np.pi*(120*u+.27*(1-np.exp(-u*70))))
+save('seal-open',wave)
+# Soul crossing: inward breath, two short signal skips, then a hollow trailing note.
+d=1.17;t=t_(d);pull=np.sin(np.pi*np.minimum(t/.83,1))**1.7
+skip=1-.54*np.exp(-((t-.58)/.016)**2)-.72*np.exp(-((t-.665)/.013)**2)
+wave=pull*skip*(.46*bp(noise(d),320,2200)+.28*sweep(173,740,d,1.8))
+u=np.maximum(0,t-.74);wave+=np.minimum(u/.025,1)*np.exp(-u*8)*(.24*np.sin(2*np.pi*294*u)+.14*np.sin(2*np.pi*439*u))
+save('rift',wave)
