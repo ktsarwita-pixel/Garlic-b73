@@ -50,8 +50,12 @@ function sans(){
  for(const foot of [-1,1]){const step=foot*side;mask(boot,paint,cx+foot*10-10+step*2*out,base-11-(step>0?3*out:2*back))}
  mask(shorts,paint,cx-16,base-20);
  const torso=base-41+bob+2*spring;mask(coat,paint,cx-22+lean,torso);
- if(encounter===4&&calm<3){ // Foreshortened cuff, curled fingers and pointing fingertip.
-  mask([' bbBBbk ','kbbBBbk',' kksskk',' kswssk',' kswWwk','  kwwsk','   kkk '],paint,cx+6+lean,torso+7);
+ if(encounter===4&&calm<3){
+  const age=t-gestureStart,wind=pulse(age,0,.32),reach=ease((age-.24)/.28),jab=pulse(age,.30,.66);
+  const armX=cx+9+lean+3*wind-9*reach,armY=torso+10-5*wind-5*reach;
+  mask(['  kkkk  ',' kBBBbk ','kBBbbbk ',' kbbbdkk','  kddssk','   ksssk'],paint,armX+4,armY);
+  const hand=reach<.45?[' kkkk ','kswwsk','kswswk',' ksssk','  kkk ']:['   kkkk   ','  ksWWwk  ',' kkwwWwkk ','kswswwsssk','kwsksskswk',' ksskksssk','  ksswwwk ','   kkkkk  '];
+  mask(hand,paint,armX-4-3*jab,armY+5+2*jab);
  }
  const hx=cx-21+lean*1.5,hy=torso-25+bob*.45;
  mask(encounter>=3&&calm<3?angrySkull:skull,{...paint,e:t%4.5<.14?ink:paint.e},hx,hy);
@@ -107,7 +111,7 @@ function brokenSoul(){
  }));g.restore();
 
 }
-let encounter=1,patternStep=0;
+let encounter=1,patternStep=0,colorStep=0,gestureStart=0;
 const sectionNames=['Blue Shift','Narrow Gates','Stop & Go'];
 function boneSprite(b){
  const light=b.red?'#ffc3a9':b.blue?'#b3f6ff':'#fff5df',mid=b.red?'#ff505b':b.blue?'#37b9ef':'#d8cfb9',dark=b.red?'#ae273f':b.blue?'#17749e':'#92897c';
@@ -118,23 +122,23 @@ function boneSprite(b){
  if(b.red)for(let j=6;j<b.h-4;j+=8){rect(b.x,b.y+j,1,1,light);rect(b.x+1,b.y+j+1,1,1,light);rect(b.x+2,b.y+j,1,1,light)}
  if(b.blue)for(let j=6;j<b.h-4;j+=7)rect(b.x,b.y+j,2,1,light);
 }
-function startWave(delay){mode='dodge';elapsed=0;spawn=delay;shots=[];patternStep=0;
+function startWave(delay){mode='dodge';elapsed=0;spawn=delay;shots=[];patternStep=0;colorStep=0;
  if(encounter===2)msg(['Blue Shift: stay still as blue bones pass.','Narrow Gates: follow the gaps in the white bones.','Stop & Go: dodge white. Hold still for blue.'][(round-1)%3]);}
 function emit(){const right=round%2,src=right?257:99,add=(y,h,speed,blue=false,red=false)=>shots.push({x:src,y,h,v:(right?-1:1)*speed,blue,red});
  if(encounter===1){spawn=.78;let h=13+Math.random()*14;add(Math.random()<.5?121:171-h,h,52);return}
  const n=patternStep++,section=(round-1)%3;
- const shortBone=(speed,blue)=>{const h=[16,23,19,26,14][(n+round)%5];const pos=[121,171-h,Math.round(146-h/2)][(n+round)%3];add(pos,h,speed,blue,!blue)};
+ const coloredBone=(speed,blue)=>{if(++colorStep%3===0){add(121,50,speed,blue,!blue);return}const h=[16,23,19,26,14][(n+round)%5];const pos=[121,171-h,Math.round(146-h/2)][(n+round)%3];add(pos,h,speed,blue,!blue)};
  if(encounter===4){const beat=n%6,speed=83,top=[12,18,24,14,20,10][(n+round)%6],gap=11-section;
-  spawn=.78;if(beat===1||beat===4){shortBone(speed,beat===4);return}
+  spawn=.78;if(beat===1||beat===4){coloredBone(speed,beat===4);return}
   add(121,top,speed,beat===0,beat===3);add(121+top+gap,50-top-gap,speed,beat===3||beat===2,beat===0||beat===5);return}
  if(encounter===3){const beat=n%4;spawn=.9;
-  if(beat===0||beat===2&&section>0){const blue=beat===2;shortBone(78,blue);return}
+  if(beat===0||beat===2&&section>0){const blue=beat===2;coloredBone(78,blue);return}
   const gap=14-section,top=[9,23,13,19][(n+round)%4];add(121,top,78);add(121+top+gap,50-top-gap,78);return}
- if(section===0||(section===2&&n%3===1)){shortBone(section===0?61:74,true);spawn=section===0?1.05:1.0;return}
+ if(section===0||(section===2&&n%3===1)){coloredBone(section===0?61:74,true);spawn=section===0?1.05:1.0;return}
  const top=[8,23,13,26][n%4],gap=section===1?17:16;
  add(121,top,section===1?65:74);add(121+top+gap,50-top-gap,section===1?65:74);spawn=.96;
 }
-function resetBattle(){round=1;hp=20;boss=100;food=3;calm=0;deathAge=0;inv=0;mode='ready';x=180;y=148;shots=[];drag=false;target=null;}
+function resetBattle(){gestureStart=t;round=1;hp=20;boss=100;food=3;calm=0;deathAge=0;inv=0;mode='ready';x=180;y=148;shots=[];drag=false;target=null;}
 function draw(){g.clearRect(0,0,360,180);sans();rect(94,118,172,57,'#585858');rect(96,119,168,54,'#e7e7e7');rect(98,121,164,50,'#101010');for(let i=100;i<260;i+=8)for(let j=124;j<171;j+=8)rect(i,j,1,1,'#222222');for(const b of shots)boneSprite(b);if(mode==='dying')brokenSoul();else if(hp>0&&(inv<=0||Math.floor(t*12)%2)){const heart=[' rr rr ','rrrrrrr','rrrrrrr',' rrrrr ','  rrr  ','   r   '];heart.forEach((r,j)=>[...r].forEach((p,i)=>{if(p==='r')rect(x+i-3,y+j-3,1,1,'#ff626a')}))}if(paused||mode==='end'||mode==='between'){rect(101,134,158,22,'#222222');g.fillStyle='#ffe27d';g.font='8px p, monospace';g.textAlign='center';g.fillText(paused?'PAUSED':hp<=0?'SOUL LOST':'ENCOUNTER CLEAR',180,148)}}
 let misses=0;
 function say(line){msg('Sans: “'+line+'”')}

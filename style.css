@@ -4,4 +4,10 @@
 .icon{width:20px;height:20px;vertical-align:middle;shape-rendering:crispEdges}.actions .icon{width:32px;height:32px}.actions button{padding:8px 0}.human .icon,.dialog .icon{width:16px;height:16px}header h1 .icon{margin-right:4px}@media(max-width:650px),(max-height:520px){.actions .icon{width:20px;height:20px}}
 /* Keep the speech bubble's 16px grid on whole pixels at compact sizes. */
 @media(max-width:650px),(max-height:520px){.actions .icon{width:16px;height:16px}}
-.actions button.bound{position:relative;background:#272329;color:#aaa1a5;opacity:.85;cursor:not-allowed}.actions button.bound::after{content:'';position:absolute;inset:0;margin:auto;width:min(76%,98px);height:80%;background:url(assets/mercy-bone.svg) center/contain no-repeat;transform:rotate(-13deg);pointer-events:none}
+/* The lock erupts through the lower edge, then stays embedded. */
+.actions button[data-a="mercy"]{position:relative;overflow:hidden}
+.actions button.bound{background:#272329;color:#aaa1a5;opacity:.9;cursor:not-allowed;animation:bone-impact .76s linear}
+.actions button.bound::after{content:'';position:absolute;inset:0;background:url(assets/mercy-bone.svg) bottom center/auto 100% no-repeat;pointer-events:none;animation:bone-rise .8s both}
+@keyframes bone-rise{0%,43%{transform:translateY(105%)}62%{transform:translateY(-8%)}78%{transform:translateY(4%)}100%{transform:translateY(0)}}
+@keyframes bone-impact{0%,60%,100%{transform:translateY(0)}68%{transform:translateY(-3px);border-color:#fff4dc}83%{transform:translateY(1px)}}
+@media(prefers-reduced-motion:reduce){.actions button.bound,.actions button.bound::after{animation:none}}
