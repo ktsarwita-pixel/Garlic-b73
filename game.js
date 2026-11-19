@@ -40,9 +40,8 @@ const coat=[
 const boot=['  kkkkkk  ','  kssssk  ',' kpppppsk ','kPPPPpppsk','kssppppssk',' kkkkkkkk '];
 const shorts=[' kkkkkkkkkkkkkkk ',' kgggGggkgggGggk ',' kgggGggkgggGggk ',' kgggGggkgggGggk ',' kgggggkkkgggggk ',' kkkkkkk kkkkkkk '];
 const paint={m:"#716d68",k:ink,w:bone,W:'#fff9e8',s:shade,b:blue,d:'#315b83',z:'#bdccd4',c:'#729cba',B:'#7db2cb',f:'#d5d6cb',g:'#303b50',G:'#687588',p:'#bd8b99',P:'#efd1c7',e:'#f9f7e8'};
-const raisedHand=[' kBBbk',' kbbbk',' kswwk',' kwssk','  kkk '];
-// Face-on index knuckle in front of the fist; the cuff recedes behind it.
-const pointingHand=['    kBBbk','  kkWkbbk',' kWWWWkbk',' kWwwskkk',' ksssskwsk','  kkkkwswk','    kssssk','     kkkk'];
+// A single held cel: the fingertip faces the viewer, the knuckles sit behind it.
+const pointCel=['  kkk  ',' kWWskk',' kwwksk','  kssbk','   kbbk','    kk '];
 function sans(){
  const evade=mode==='strike',a=evade?EVADE_DURATION-flash:0,side=round%2?1:-1;
  const spring=pulse(a,0,.29),out=pulse(a,.22,.69),back=pulse(a,2.04,2.80);
@@ -54,10 +53,8 @@ function sans(){
  mask(shorts,paint,cx-16,base-20);
  const torso=base-41+bob+2*spring;mask(coat,paint,cx-22+lean,torso);
  const gesture=t-gestureStart;
- if(encounter===4&&calm<3&&gesture>=.12&&gesture<1.15){
-  // Three held pixel poses: raise, point, lower. No scaling between frames.
-  const pointing=gesture>=.32&&gesture<.94;
-  mask(pointing?pointingHand:raisedHand,paint,cx+lean+(pointing?-1:9),torso+(pointing?7:12));
+ if(encounter===4&&calm<3&&gesture>=.25&&gesture<.95){
+  mask(pointCel,paint,cx+lean+3,torso+9);
  }
  const hx=cx-21+lean*1.5,hy=torso-25+bob*.45;
  mask(encounter>=3&&calm<3?angrySkull:skull,{...paint,e:t%4.5<.14?ink:paint.e},hx,hy);
