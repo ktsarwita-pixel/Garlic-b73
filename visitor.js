@@ -118,15 +118,12 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  if(age>9.1)whiteCross(hy,age-9.1)}}
  visitorInk.restore();g.save();g.imageSmoothingEnabled=false;g.drawImage(visitorSheet,130,32);g.restore();}
 // Illuminate the same ten connected pixels every frame, never swap eye silhouettes.
-function whiteCross(hy,seconds){
- const reveal=ease(seconds/1.15),pulse=(1-Math.cos(seconds*1.8))/2;
- visitorInk.save();visitorInk.globalAlpha=reveal*(.09+.09*pulse);
- // One pixel of local spill; keep the cross as the only bright shape.
- stampInk(185,hy+14,3,6,'#a2c3dc');stampInk(184,hy+15,5,1,'#a2c3dc');stampInk(184,hy+17,5,1,'#a2c3dc');
- visitorInk.globalAlpha=reveal;stampInk(186,hy+14,1,6,'#bfcfd8');stampInk(184,hy+16,5,1,'#d3e0e7');stampInk(186,hy+15,1,4,'#f1f6f8');stampInk(185,hy+16,3,1,'#f1f6f8');
- visitorInk.globalAlpha=reveal*(.45+.55*pulse);stampInk(186,hy+16,1,1,'#ffffff');
- visitorInk.restore();
-}
+function whiteCross(hy,seconds){crossEye(visitorInk,186-130,hy+16-32,seconds,ease(seconds/1.15))}
+function crossEye(ctx,x,y,seconds,reveal){const pulse=(1-Math.cos(seconds*1.8))/2;
+ ctx.save();const alpha=ctx.globalAlpha*reveal;function mark(dx,dy,w,h,color){ctx.fillStyle=color;ctx.fillRect(x+dx,y+dy,w,h)}
+ ctx.globalAlpha=alpha*(.09+.09*pulse);mark(-1,-2,3,6,'#a2c3dc');mark(-2,-1,5,1,'#a2c3dc');mark(-2,1,5,1,'#a2c3dc');
+ ctx.globalAlpha=alpha;mark(0,-2,1,6,'#bfcfd8');mark(-2,0,5,1,'#d3e0e7');mark(0,-1,1,4,'#f1f6f8');mark(-1,0,3,1,'#f1f6f8');
+ ctx.globalAlpha=alpha*(.45+.55*pulse);mark(0,0,1,1,'#ffffff');ctx.restore()}
 // The final sweep is the original blade arc, lowered ten pixels onto the coat.
 function cutHeight(x){const f=(x-154)/51;return 108-40*f-5*Math.sin(Math.PI*f)}
 // Precompute shades so aging never allocates colors in the pixel loop.
@@ -211,16 +208,20 @@ const eightScore=[
 let cannons=[],sent=0,nextBeam=0;
 function startEight(retry=false){encounter=8;if(retry)resetBattle();endingAge=Math.max(12,endingAge);round=1;swings=0;boss=100;wallPull=null;keys.clear();eightWave()}
 function eightWave(){startWave(.7);roomShift=round===4?{age:0,sx:x,sy:y}:null;const b=sevenBox();if(!roomShift){x=180;y=(b.u+b.d)/2}cannons=[];sent=0;nextBeam=.65;msg(['Watch the skulls. Step out of their sights.','Fractured bones. Blue: stop. Red: move.','Heavy blasters. Watch the wide lanes.','Crossfire. Keep clear of the white gates.','Blasters only. Keep moving.'][round-1]);ui()}
+function blasterPose(c){const a=c.age-c.charge,fade=1-ease((a-.27)/.2),scale=c.big?1.4:1;
+ const offset=-Math.round(7*(1-ease(c.age/.18))+5*(1-fade)+(a<0?0:3*(1-ease(a/.19))));
+ return {fade,scale,offset,muzzle:offset-2+Math.round(24*scale)}}
 function tickBeams(dt,b){const score=eightScore[round-1];if(sent<score.count&&elapsed>=nextBeam){const vertical=sent%2===0,big=round===3||round===5&&sent>=20;
  cannons.push({vertical,reverse:sent%4>=2,pos:Math.round(vertical?x:y),big,age:0,charge:big?.92:round<4?.77:.58,width:big?21:9});sent++;nextBeam+=big?Math.max(1.25,score.beat):score.beat}
  for(const c of cannons){const prev=c.age;c.age+=dt;if(prev<c.charge&&c.age>=c.charge)sfx('impact',c.big?.75:.43);
- if(c.age>=c.charge&&c.age<c.charge+.27&&!testGod&&inv<=0&&Math.abs((c.vertical?x:y)-c.pos)<c.width/2+2){hp=Math.max(0,hp-(c.big?6:4));inv=.85;sfx('hurt');if(!hp){mode='dying';deathAge=0;shots=[];cannons=[];msg('Your soul begins to crack.')}ui();if(!hp)return}}
+ const along=c.vertical?(c.reverse?b.d-y:y-b.u):(c.reverse?b.r-x:x-b.l);
+ if(along+2>=blasterPose(c).muzzle&&c.age>=c.charge&&c.age<c.charge+.27&&!testGod&&inv<=0&&Math.abs((c.vertical?x:y)-c.pos)<c.width/2+2){hp=Math.max(0,hp-(c.big?6:4));inv=.85;sfx('hurt');if(!hp){mode='dying';deathAge=0;shots=[];cannons=[];msg('Your soul begins to crack.')}ui();if(!hp)return}}
  cannons=cannons.filter(c=>c.age<c.charge+.47)}
 // Side-profile skull, mandible on a separate pivot. Bake the opening arc at native resolution.
 const blasterFrames=new Map();
-function blasterSkull(open,lit){const key=open*2+Number(lit);if(blasterFrames.has(key))return blasterFrames.get(key);
+function blasterSkull(open){const key=open;if(blasterFrames.has(key))return blasterFrames.get(key);
  const tile=document.createElement('canvas');tile.width=30;tile.height=32;const ctx=tile.getContext('2d');
- const colors={k:'#282530',s:'#665e71',m:'#a59aa3',b:'#d2c7be',h:'#f4e9db',v:lit?'#fffafa':'#ad80c6'};
+ const colors={k:'#282530',s:'#665e71',m:'#a59aa3',b:'#d2c7be',h:'#f4e9db',v:'#282530'};
  function pixel(x,y,c){ctx.fillStyle=colors[c];ctx.fillRect(Math.round(x),Math.round(y),1,1)}
  const head=['kk','kskk      kkk',' kmbkk  kkbsk','  kmbbkkbhmsk','   kmbbWWWbbsk','  kmbWWWWbbbmskk',' kmbWWbbbbbmbbbsk','ksbWWbmbsmbbbWWbbkk','kmbWbbmskkkmbWWWWWbkk','ksbbbmkkvkkkmbbbbbbbmskk',' ksbbmkkvvkksmmmkkkmbbbsk','  kmbmskkkksbmskk  kmmssk','   ksmbbbmbbskk     kskk','    ksmmbbskk        kk','     kssskk'];
  head.forEach((row,y)=>[...row].forEach((c,x)=>{if(c!==' ')pixel(x,y+1,c==='W'?'h':c)}));
@@ -229,15 +230,16 @@ function blasterSkull(open,lit){const key=open*2+Number(lit);if(blasterFrames.ha
  jaw.forEach((row,y)=>[...row].forEach((c,x)=>{if(c!==' ')pixel(4+x,13+y+Math.max(0,x-3)*open/15,c)}));
  blasterFrames.set(key,tile);return tile}
 function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.pos:c.reverse?b.r:b.l,c.vertical?(c.reverse?b.d:b.u):c.pos);if(c.vertical)g.rotate(c.reverse?-Math.PI/2:Math.PI/2);else if(c.reverse)g.scale(-1,1);
- const span=c.vertical?b.d-b.u:b.r-b.l,w=c.width,a=c.age-c.charge,q=c.age/c.charge,fade=1-ease((a-.27)/.2);
- if(a<0){g.globalAlpha=.32+.48*ease(q);for(let k=Math.floor(c.age*24)%6;k<span;k+=6)rect(k,-1,3,1,'#dec0e6')}
- else{const half=Math.floor(w/2);g.globalAlpha=fade;rect(0,-half,span,w,'#ad82c2');rect(0,1-half,span,w-2,'#dfc3e8');const core=Math.max(1,Math.round((w-4)*(.84+.16*Math.cos(a*52))*fade));rect(0,-Math.floor(core/2),span,core,'#fffaf3');
- for(let k=Math.floor(a*185)%21;k<span;k+=21)rect(k,-half,Math.min(8,span-k),1,'#f7dff2')}
- const recoil=a<0?0:3*(1-ease(a/.19)),slide=7*(1-ease(c.age/.18))+5*(1-fade),scale=c.big?1.4:1;
- g.globalAlpha=ease(c.age/.12)*fade;g.translate(Math.round(-slide-recoil),0);g.imageSmoothingEnabled=false;
- const opening=Math.round(6*(a<0?ease((q-.18)/.78):fade));g.drawImage(blasterSkull(opening,q>.76),-2,-Math.round(13*scale),Math.round(30*scale),Math.round(32*scale));
- // Muzzle charge contracts inward; the flash exits along the same axis as the warning.
- const muzzle=Math.round(20*scale);if(a<0&&q>.35){const k=ease((q-.35)/.65),r=Math.round(5*(1-k))+1;g.globalAlpha*=k;rect(muzzle-r,0,r*2+1,1,'#e4c8ee');rect(muzzle,-r,1,2*r+1,'#fff8ff')}
+ const span=c.vertical?b.d-b.u:b.r-b.l,w=c.width,a=c.age-c.charge,q=c.age/c.charge,{fade,scale,offset,muzzle}=blasterPose(c),length=span-muzzle;
+ // Clip in firing coordinates so warning, beam and traveling highlights cannot leak behind the jaw.
+ g.save();g.beginPath();g.rect(muzzle,-w,length,w*2);g.clip();g.translate(muzzle,0);
+ if(a<0){g.globalAlpha=.32+.48*ease(q);for(let k=Math.floor(c.age*24)%6;k<length;k+=6)rect(k,-1,3,1,'#dec0e6')}
+ else{const half=Math.floor(w/2);g.globalAlpha=fade;rect(0,-half,length,w,'#ad82c2');rect(0,1-half,length,w-2,'#dfc3e8');const core=Math.max(1,Math.round((w-4)*(.84+.16*Math.cos(a*52))*fade));rect(0,-Math.floor(core/2),length,core,'#fffaf3');
+ for(let k=Math.floor(a*185)%21;k<length;k+=21)rect(k,-half,8,1,'#f7dff2')}
+ g.restore();g.globalAlpha=ease(c.age/.12)*fade;g.translate(offset-2,-Math.round(14*scale));g.scale(scale,scale);g.imageSmoothingEnabled=false;
+ const opening=Math.round(6*(a<0?ease((q-.18)/.78):fade));g.drawImage(blasterSkull(opening),0,0);
+ crossEye(g,9,10,t,1);
+ if(a<0&&q>.35){const k=ease((q-.35)/.65),r=Math.round(4*(1-k))+1;g.globalAlpha*=k;rect(24-r,14,r*2+1,1,'#e4c8ee');rect(24,14-r,1,2*r+1,'#fff8ff')}
  g.restore()}}
 function nextGate(){const score=encounter===8?eightScore[round-1].gates:gateScores[round-1],entry=score[patternStep%score.length],b=sevenBox(),vertical=entry[0]==='T',span=vertical?b.r-b.l:b.d-b.u;
  const gap=encounter===8?eightScore[round-1].gap:[21,20,19,30,25][round-1],cut=6+Math.round((span-gap-12)*Number(entry[1])/3);return {b,vertical,reverse:entry[0]==='R',cut,gap,span,kind:{w:'white',b:'blue',r:'red',g:'glitch'}[entry[2]]}}
