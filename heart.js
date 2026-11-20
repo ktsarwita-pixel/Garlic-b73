@@ -1,7 +1,7 @@
 // Beyond the wall: hallway traversal and the two forms of the sixth opponent.
 let glideDistance=0;
 let hallX=180,hallY=398,sceneAge=0,purple=false,cracks=0;
-const walking=()=>mode==='hall'||mode==='portal'||mode==='room';
+const walking=()=>mode==='visitor'||mode==='hall'||mode==='portal'||mode==='room';
 const heartBusy=()=>['heartHit','reform','destroy'].includes(mode);
 function enterHall(){encounter=6;resetBattle();glideDistance=0;hallX=180;hallY=398;sceneAge=0;keys.clear();purple=false;cracks=0;mode='hall';msg('Follow the stone inlay north. Move with arrows / WASD, or hold and drag.');ui()}
 function enterHeart(){encounter=6;resetBattle();cracks=0;purple=false;sceneAge=0;msg('A white heart hangs still on the other side.');ui()}

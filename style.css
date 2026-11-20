@@ -68,3 +68,6 @@
 
 /* Same first-line metrics as page three; only the ink crosses the paper edge. */
 #letter .recto.ripped{padding-inline-start:0}#letter .ripped .book-copy{text-indent:.35em}#letter .ripped .book-copy::first-letter{color:#9a2925}
+
+.actions button.night-lock::after{background-image:url(assets/visitor-bone.svg)}
+.actions button.night-lock.bound::after{background-size:auto 100%}
