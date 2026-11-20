@@ -156,10 +156,11 @@ soulRows.forEach((row,j)=>[...row].forEach((p,i)=>{
  for(const f of fragments){if((f.i>=seam[f.j])!==side)continue;const dd=(i-f.i)**2+(j-f.j)**2;if(dd<d){nearest=f;d=dd}}
  nearest.pixels.push([i,j]);
 }));
-function shatter(age){
- g.save();g.beginPath();g.rect(98,121,164,50);g.clip();
- for(const f of fragments){const sign=Math.sign(f.vx),ox=180+(f.i-3)*2.5+sign*4,oy=145+(f.j-3)*2.5+(sign>0?2:0);
-  const floor=166,gravity=54,hit=(-f.vy+Math.sqrt(f.vy*f.vy+2*gravity*(floor-oy)))/gravity;
+const classicSoulBox={l:98,r:262,u:121,d:171};
+function shatter(age,b,cx,cy){
+ g.save();g.beginPath();g.rect(b.l,b.u,b.r-b.l,b.d-b.u);g.clip();
+ for(const f of fragments){const sign=Math.sign(f.vx),ox=cx+(f.i-3)*2.5+sign*4,oy=cy+(f.j-3)*2.5+(sign>0?2:0);
+  const floor=b.d-5,gravity=54*(b.d-b.u)/50,hit=(-f.vy+Math.sqrt(f.vy*f.vy+2*gravity*(floor-oy)))/gravity;
   function at(q){const b=Math.max(0,q-hit);return [ox+f.vx*q/(1+.24*q),q<hit?oy+f.vy*q+.5*gravity*q*q:Math.min(floor,floor-(f.vy+gravity*hit)*.28*b+.5*gravity*b*b)]}
   const [px,py]=at(age),angle=sign*age*(2+.27*f.n),co=Math.cos(angle),si=Math.sin(angle),alpha=1-ease((age-1.23)/.63);
   // Sparse, stepped afterimages underneath the tumbling red faces.
@@ -170,10 +171,11 @@ function shatter(age){
   for(let k=0;k<2;k++){const q=age-k*.09;if(q<=0||q>.86)continue;g.globalAlpha=1-ease(q/.86);const sx=ox+sign*(22+f.n*3+k*9)*q,sy=oy-(19+k*15)*q+13*q*q;rect(sx,sy,1,1,'#ffe3bd');if(k===0&&q<.2)rect(sx-1,sy,3,1,'#ffac94')}
  }g.restore();
 }
-function brokenSoul(){
+function brokenSoul(b=classicSoulBox){
+ const mx=(b.l+b.r)/2,my=Math.floor((b.u+b.d)/2)-1;
  const a=deathAge, focus=ease(a/.38), split=ease((a-.78)/.46);
- if(a>=1.52){shatter(a-1.52);return}
- const cx=x+(180-x)*focus,cy=y+(145-y)*focus,scale=1+focus*(1.5+.55*pulse(a,.38,.76));
+ if(a>=1.52){shatter(a-1.52,b,mx,my);return}
+ const cx=x+(mx-x)*focus,cy=y+(my-y)*focus,scale=1+focus*(1.5+.55*pulse(a,.38,.76));
  g.save();
  soulRows.forEach((row,j)=>[...row].forEach((p,i)=>{
   if(p!=='r')return;

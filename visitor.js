@@ -105,7 +105,11 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  visitorInk.save();visitorInk.globalAlpha=1-ease((age-6.5)/1.9);visitorGaze(hy+17);visitorInk.restore();
  if(age>9.1){const light=ease((age-9.1)/.72);visitorInk.save();visitorInk.globalAlpha=light;
  // Centered on the overlapping hollow pixels of skull rows 7–9. No detached glints.
- stampInk(186,hy+14,1,6,'#c8d6de');stampInk(184,hy+16,5,1,'#e6f2f6');stampInk(186,hy+15,1,4,'#fff');visitorInk.restore()}}}
+ // The slit ignites first; the crossbar opens under the brow, then settles to ice-blue tips.
+ const flare=ease((age-9.22)/.18)*(1-ease((age-9.48)/.55)),arm=Math.round(2*ease((age-9.22)/.26));
+ stampInk(184,hy+15,5,4,'#14202c');stampInk(186,hy+14,1,6,'#b6dbeb');
+ stampInk(186-arm,hy+16,1+2*arm,1,flare>.45?'#fff':'#c7e9fa');stampInk(186,hy+15,1,4,'#fff');
+ if(flare>.25)stampInk(185,hy+17,3,1,'#d6eef7');visitorInk.restore()}}}
  visitorInk.restore();g.save();g.imageSmoothingEnabled=false;g.drawImage(visitorSheet,130,32);g.restore();}
 // The final sweep is the original blade arc, lowered ten pixels onto the coat.
 function cutHeight(x){const f=(x-154)/51;return 108-40*f-5*Math.sin(Math.PI*f)}
@@ -207,7 +211,7 @@ function sevenStage(b){
  rect(124,y-78,112,3,'#242127');rect(128,y-75,104,1,'#373039');for(let i=0;i<9;i++)rect(180+(i%4===2?1:0),y-72+i*8,1,8,'#282329');
  rect(163,y-1,34,2,'#252128');rect(169,y-1,22,1,'#302b33')}
 function sevenDraw(){const b=sevenBox();sevenStage(b);g.save();g.translate(180,b.u-5);g.translate(-180,-110);if(mode==='strike'&&swings<6)blinkDodge(1.45-flash);else sevenFigure();if(mode==='strike'){if(swings===6)g.translate(0,10);slash(1.45-flash,swings<6)}g.restore();rect(b.l-2,b.u-2,b.r-b.l+4,b.d-b.u+4,'#cbbfd2');rect(b.l,b.u,b.r-b.l,b.d-b.u,'#111015');for(const xx of [b.l,b.r-5])for(const yy of [b.u,b.d-1])rect(xx,yy,5,1,'#55495d');g.save();g.beginPath();g.rect(b.l,b.u,b.r-b.l,b.d-b.u);g.clip();gateWarning();slamEffects(b);for(const s of shots){g.save();g.translate(s.x,s.y);if(s.horiz)g.transform(0,1,1,0,0,0);drawVisitorBone(s);g.restore()}
- const w=wallPull;if(w&&!w.fired)drawSlamAlert(b,w);if(mode==='dying')brokenSoul();else if(hp&&(inv<=0||Math.floor(t*12)%2)){if(w&&w.age<=.92){g.save();const flatten=pulse(w.age,.54,.80);g.translate(Math.round(x),Math.round(y));g.scale(1+flatten*(w.nx?-.26:.20),1+flatten*(w.ny?-.26:.20));g.translate(-x,-y);soulRows.forEach((r,j)=>[...r].forEach((v,i)=>{if(v==='r')rect(x+i-3,y+j-3,1,1,j===0||soulRows[j][i-1]!=='r'||soulRows[j][i+1]!=='r'?'#b99acb':'#09060d')}));g.restore()}else tinySoul(x,y)}g.restore()}
+ const w=wallPull;if(w&&!w.fired)drawSlamAlert(b,w);if(mode==='dying')brokenSoul(b);else if(hp&&(inv<=0||Math.floor(t*12)%2)){if(w&&w.age<=.92){g.save();const flatten=pulse(w.age,.54,.80);g.translate(Math.round(x),Math.round(y));g.scale(1+flatten*(w.nx?-.26:.20),1+flatten*(w.ny?-.26:.20));g.translate(-x,-y);soulRows.forEach((r,j)=>[...r].forEach((v,i)=>{if(v==='r')rect(x+i-3,y+j-3,1,1,j===0||soulRows[j][i-1]!=='r'||soulRows[j][i+1]!=='r'?'#b99acb':'#09060d')}));g.restore()}else tinySoul(x,y)}g.restore()}
 
 // Effects are timed from the same impact clock as the hand and collision.
 function slamEffects(b){const w=wallPull;if(!w)return;const px=w.nx<0?b.l:w.nx>0?b.r-1:w.sx,py=w.ny<0?b.u:w.ny>0?b.d-1:w.sy;
