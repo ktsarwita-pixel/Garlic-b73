@@ -22,6 +22,7 @@ function soulFits(px,py,room){
  for(const [dy,l,r] of soulSpans)for(let y=top+dy;y<=bottom+dy;y++){
   const left=cx+l,right=cx+r;
   if(room){
+   if(roomFurniture.some(([x,b,w,h])=>y>=b&&y<b+h&&left<x+w&&right>=x))return false;
    if(y<66||y>=372||left<94||right>=266)return false;
    if(y>=369&&left<212&&right>=148)return false; // closed south door
    if((y<70||y>=369)&&(left<97||right>=263))return false; // pier bases
@@ -70,7 +71,7 @@ const hallArt={
 const hallStamps=new Map();
 function stoneStamp(name,cx,y){let img=hallStamps.get(name);if(!img){const rows=hallArt[name];img=document.createElement('canvas');img.width=rows[0].length;img.height=rows.length;const ctx=img.getContext('2d');rows.forEach((row,j)=>[...row].forEach((p,i)=>{if(hallTones[p]){ctx.fillStyle=hallTones[p];ctx.fillRect(i,j,1,1)}}));hallStamps.set(name,img)}g.drawImage(img,cx-(img.width>>1),y)}
 let galleryBackdrop;
-function enterRoom(){mode='room';hallX=180;hallY=346;keys.clear();drag=false;target=null;msg('The door behind you is sealed. The room is empty.');ui()}
+function enterRoom(){mode='room';hallX=180;hallY=346;keys.clear();drag=false;target=null;msg('The door behind you is sealed. An open book rests on the table.');ui()}
 // Bake the floor at room scale; the open doorway samples its actual entrance stones.
 let roomTiles;
 function roomFloor(){
@@ -89,6 +90,29 @@ function roomFloor(){
  for(let y=-7;y<=7;y++){const w=7-Math.abs(y);ink(85-w,152+y,2*w+1,1,'#959996');if(w>1)ink(86-w,152+y,2*w-1,1,'#6a7070')}
  roomTiles=tile;return tile;
 }
+// Freestanding furniture is scenery only. Bounds are shared with movement.
+const roomFurniture=[[98,170,31,35],[98,209,31,35],[98,312,31,35],[131,312,31,35],[160,204,40,26]];
+function studyShelf(x,y,w,h,seed){
+ const spines=['#a78771','#818e86','#827586','#afa388','#677987'];
+ rect(x+2,y+3,w,h,'#4d4e4b');rect(x,y,w,h,'#443d39');rect(x+1,y+1,w-2,4,'#978977');rect(x+2,y+1,w-4,1,'#b3a794');
+ for(let r=0;r<3;r++){const base=y+13+9*r;rect(x+2,base-7,w-4,8,'#393638');let j=0;
+  for(let p=x+3;p<x+w-4;j++){const k=seed+j*7+r*11,bw=2+k%3,bh=4+k%4;rect(p,base-bh,bw,bh,spines[k%5]);rect(p,base-bh+1,bw,1,'#b2a79a');p+=bw+1}
+  rect(x+1,base,w-2,2,'#8d806f');rect(x+1,base+2,w-2,1,'#594e46');}
+ rect(x+1,y+4,1,h-5,'#a29380');
+}
+function studyDecor(){
+ roomFurniture.slice(0,4).forEach((v,i)=>studyShelf(...v,i*3+1));
+ const [x,y,w,h]=roomFurniture[4];rect(x+2,y+4,w,h-2,'#515250');rect(x+2,y+15,4,11,'#554941');rect(x+w-6,y+15,4,11,'#554941');rect(x,y,w,20,'#51463f');rect(x+1,y+1,w-2,15,'#988673');rect(x+2,y+1,w-4,1,'#b5a48d');rect(x+2,y+17,w-4,1,'#796857');
+ // Uneven page edges, fine ink lines, folded ribbon at the gutter.
+ rect(171,207,17,10,'#675653');rect(172,207,7,8,'#e2d8c0');rect(180,206,7,9,'#d2c8af');rect(179,207,1,9,'#a0937e');rect(180,214,1,4,'#92605c');for(const p of [173,181])for(let j=0;j<2;j++)rect(p,209+j*2,4-j,1,'#a69e90');
+ // A little skeleton in an oversized striped jumper, in a faded family print.
+ rect(166,45,28,26,'#44403d');rect(167,46,26,24,'#aa9880');rect(169,48,22,20,'#ddd4bc');rect(170,49,20,18,'#777d78');
+ const child=['   sssss   ','  sssssss  ',' sssssssss ',' ssddssdds ',' ssddssdds ','  ssssdss  ','   sddds   ','   sssss   ','  jjjjjjj  ',' jhhjjjhhj ',' jjhhhhjjj ','  jjjjjjj  '];
+ child.forEach((row,j)=>[...row].forEach((v,i)=>{const c={s:'#e9dfc8',d:'#48494a',j:'#697b85',h:'#acb0a1'}[v];if(c)rect(175+i,53+j,1,1,c)}));
+ // Two smaller keepsakes: a mountain silhouette and a pressed sprig.
+ for(const xx of [151,197]){rect(xx,51,12,14,'#514a43');rect(xx+1,52,10,12,'#b8ab95');rect(xx+2,53,8,10,'#858981')}
+ for(let j=0;j<5;j++)rect(157-j,57+j,j+1,1,'#596361');rect(203,56,1,6,'#566156');rect(201,57,2,2,'#687868');rect(204,55,2,2,'#667666');
+}
 function chamber(){
  rect(72,0,216,438,'#101112');rect(84,48,192,336,'#35393a');rect(87,50,186,19,'#54595a');
  for(let i=0;i<8;i++){const x=88+i*23;rect(x,52,22,11,'#818585');rect(x+1,52,20,1,'#a7aaa7');rect(x,62,22,2,'#656a6b')}
@@ -96,6 +120,7 @@ function chamber(){
  g.drawImage(roomFloor(),95,68);rect(94,68,1,304,'#414345');rect(265,68,1,304,'#414345');rect(95,66,170,2,'#414345');rect(88,372,184,4,'#848887');rect(88,376,184,5,'#515657');
  for(const x of [91,269])for(const y of [59,369])stoneStamp('plinth',x,y);
  g.save();g.translate(0,405);g.scale(1,-1);threshold(-1);g.restore();
+ studyDecor();
  rect(hallX-3,hallY+3,7,2,'#494c4d');tinySoul(hallX,hallY-1);
 }
 function hallway(){
