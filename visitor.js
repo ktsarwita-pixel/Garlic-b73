@@ -41,7 +41,7 @@ const hollowSkull=[
  '   kwwwsskksswwwsk',
  '   kswwwskkswwwsk',
  '    ksswwwWWWwsk',
- '     ksswwwwssk',
+ '       kkkkkk',
  '     kswwwwwssk',
  '      ksswwssk',
  '        kkkk'];
@@ -107,13 +107,9 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  jointLine(167,hy+15,173,hy+12,2,'#827e80');jointLine(173,hy+12,176,hy+11,1,'#e2dace');
  jointLine(181,hy+12,187,hy+13,2,'#90898a');jointLine(187,hy+13,192,hy+15,2,'#777279');
  jointLine(167,hy+19,170,hy+21,1,'#706b70');jointLine(190,hy+20,187,hy+22,1,'#878084');
- // Narrow cheek-to-jaw hinges frame an uninterrupted, mouthless lower face.
+ // Only the outer ends bridge the recessed jaw gap; no inner sweep or bright rim.
  const jaw=hx+Math.round(13/16*(2+droop/2));
- for(const [cheek,corner,chin] of [[9,11,16],[30,28,24]]){
-  jointLine(jaw+cheek,hy+21,jaw+corner,hy+28,2,p.s);
-  jointLine(jaw+corner,hy+28,jaw+chin,hy+31,2,p.s);
-  jointLine(jaw+cheek,hy+22,jaw+corner,hy+27,1,p.w);
- }
+ for(const edge of [13,26])stampInk(jaw+edge,hy+25,1,4,p.s);
  // Single-pixel bevels on the broken orbital rim, seam and rib ends.
  stampInk(174,hy+5,4,1,'#eee1cf');stampInk(177,hy+7,1,3,'#625c64');stampInk(168,hy+19,3,1,'#867e84');stampInk(171,hy+20,2,1,'#ada6a3');stampInk(175,83,4,1,'#b2abac');stampInk(173,86,4,1,'#a79fa3');stampInk(181,85,2,1,'#95505a');
  if(glow){const age=mode==='sevenHold'?endingAge+.93:mode==='strike'&&swings===6?.93-flash:-1;
