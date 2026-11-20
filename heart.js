@@ -97,16 +97,28 @@ function roomFloor(){
 const roomFurniture=[[95,169,22,40],[95,211,22,40],[95,303,22,40],[95,345,22,24],[243,303,22,40],[243,345,22,24],[160,204,40,26]];
 // Draw each cabinet once at game resolution. Local +x runs from wall to aisle.
 const shelfTiles=new Map();
+// Parallel height edges drop one pixel east for every two south. Orientation
+// changes the contents of a case, never the projection or the light source.
+function furnitureBody(x,y,w,h,depth,top){
+ const dx=depth/2,tw=w-dx,th=h-depth;
+ g.save();g.globalAlpha=.12;rect(x+2,y+2,w,h,'#262322');g.globalAlpha=.22;rect(x+2,y+2,w-1,h-1,'#262322');g.restore();
+ for(let z=depth;z>0;z--){const sx=Math.ceil(z/2);
+  rect(x+sx,y+z,tw,th,'#675544');rect(x+sx,y+th+z-1,tw,1,z===depth?'#463c35':'#796553');}
+ rect(x,y,tw,th,top);rect(x+1,y,tw-2,1,'#b39a7b');rect(x,y+1,1,th-2,'#a38d74');
+ return [tw,th];
+}
 function studyShelf(x,y,w,h,seed){
+ const [tw,th]=furnitureBody(x,y,w,h,4,'#94785e');
  let tile=shelfTiles.get(seed);
- if(!tile){tile=document.createElement('canvas');tile.width=w;tile.height=h;
+ if(!tile){tile=document.createElement('canvas');tile.width=tw;tile.height=th;
   const c=tile.getContext('2d'),ink=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(x,y,w,h)};
   let state=317+seed;const roll=n=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return Math.floor(state/4294967296*n)};
   const cloth=['#805759','#516e72','#71755a','#9a7652','#746577','#776149','#596878'];
+  const w=tw,h=th;
   ink(0,0,w,h,'#423831');ink(1,1,w-2,h-2,'#77614d');ink(3,2,2,h-4,'#534438');
   for(let i=0;i<10;i++)ink(2+roll(w-5),2+roll(h-9),1,3+roll(5),'#6a5544');
   for(let bay=0;bay<(h>30?2:1);bay++){
-   const start=2+bay*19,end=h>30?start+17:h-2;let p=start;
+   const start=3+bay*16,end=h>30?start+14:h-3;let p=start;
    // A few oversize atlases are stored flat: stepped covers and offset leaves.
    if((seed+bay)%5===1){const depth=12,ax=5;ink(ax+1,p+1,depth,8,'#514741');ink(ax,p,depth,8,'#765552');ink(ax+1,p+1,depth-1,6,'#c1b59d');ink(ax-1,p,depth,6,'#536c6d');ink(ax,p,1,6,'#87938b');ink(ax+3,p+2,5,1,'#b8aa85');p+=9}
    while(p<end){const thick=Math.min(end-p,2+roll(4)),front=w-4-roll(3),back=4+roll(4),cover=cloth[roll(cloth.length)],lean=thick>=3&&end-p>thick&&roll(4)===0;
@@ -120,8 +132,10 @@ function studyShelf(x,y,w,h,seed){
   for(const yy of [0,h-2]){ink(0,yy,w-1,2,'#94785e');ink(2,yy,w-6,1,'#b39a7b');ink(w-4,yy,1,1,'#5d4c3e')}
   ink(w-2,2,1,h-4,'#ae9170');ink(w-1,2,1,h-4,'#645041');shelfTiles.set(seed,tile);
  }
- g.save();g.translate(x+(x>180?w:0),y);if(x>180)g.scale(-1,1);
- g.globalAlpha=.22;rect(2,2,w,h,'#262322');g.globalAlpha=1;g.drawImage(tile,0,0);g.restore();
+ g.save();g.translate(x+(x>180?tw:0),y);if(x>180)g.scale(-1,1);
+ g.drawImage(tile,0,0);g.restore();
+ // The rear cap is horizontal wood, with a recessed shadow over the page tops.
+ const rail=x+(x>180?tw-4:0);rect(rail,y+1,4,th-2,'#94785e');rect(rail,y+1,1,th-2,'#b39a7b');rect(rail+(x>180?-1:4),y+2,1,th-4,'#55483e');
 }
 // Faded prints stay in the north wall band, clear of the playable floor.
 function familyPhotos(){
@@ -189,7 +203,7 @@ function studyDecor(){
  // Woven runner under the writing desk; the fringe stays walkable.
  rect(153,197,54,40,'#686064');rect(155,199,50,36,'#898084');rect(157,201,46,32,'#726c74');
  for(let i=155;i<206;i+=3){rect(i,195,1,2,'#a29790');rect(i,237,1,2,'#a29790')}
- const [x,y,w,h]=roomFurniture[roomFurniture.length-1];rect(x+2,y+2,w,h,'#54524e');rect(x,y,w,h,'#564a40');rect(x+1,y+1,w-2,h-4,'#95816c');rect(x+2,y+1,w-4,1,'#b4a18a');rect(x+1,y+h-4,w-2,2,'#796553');rect(x+3,y+17,10,1,'#8b7866');rect(x+21,y+20,14,1,'#a18a72');
+ const [x,y,w,h]=roomFurniture[roomFurniture.length-1];furnitureBody(x,y,w,h,2,'#95816c');rect(x+3,y+17,10,1,'#8b7866');rect(x+21,y+20,14,1,'#a18a72');
  // Uneven page edges, fine ink lines, folded ribbon at the gutter.
  rect(171,207,17,10,'#675653');rect(172,207,7,8,'#e2d8c0');rect(180,206,7,9,'#d2c8af');rect(179,207,1,9,'#a0937e');rect(180,214,1,4,'#92605c');for(const p of [173,181])for(let j=0;j<2;j++)rect(p,209+j*2,4-j,1,'#a69e90');
  familyPhotos();
