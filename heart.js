@@ -13,18 +13,43 @@ const HALL_NORTH=38,HALL_SOUTH=410;
 const hallClamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const HALL_LEFT=72,HALL_WIDTH=216,HALL_HEIGHT=438;
 function hallWidth(y){return (y>=154&&y<=254)?87:65}
+// Inclusive floor spans on each raster row, including the shoulders of the landing.
+// Check the silhouette rather than its centre: the tip can approach a ledge
+// without either lobe passing through it. Reserve both extremes of the hall bob.
+const soulSpans=soulInk.map((row,i)=>[i-3,row.search(/\S/)-3,row.trimEnd().length-4]);
+function soulFits(px,py,room){
+ const cx=Math.round(px),top=Math.round(py-(room?1:.65)),bottom=Math.round(py+(room?-1:.65));
+ for(const [dy,l,r] of soulSpans)for(let y=top+dy;y<=bottom+dy;y++){
+  const left=cx+l,right=cx+r;
+  if(room){
+   if(y<68||y>=372||left<95||right>=265)return false;
+   if(y>=369&&left<212&&right>=148)return false; // closed south door
+   if((y<70||y>=369)&&(left<97||right>=263))return false; // pier bases
+  }else{
+   if(y<35||y>=415)return false;
+   const wide=y>=158&&y<251,edge=wide?96:118;
+   if(left<edge||right>=360-edge)return false;
+   if((y<36&&left<212&&right>=148)||(y>=414&&left<204&&right>=156))return false;
+  }
+ }
+ return true;
+}
 function moveInHall(dt){
  let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'));
  let dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));
  let step=92*dt;
  if(drag&&target){dx=target[0]+HALL_LEFT-hallX;dy=target[1]-hallY;step=Math.min(step,Math.hypot(dx,dy))}
  const len=Math.hypot(dx,dy);if(!len)return;
- if(mode==='room'){hallX=hallClamp(hallX+dx/len*step,95,265);hallY=hallClamp(hallY+dy/len*step,75,365);return}
- const oldX=hallX,oldY=hallY;const width=hallWidth(hallY);hallX=hallClamp(hallX+dx/len*step,180-width+4,180+width-4);
- const next=hallClamp(hallY+dy/len*step,HALL_NORTH,HALL_SOUTH);
- if(Math.abs(hallX-180)<=hallWidth(next)-4)hallY=next;
+ const oldX=hallX,oldY=hallY,room=mode==='room';
+ // At most one pixel per axis per probe; resolve independently to slide on contact.
+ const steps=Math.ceil(step);for(let n=0;n<steps;n++){
+  const nx=hallX+dx/len*step/steps,ny=hallY+dy/len*step/steps;
+  if(soulFits(nx,hallY,room))hallX=nx;
+  if(soulFits(hallX,ny,room))hallY=ny;
+ }
+ if(room)return;
  glideDistance+=Math.hypot(hallX-oldX,hallY-oldY);if(glideDistance>=48){glideDistance%=48;sfx('drift')}
- if(hallY<=HALL_NORTH+1&&Math.abs(hallX-180)<23){mode='portal';sfx('static');sceneAge=0;drag=false;target=null;msg('The stone slips out of place. Beyond it, a heartbeat.');ui()}
+ if(hallY<=HALL_NORTH+3&&Math.abs(hallX-180)<23){mode='portal';sfx('static');sceneAge=0;drag=false;target=null;msg('The stone slips out of place. Beyond it, a heartbeat.');ui()}
 }
 // Shallow chips and mineral veins cut into individual flagstones, not the grout.
 const stoneMarks=[['  ll',' ll ','dd  '],['    d','  ddd',' dd  ','dl   '],['lld',' dd'],['l   l','   ld']];
