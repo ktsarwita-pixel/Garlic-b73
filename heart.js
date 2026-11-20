@@ -22,12 +22,14 @@ function soulFits(px,py,room){
  for(const [dy,l,r] of soulSpans)for(let y=top+dy;y<=bottom+dy;y++){
   const left=cx+l,right=cx+r;
   if(room){
-   if(y<68||y>=372||left<95||right>=265)return false;
+   if(y<66||y>=372||left<94||right>=266)return false;
    if(y>=369&&left<212&&right>=148)return false; // closed south door
    if((y<70||y>=369)&&(left<97||right>=263))return false; // pier bases
   }else{
-   if(y<35||y>=415)return false;
-   const wide=y>=158&&y<251,edge=wide?96:118;
+   if(y<32||y>=415)return false;
+   // The three dark pixels beneath the stone are a cast shadow, not masonry.
+   const wide=y>=157&&y<251,edge=wide?93:115;
+   if(wide&&(y<162||y>=247)&&(left<97||right>=263))return false; // projecting pier feet
    if(left<edge||right>=360-edge)return false;
    if((y<36&&left<212&&right>=148)||(y>=414&&left<204&&right>=156))return false;
   }
@@ -91,7 +93,7 @@ function chamber(){
  rect(72,0,216,438,'#101112');rect(84,48,192,336,'#35393a');rect(87,50,186,19,'#54595a');
  for(let i=0;i<8;i++){const x=88+i*23;rect(x,52,22,11,'#818585');rect(x+1,52,20,1,'#a7aaa7');rect(x,62,22,2,'#656a6b')}
  for(const x of [88,265]){rect(x,66,7,306,'#666b6c');rect(x+2,66,2,306,'#969b99');for(let y=68;y<371;y+=32)rect(x,y,7,2,'#494e4f')}
- g.drawImage(roomFloor(),95,68);rect(88,372,184,4,'#848887');rect(88,376,184,5,'#515657');
+ g.drawImage(roomFloor(),95,68);rect(94,68,1,304,'#414345');rect(265,68,1,304,'#414345');rect(95,66,170,2,'#414345');rect(88,372,184,4,'#848887');rect(88,376,184,5,'#515657');
  for(const x of [91,269])for(const y of [59,369])stoneStamp('plinth',x,y);
  g.save();g.translate(0,405);g.scale(1,-1);threshold(-1);g.restore();
  rect(hallX-3,hallY+3,7,2,'#494c4d');tinySoul(hallX,hallY-1);
