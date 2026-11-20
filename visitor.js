@@ -26,25 +26,25 @@ function revenantArm(side,w){const {sx,sy,ex,ey,px,py,angle,curl,cast}=armRig(si
  jointLine(...at(1,side*1.7),...at(3,side*4),2,'#beb5ae');}
 const revenantPaint={...lastPaint,p:'#73626d',P:'#a99a99',w:'#c3bfba',W:'#ddd8d0',s:'#918b91',b:'#48566c',B:'#778291',d:'#343342',R:'#763443',r:'#452733',e:ink};
 // Hand-cut silhouettes rather than a palette swap of the corridor boss.
-// The missing cheek drops into the collar; the jaw hangs from one hinge.
+// Low brows over hollow sockets; a closed jaw sits deep in the collar.
 const hollowSkull=[
- '      kkkkkkk       ',
- '    kkswwwwWWkk     ',
- '   kswwwWswwWWwkk   ',
- '  kswwwwskwwwwwssk  ',
- ' ksswwwwskwwwwwwssk ',
- ' kswwwsswkswwwwwssk ',
- ' kswwkkksskkwwwssk  ',
- '  kskkkkkwsskkkksk  ',
- '  kskkkkkwkkkkkkwk  ',
- '   kksskkwkkkkkswk  ',
- '    ksskksksswwssk  ',
- '    kskkkwwwwssk    ',
- '     kskkkskkwk     ',
- '     ks   k  sk     ',
- '      ks ssksk      ',
- '       kssssk       ',
- '        kkkk        '];
+ '      kkkkkkk',
+ '    kkswwWWWwkk',
+ '   kswwwWWWWwwwkk',
+ '  kswwwwwswwwwwwsk',
+ ' kswwwwwskwwwwwwssk',
+ ' kswWWWwwswwWWWwssk',
+ ' kswwsswwwssswwssk',
+ ' kswkkkkwwsskkkkwk',
+ ' kswkkkkkswkkkkkwk',
+ '  ksskkkswwkkkkssk',
+ '   kwwwsskksswwwsk',
+ '   kswwwskkswwwsk',
+ '    ksswwwWWWwsk',
+ '     kskkkkkksk',
+ '     kswwwwwssk',
+ '      ksswwssk',
+ '        kkkk'];
 const burialCoat=[
  '     kkkk  kkkk     ',
  '   kkddds kkddsk    ',
