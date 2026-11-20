@@ -72,7 +72,7 @@ const hallArt={
 const hallStamps=new Map();
 function stoneStamp(name,cx,y){let img=hallStamps.get(name);if(!img){const rows=hallArt[name];img=document.createElement('canvas');img.width=rows[0].length;img.height=rows.length;const ctx=img.getContext('2d');rows.forEach((row,j)=>[...row].forEach((p,i)=>{if(hallTones[p]){ctx.fillStyle=hallTones[p];ctx.fillRect(i,j,1,1)}}));hallStamps.set(name,img)}g.drawImage(img,cx-(img.width>>1),y)}
 let galleryBackdrop;
-function enterRoom(){mode='room';hallX=180;hallY=346;keys.clear();drag=false;target=null;msg('The door behind you is sealed. An open book rests on the table.');ui()}
+function enterRoom(){mode='room';hallX=180;hallY=346;keys.clear();drag=false;target=null;msg('The door behind you is sealed. Tap the open book on the table to read it.');ui()}
 // Bake the floor at room scale; the open doorway samples its actual entrance stones.
 let roomTiles;
 function roomFloor(){
@@ -94,7 +94,7 @@ function roomFloor(){
  roomTiles=tile;return tile;
 }
 // Freestanding furniture is scenery only. Bounds are shared with movement.
-const roomFurniture=[[95,169,22,40],[95,211,22,40],[95,303,22,40],[95,345,22,24],[243,303,22,40],[243,345,22,24],[160,204,40,26]];
+const roomFurniture=[[95,169,22,40],[95,211,22,40],[95,303,22,40],[95,345,22,24],[243,303,22,40],[243,345,22,24],[149,198,62,38]];
 // Draw each cabinet once at game resolution. Local +x runs from wall to aisle.
 const shelfTiles=new Map();
 // Parallel height edges drop one pixel east for every two south. Orientation
@@ -224,26 +224,18 @@ function studyDecor(){
  // Paired stepped lozenges woven into the exposed borders, not random noise.
  for(const yy of [201,231])for(let xx=159;xx<204;xx+=7){rect(xx+1,yy-1,2,1,'#b2a393');rect(xx,yy,4,1,'#94808a');rect(xx+1,yy+1,2,1,'#ad9e90')}
  for(const xx of [155,203])for(let yy=206;yy<230;yy+=5)rect(xx,yy,2,2,'#a0908d');
- const [x,y,w,h]=roomFurniture[roomFurniture.length-1];furnitureBody(x,y,w,h,2,'#95816c');rect(x+3,y+17,10,1,'#8b7866');rect(x+21,y+20,14,1,'#a18a72');
- // Fitted writing inset, a leather-bound field journal and a two-page ink study.
- rect(162,206,35,19,'#796653');rect(163,207,33,17,'#95816b');rect(163,224,33,1,'#b09a80');
- rect(164,218,9,5,'#514a40');rect(164,217,9,5,'#b4a88e');rect(163,216,10,5,'#536967');rect(164,216,1,5,'#394d4b');rect(166,217,5,1,'#a99c7e');
- for(let i=0;i<16;i++){const d=Math.min(i,15-i),py=210-(d>1&&d<6?1:0),xx=171+i;
-  rect(xx,py+1,1,10,'#675247');rect(xx,py,1,9,'#b7a588');rect(xx,py,1,8,i===7?'#ae9f87':i===8?'#c5b69e':i<8?'#e5dbc5':'#dacdb5')}
- for(const [xx,yy,n] of [[173,211,4],[173,213,3],[174,215,3],[181,212,4],[181,214,3]])rect(xx,yy,n,1,'#a69b88');rect(179,217,1,4,'#915855');rect(180,220,1,2,'#784845');
- familyPhotos();
- // Brass desk light and ink pot sit on the tabletop, separate from the open book.
- rect(188,213,6,2,'#665346');rect(190,208,2,5,'#b49769');rect(188,205,5,5,'#927951');rect(187,206,7,3,'#bda273');rect(189,206,3,2,'#e3c999');rect(189,209,3,1,'#aa8c5f');rect(164,212,4,3,'#494954');rect(165,211,2,1,'#ada59a');
- // Rolled leather corners, drawer pull and stitching belong to the desk footprint.
- rect(175,227,10,1,'#645243');rect(178,227,4,1,'#b7a079');
- for(const xx of [163,194]){rect(xx,207,2,1,'#b69b75');rect(xx,223,2,1,'#b69b75')}
- rect(170,219,2,1,'#b99866');rect(171,217,1,2,'#876f53');
- // Botanical marginalia echoes the pressed sprig above the desk.
- rect(183,215,1,2,'#829078');rect(182,215,1,1,'#71816c');rect(184,214,1,1,'#91a086');
- rect(188,214,5,1,'#aa9169');rect(190,207,2,1,'#f0dba8');rect(165,212,2,1,'#292e36');rect(164,213,1,1,'#84878c');
- // A pen laid beside the journal, with a single light pixel for its metal nib.
- rect(187,221,6,1,'#5e5047');rect(193,220,2,1,'#b0a896');rect(194,220,1,1,'#ded5bb');
-
+ const [x,y,w,h]=roomFurniture[roomFurniture.length-1];furnitureBody(x,y,w,h,4,'#95816c');
+ rect(152,201,55,29,'#796653');rect(153,202,53,27,'#a18a72');rect(154,202,52,1,'#b09a80');
+ for(const [xx,yy,n] of [[154,205,9],[156,225,12],[191,225,10]])rect(xx,yy,n,1,'#948069');
+ rect(175,231,10,1,'#645243');rect(178,231,4,1,'#b7a079');
+ // Closed journal, pen and brass reading light flank the large bound letter.
+ rect(154,217,12,8,'#594c40');rect(154,216,12,7,'#c0af92');rect(153,215,13,7,'#536967');rect(154,215,1,7,'#394d4b');rect(157,217,6,1,'#ad9e80');
+ rect(195,222,8,1,'#5e5047');rect(203,221,2,1,'#d9cdb4');rect(157,209,5,4,'#47434b');rect(158,209,2,1,'#272b32');
+ rect(196,211,8,3,'#806e51');rect(197,211,6,2,'#b49a73');rect(199,206,2,5,'#b49769');rect(196,203,7,5,'#967e59');rect(195,204,9,3,'#c2a574');rect(198,204,3,2,'#ebd5a1');
+ for(let i=0;i<26;i++){const d=Math.min(i,25-i),py=207-(d>=2&&d<10?1:0),xx=167+i;
+ rect(xx,py+1,1,17,'#604c43');rect(xx,py,1,16,'#b7a588');rect(xx,py,1,14,i===12?'#a79780':i===13?'#c8b9a1':i<12?'#eadfc6':'#dccfb7')}
+ for(const [xx,yy,n] of [[169,209,7],[170,212,6],[169,215,8],[170,218,4],[183,210,7],[182,213,6],[182,216,4]])rect(xx,yy,n,1,'#ab9e87');
+ rect(180,219,1,6,'#995c57');rect(181,224,1,2,'#814b47');familyPhotos();
 }
 function chamber(){
  rect(72,0,216,438,'#101112');rect(84,48,192,336,'#35393a');rect(87,50,186,19,'#54595a');
