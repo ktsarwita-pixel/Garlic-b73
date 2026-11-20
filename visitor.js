@@ -128,21 +128,16 @@ function slamEffects(b){const w=wallPull;if(!w)return;const px=w.nx<0?b.l:w.nx>0
  if(w.age>.22&&w.age<.56){for(let i=1;i<=3;i++){g.save();g.globalAlpha=.28/i;const d=i*3;rect(x-w.nx*d-2,y-w.ny*d-1,4,2,'#a57cbb');g.restore()}}
  const f=(w.age-.56)/.42;if(f<0||f>=1)return;g.save();g.globalAlpha=1-ease(f);for(let i=-3;i<=3;i++){const across=i*(1+f*4),back=(1-Math.abs(i)/5)*f*12;rect(px-w.nx*back-w.ny*across,py-w.ny*back+w.nx*across,2,1,i%2?'#b99bc9':'#87738e')}g.restore()}
 
-// Local wall coordinates: u runs along the stone, depth points into safety.
-function drawSlamAlert(b,w){const span=w.nx?b.d-b.u:b.r-b.l;
- function mark(u,d,wide,deep,color){const xx=w.nx<0?b.l+d:w.nx>0?b.r-d-deep:b.l+u,yy=w.ny<0?b.u+d:w.ny>0?b.d-d-deep:b.u+u;rect(xx,yy,w.nx?deep:wide,w.ny?deep:wide,color)}
- const released=w.age>=.92,charge=Math.max(0,Math.min(1,(w.age-.56)/1.2)),tone=released?'#ffbbb5':'#bd93d4';
- if(w.age>=.56){g.save();g.globalAlpha=.12+.07*charge;mark(0,0,span,26,'#da728a');g.restore();
-  for(let u=2;u<span-1;u+=6)mark(u,25,3,1,'#895565');}
- mark(0,0,span,1,tone);for(let u=6;u<span;u+=10){mark(u-2,1,5,1,'#74576e');mark(u,2,1,1+Math.round(3*charge),tone)}
- // Counting segments terminate at the same clock edge as the spike eruption.
- for(let i=0;i<6;i++)mark(span/2-17+i*6,8,4,2,i<Math.ceil(charge*6)?tone:'#514052');
- for(const u of [span*.24,span*.76]){const d=released?14+Math.floor((w.age-.92)*12)%5:5;for(let i=0;i<4;i++){mark(u-3+i,d+i,1,2,tone);mark(u+3-i,d+i,1,2,tone)}}}
+// One steady wall highlight and one upright warning, for any orientation.
+function drawSlamAlert(b,w){const color='#ffc46b';
+ rect(w.nx>0?b.r-2:b.l,w.ny>0?b.d-2:b.u,w.nx?2:b.r-b.l,w.ny?2:b.d-b.u,color);
+ const cx=w.nx<0?b.l+8:w.nx>0?b.r-8:(b.l+b.r)/2,cy=w.ny<0?b.u+8:w.ny>0?b.d-8:(b.u+b.d)/2;
+ rect(cx-1,cy-4,3,5,color);rect(cx-1,cy+3,3,2,color)}
 function drawVisitorBone(s){if(!s.glitch){boneSprite({...s,x:0,y:0});const age=t-s.changed;if(age>=0&&age<.18){const k=Math.round((s.h-2)*age/.18);rect(-1,k,5,1,s.blue?'#c1fbff':'#ffdbbf')}return}
- // Keep the bone readable: the two lobes stay fixed while a short fracture
- // displaces only one band of the shaft. No frame-to-frame random flashing.
- const h=Math.round(s.h),shaft=Math.max(0,h-4),frame=Math.floor(t*12)+s.phase,cut=2+frame%Math.max(1,shaft),slip=frame%6<3?1:-1;
- rect(0,2,3,shaft,'#826989');rect(0,2,1,shaft,'#b8a7c3');rect(2,2,1,shaft,'#4e415a');
- for(let j=5+s.phase%4;j<h-3;j+=7)rect(1,j,2,1,'#c6a6ce');
- if(shaft>2){const band=Math.min(3,h-2-cut);rect(slip,cut,3,band,'#a177b7');rect(slip-1,cut,2,1,'#91c3d2');rect(slip+2,cut+band-1,2,1,'#ce8fac')}
- for(const dir of [1,-1]){const tip=dir===1?0:h-1;rect(-2,tip+dir,7,1,'#8c7999');rect(-1,tip,2,1,'#dfcde4');rect(2,tip,2,1,'#bca3c7');rect(-1,tip+2*dir,5,1,'#584760')}}
+ // Split vertebrae: dark axial gap, bright offset plates, not a recolored solid shaft.
+ const h=Math.round(s.h),phase=Math.floor(t*7)+s.phase;
+ rect(0,1,3,Math.max(1,h-2),'#301737');
+ for(let y=2,i=0;y<h-2;y+=6,i++){const len=Math.min(5,h-2-y),shift=(phase+i)%9===0?1:0,side=i%2?-1:1;
+  rect(side+shift,y,3,len,'#a54adb');rect(side+shift,y,1,len,'#e9a8ff');
+  if(len>2)rect(side+shift+1,y+1,2,1,'#502663')}
+ for(const d of [1,-1]){const end=d===1?0:h-1;rect(-2,end,2,1,'#f4d7ff');rect(3,end,2,1,'#e4a4ff');rect(-2,end+d,3,1,'#ba6be0');rect(2,end+d,3,1,'#ba6be0');if(h>4)rect(-1,end+2*d,5,1,'#69358b')}}
