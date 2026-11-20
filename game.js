@@ -266,11 +266,13 @@ testPanel.querySelectorAll('[data-cmd]').forEach(b=>b.onclick=()=>runTest(b.data
 $('#test-close').onclick=()=>testPanel.close();$('#tester').onclick=openTest;
 if(new URLSearchParams(location.search).get('admin')==='1')openTest();
 
-const letter=$('#letter'),pages=[`Dear Sans if you see this you need to watch that human she is dangerous and probably she will challenge you and also don't forget that something is inside of you.... Sans thats its your brother and i found a way to stop your brother went you went uncontrol
+const letter=$('#letter'),pages=[`Dear Sans if you see this you need to watch that human she is dangerous and probably she will challenge you and also don't forget that something is inside of you.... Sans thats its gester and i found a way to stop gester went you went uncontrol.
 
--peace by papyrus.`,`Dear Sans if you see this you need to watch that human she is dangerous and probably she will challenge you and also don't forget that something is inside of you.... Sans thats its gester and i found a way to stop gester went you went uncontrol.
+-peace by papyrus.`,`Remember you are also a living thing you have heart so keep it alive kid!.
 
--peace by papyrus.`,`Sans im sorry for being a bad brother maybe one day that human can saved or destroyes something just keep and eye out!.
+And friend do you even have friend yet?.
+
+-peace by papyrus`,`Sans im sorry for being a bad brother maybe one day that human can saved or destroyes something just keep and eye out!.
 
 -peaceby papyrus`,`Hello`];
 let spread=0,turn=null;
