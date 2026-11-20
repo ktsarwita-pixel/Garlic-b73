@@ -117,7 +117,7 @@ function watchingEyes(){watchers.forEach(([cx,cy,r],i)=>{
  }g.restore();
 })}
 // Each letter is a fitted shard. Separating actual pieces exposes the void between them.
-const shell=['    AA  B B    ','    AAA BBB    ','  AAAAAACBBBB  ',' AAAAAACCCBBBB ','DAAAAACCCCBBBBE','DDAAACCCCCBBEEE',' DDAACCCCCBEEE ','  DDDACCCCEEEE ','   DDDCCCEEEE  ','    DDCCCEEE   ','     FFFFEE    ','      FFFF     ','       FF      '];
+const shell=['  AAA     BBB  ',' AAAAA   BBBBB ','AAAAAAACBBBBBBB','AAAAAACCCBBBBBB','DAAAAACCCCBBBBE',' DDAAACCCCBBEE ','  DDDACCCCEEE  ','   DDDCCCEEE   ','    DDCCCEE    ','     FFFCE     ','      FFF      ','       F       '];
 const drift={A:[-7,-6],B:[6,-8],C:[0,-1],D:[-9,4],E:[8,5],F:[1,10]};
 // Cache a ramp for each value band so the lighting stays consistent as color returns.
 const heartRamp=Array.from({length:65},(_,k)=>[[255,254,250,246,223,255],[227,224,217,203,145,243],[197,193,187,161,101,200],[156,153,150,113,62,147]].map(c=>'rgb('+[0,1,2].map(i=>Math.round(c[i]+(c[i+3]-c[i])*k/64)).join(',')+')'));
@@ -128,13 +128,14 @@ function shardSprite(id,tone){const key=id+tone;if(shardCache.has(key))return sh
  const tile=document.createElement('canvas');tile.width=45;tile.height=shell.length*3;const ctx=tile.getContext('2d'),pal=heartRamp[tone];
  const solid=(i,j)=>!!shell[j]?.[i]?.trim();
  shell.forEach((row,j)=>[...row].forEach((cell,i)=>{if(cell!==id)return;
-  const rim=!solid(i+1,j)||!solid(i,j+1),ridge=!solid(i-1,j)||!solid(i,j-1);
-  const shade=rim?3:ridge?1:j>6||i>11?2:1;
+  // Model the two lobes and tapered underside with clustered pixel tones.
+  const rim=!solid(i+1,j)||!solid(i,j+1),crest=!solid(i,j-1);
+  const lobe=i<7?3:10,volume=((i-lobe)/4)**2+((j-2)/5)**2;
+  const shade=rim?3:crest?1:j>=8||i>=12||volume>1.2?2:1;
   ctx.fillStyle=pal[shade];ctx.fillRect(3*i,3*j,3,3);
-  if((i===2&&j===2)||(i===3&&j===1)||(i===10&&j===1)){ctx.fillStyle=pal[0];ctx.fillRect(3*i,3*j,3,2)}
-  // A curved coronary groove branches over the rounded ventricular face.
-  const vein=[-1,-1,-1,7,7,8,8,7,6,6,5][j];
-  if(!rim&&(i===vein||(j>=5&&j<=7&&i===vein+j-4))){ctx.fillStyle=pal[2];ctx.fillRect(3*i+1,3*j,1,3);ctx.fillStyle=pal[1];ctx.fillRect(3*i+2,3*j,1,2)}
+  if(j===1&&(i===2||i===3||i===10)){ctx.fillStyle=pal[0];ctx.fillRect(3*i,3*j+1,3,2)}
+  if(i===1&&j===2){ctx.fillStyle=pal[0];ctx.fillRect(4,6,2,2)}
+  if(i===7&&j>=2&&j<=4){ctx.fillStyle=pal[2];ctx.fillRect(3*i+(j===4?1:0),3*j,2,3)}
  }));shardCache.set(key,tile);return tile}
 function heartOpponent(){
  if(mode==='end'&&boss===0)return;
@@ -145,9 +146,6 @@ function heartOpponent(){
  const progress=hit?ease((sceneAge-.20)/.32):1;
  g.save();if(breaking)g.globalAlpha=1-ease((sceneAge-.8)/.95);
  g.imageSmoothingEnabled=false;
- // A small double beat reads as living tissue; release it before the shards fly.
- const beat=(t*(purple?1.3:1.02))%1,bump=(Math.exp(-((beat-.17)**2)/.003)+.38*Math.exp(-((beat-.37)**2)/.004))*(1-(forming||breaking?ease(sceneAge/.35):0));
- g.translate(180,73);g.scale(1+.035*bump,1-.024*bump);g.translate(-180,-73);
  for(const id of order){const index=order.indexOf(id),[dx,dy]=drift[id],[cx,cy]=pivots[id];
   const gap=count=>index<count?.24+.13*(count-index):0;
   const prev=hit?gap(Math.max(0,cracks-1)):gap(n);
@@ -155,7 +153,7 @@ function heartOpponent(){
   const burst=breaking?ease(sceneAge/1.45):forming?ease(sceneAge/.69)*bind:0;
   const offset=(prev+(gap(n)-prev)*progress)*bind+burst*2.7;
   const angle=(dx<0?-1:1)*burst*(.36+.07*index);
-  g.save();g.translate(Math.round(158+cx*3+dx*offset),Math.round(52+cy*3+dy*offset+Math.sin(t*2)*1.5));g.rotate(angle);g.drawImage(shardSprite(id,Math.round(64*tint)),-cx*3,-cy*3);g.restore();
+  g.save();g.translate(Math.round(158+cx*3+dx*offset),Math.round(52+cy*3+dy*offset));g.rotate(angle);g.drawImage(shardSprite(id,Math.round(64*tint)),-cx*3,-cy*3);g.restore();
  }g.restore();if(hit)slash(sceneAge*1.6,false);
 }
 function heartAction(a){if(mode!=='ready')return;if(a==='fight'){cracks++;boss=Math.max(0,100-100*cracks/(purple?5:4));mode='heartHit';sceneAge=0;sampleCue((purple?'violet':'white')+cracks);msg(`Fracture ${cracks} / ${purple?5:4}.`)}else{if(purple)return;if(a==='item'){if(!food){sampleCue('empty');msg('No pie left.');return}sfx('heal');food--;hp=Math.min(20,hp+8);msg(`Pie restores your soul. ${food} left.`)}else msg(a==='act'?'You call out. No answer.':'You offer mercy. Its pulse stays steady.');startWave(.55)}ui()}
