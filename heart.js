@@ -41,8 +41,22 @@ const hallArt={
  relief:['    sss    ','   smlms   ','  smlhlms  ',' smlmdmlms ','smlmdsdmlms','slhdshsdmls','smlmdsdmlms',' smlmdmlms ','  smlhlms  ','   smlms   ','    sss    ']};
 const hallStamps=new Map();
 function stoneStamp(name,cx,y){let img=hallStamps.get(name);if(!img){const rows=hallArt[name];img=document.createElement('canvas');img.width=rows[0].length;img.height=rows.length;const ctx=img.getContext('2d');rows.forEach((row,j)=>[...row].forEach((p,i)=>{if(hallTones[p]){ctx.fillStyle=hallTones[p];ctx.fillRect(i,j,1,1)}}));hallStamps.set(name,img)}g.drawImage(img,cx-(img.width>>1),y)}
+let galleryBackdrop;
 function hallway(){
- const port=mode==='portal';g.save();g.translate(-HALL_LEFT,0);
+ g.save();g.translate(-HALL_LEFT,0);
+ if(!galleryBackdrop){
+  paintGallery();
+  // Reflect the finished west masonry about the boundary between the two
+  // middle pixels. This pairs even-width fixtures and odd-width inlays alike.
+  const half=HALL_WIDTH/2;
+  galleryBackdrop=document.createElement('canvas');galleryBackdrop.width=HALL_WIDTH;galleryBackdrop.height=HALL_HEIGHT;
+  const bg=galleryBackdrop.getContext('2d');bg.drawImage(g.canvas,0,0,half,HALL_HEIGHT,0,0,half,HALL_HEIGHT);
+  bg.translate(HALL_WIDTH,0);bg.scale(-1,1);bg.drawImage(g.canvas,0,0,half,HALL_HEIGHT,0,0,half,HALL_HEIGHT);
+ }
+ g.drawImage(galleryBackdrop,HALL_LEFT,0);
+ const age=mode==='portal'?sceneAge:-1;threshold(age);crossingSoul(age);g.restore();
+}
+function paintGallery(){
  rect(HALL_LEFT,0,HALL_WIDTH,HALL_HEIGHT,'#101112');
  // The gallery opens into a wider landing halfway up the map.
  for(const [top,bottom,w] of [[32,154,65],[154,255,87],[255,417,65]]){
@@ -88,7 +102,6 @@ function hallway(){
  }
  // Compass points continue outside the mosaic rather than crossing its face.
  for(let k=0;k<5;k++){const n=5-k;rect(180-n,182+k,n,1,'#aeb1ab');rect(180,182+k,n,1,'#717572');rect(180-k,226+k,Math.max(1,k*2),1,'#898d88')}
- const age=port?sceneAge:-1;threshold(age);crossingSoul(age);g.restore();
 }
 // Carved twin leaves share one broken seal. Slice the artwork, not the frame.
 const CROSS_END=3.25;
