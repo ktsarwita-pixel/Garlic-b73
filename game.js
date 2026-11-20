@@ -63,18 +63,18 @@ const lastCoat=coat.map((row,j)=>[...row].map((p,i)=>{
 const lastPaint={...paint,R:'#af263c',r:'#722337'};
 const lastFace=fallenFace.map((r,j)=>j===12?r.slice(0,14)+'R'+r.slice(15):j===13?r.slice(0,14)+'r'+r.slice(15):r);
 const SOUL_BREAK=7.85,SOUL_ASH=8.65,FALL_END=10.42;
-// Sans's inverted monster soul stays at the last kneeling chest position.
+// Always beneath the coat, just left of the sternum (viewer-right). Ash exposes it stitch by stitch.
 const monsterSoul=['   h   ','  hww  ',' hwwws ','hwwwwss','wwwwsss',' ss ss '];
 function lastSoul(a,lean,drop){
- if(a<5.48||a>=FALL_END)return;
- const reveal=ease((a-5.48)/.48),split=ease((a-SOUL_BREAK)/.36);
+ if(a>=FALL_END)return;
+ const split=ease((a-SOUL_BREAK)/.36);
  g.save();monsterSoul.forEach((row,j)=>[...row].forEach((p,i)=>{
   if(p===' ')return;const right=i>=[4,3,4,3,3,3][j],seed=((i*31+j*17)%47)/47;
   const d=Math.max(0,a-SOUL_ASH-seed*.43),life=1-ease((d-.25)/.96);
-  if(!life)return;g.globalAlpha=reveal*life;
-  const px=158+lean+22+(i-3)*2+(right?1:-1)*split*3;
-  const py=68+drop+11+(j-2)*2+(right?2:0)*split;
-  rect(px+d*((seed-.4)*17)+d*d*6,py-d*(6+seed*13),d>.12?1:2,d>.12?1:2,p==='h'?'#fffefa':p==='w'?'#e8e8e3':'#bbbdbb');
+  if(!life)return;g.globalAlpha=life;
+  const px=158+lean+26+(i-3)+(right?1:-1)*split*2;
+  const py=68+drop+7+(j-2)+(right?1:0)*split;
+  rect(px+d*((seed-.4)*17)+d*d*6,py-d*(6+seed*13),1,1,p==='h'?'#fffefa':p==='w'?'#e8e8e3':'#bbbdbb');
  }));g.restore();
 }
 const foldingLegs=['  kkkkkkkkkkk  ',' kgGGggggggGgk ','kgGGgggkkggGggk','kgggggk  kggggk',' kgggk    kgggk','  kkk      kkk '];
