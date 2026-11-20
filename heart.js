@@ -72,7 +72,9 @@ const hallArt={
 const hallStamps=new Map();
 function stoneStamp(name,cx,y){let img=hallStamps.get(name);if(!img){const rows=hallArt[name];img=document.createElement('canvas');img.width=rows[0].length;img.height=rows.length;const ctx=img.getContext('2d');rows.forEach((row,j)=>[...row].forEach((p,i)=>{if(hallTones[p]){ctx.fillStyle=hallTones[p];ctx.fillRect(i,j,1,1)}}));hallStamps.set(name,img)}g.drawImage(img,cx-(img.width>>1),y)}
 let galleryBackdrop;
-function enterRoom(){mode='room';hallX=180;hallY=346;keys.clear();drag=false;target=null;msg('The door behind you is sealed. Tap the open book on the table to read it.');ui()}
+// Distance to the book itself, not the canvas pointer or the room entrance.
+function canReadStudyBook(){return Math.hypot(Math.max(166-hallX,0,hallX-194),Math.max(205-hallY,0,hallY-225))<=24}
+function enterRoom(){mode='room';hallX=180;hallY=346;keys.clear();drag=false;target=null;msg('The door behind you is sealed. Approach the desk and tap the open book to read it.');ui()}
 // Bake the floor at room scale; the open doorway samples its actual entrance stones.
 let roomTiles;
 function roomFloor(){
@@ -319,7 +321,7 @@ function paintGallery(){
 const CROSS_END=3.25;
 function threshold(age){
  const active=age>=0,open=active?ease((age-.48)/.92)*(1-ease((age-2.54)/.66)):0;
- const beat=Math.floor(t*4.5),phase=t*4.5-beat,near=1-ease((hallY-38)/95);
+ const beat=Math.floor(t*4.5),phase=t*4.5-beat,near=1-ease(((mode==='room'?405-hallY:hallY)-38)/95);
  rect(150,12,60,24,'#36383a');rect(152,14,56,21,'#15171a');
  // Keep the hallway camera fixed. The sliding leaves occlude this patch naturally.
  if(open>0){
@@ -330,8 +332,10 @@ function threshold(age){
   g.globalAlpha=1;rect(152,33,56,1,'#a2a6a2');rect(152,34,56,1,'#626665');g.restore();
  }
  for(let row=0;row<21;row++){
-  const band=row>>2,slips=band===(beat*3)%5;
-  const tear=slips?(beat%2?-1:1)*(phase<.32?3+Math.round(near*3):phase<.56?1:0):0;
+  // A stepped scan tear sweeps over the carving, then snaps back in two echoes.
+  const head=(beat*7+Math.floor(phase*9))%21,lag=(head-row+21)%21;
+  const impulse=phase<.30?4:phase<.48?-2:phase<.72?2:1;
+  const tear=lag<3?(beat%2?-1:1)*Math.round(impulse*(1+near*.45)*(1-lag*.25)):0;
   const tooth=[0,0,-2,-2,1,1][Math.floor(row/2)%6];
   for(const side of [-1,1]){
    const dx=tear+side*Math.round(open*23),left=side<0?153:180+tooth,right=side<0?180+tooth:207;
@@ -343,6 +347,9 @@ function threshold(age){
    const joint=side<0?159+((row>>3)%2)*10:193+((row>>3)%2)*8;
    rect(joint+dx,14+row,1,1,'#777b78');rect(joint+1+dx,14+row,1,1,'#b9bcb6');
    const seal=180+side*(2+Math.abs(10-row));rect(seal+dx,14+row,2,1,'#626664');rect(seal+dx+side*2,14+row,1,1,'#dedfd8');
+   const bevel=(side<0?155:204)+dx;rect(bevel,14+row,1,1,row%8===7?'#555959':'#c8cbc3');
+   if(row===4||row===16)rect((side<0?158:197)+dx,14+row,5,1,'#969b95');
+   if(tear&&lag===0)rect(seal+dx-side*2,14+row,2,1,side<0?'#c3d4cc':'#bfafbc');
    rect((side<0?right-1:left)+dx,14+row,1,1,side<0?'#e5e7df':'#555958');g.restore();
   }
  }
