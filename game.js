@@ -275,8 +275,7 @@ And friend do you even have friend yet?.
 -peace by papyrus`,`Hello`];
 let spread=0,turn=null;
 function leaf(n){const el=document.createElement('article');el.className='book-leaf '+(n%2?'recto':'verso')+(n===3?' ripped':'');el.setAttribute('aria-label','Page '+(n+1)+(n===3?' — torn out':''));
- if(n===3){const fragment=document.createElement('span');fragment.className='torn-ink';fragment.textContent=pages[n];el.append(fragment)}
- else {const copy=document.createElement('div');copy.className='book-copy';copy.textContent=pages[n];el.append(copy)}
+ const copy=document.createElement('div');copy.className='book-copy';copy.textContent=pages[n];el.append(copy);
  const num=document.createElement('small');num.textContent=String(n+1).padStart(2,'0');el.append(num);return el}
 function renderBook(n){spread=n;$('#spread').replaceChildren(leaf(n),leaf(n+1));$('#letter-prev').disabled=!n;$('#letter-next').disabled=!!n;$('#book-status').textContent=n?'Pages 3 and 4. Page 4 is torn out.':'Pages 1 and 2';fitBook()}
 function fitBook(){if(!letter.open)return;const copies=[...letter.querySelectorAll('#spread > article .book-copy')];for(const c of copies)c.style.fontSize='';if(!copies.length)return;let size=parseFloat(getComputedStyle(copies[0]).fontSize);while(size>8&&copies.some(c=>c.scrollHeight>c.clientHeight+1)){size-=.5;for(const c of copies)c.style.fontSize=size+'px'}}
