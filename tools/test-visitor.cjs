@@ -23,7 +23,8 @@ for(let r=1;r<=6;r++){
   assert.equal(mode,'ready');swings++;flash=1.45;mode='strike';
   for(let i=0;i<75&&mode==='strike';i++)sevenTick(.02);
 }
-assert.equal(mode,'sevenHold');assert.equal(slamCount,3);for(let i=0;i<500;i++)sevenTick(.02);assert.equal(encounter,7);for(let i=0;i<110;i++)sevenTick(.02);assert.equal(encounter,8);assert.equal(mode,'sevenHold');assert.equal(shots.length,0);
+assert.equal(mode,'sevenHold');assert.equal(slamCount,3);for(let i=0;i<500;i++)sevenTick(.02);assert.equal(encounter,7);for(let i=0;i<110;i++)sevenTick(.02);assert.equal(encounter,8);assert.equal(mode,'dodge');
+for(let r=1;r<=5;r++){const sizes=[];for(let i=0;i<2000&&mode==='dodge';i++){const prev=sent;t+=.02;sevenTick(.02);if(sent>prev)sizes.push(cannons.at(-1).big);if(r===5)assert.equal(shots.length,0)}assert.equal(mode,'ready');assert.equal(sizes.length,[5,3,2,10,22][r-1]);assert.equal(sizes.filter(Boolean).length,[0,0,2,0,2][r-1]);swings++;flash=1.45;mode='strike';for(let i=0;i<75&&mode==='strike';i++)sevenTick(.02)}assert.equal(mode,'sevenHold');
 for(const [nx,ny] of [[1,0],[-1,0],[0,1],[0,-1]]){
   startSeven(6);const b=sevenBox();x=nx>0?b.r-5:nx<0?b.l+5:180;y=ny>0?b.d-5:ny<0?b.u+5:(b.u+b.d)/2;
   for(let i=0;i<156;i++){wallSequence(.02,b);if(i<85)assert.equal(shots.length,0);
