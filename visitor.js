@@ -62,7 +62,7 @@ const burialCoat=[
  ' kdk      kk   kdk  ',
  ' kk             kk  '];
 const rearCranium=['      kkkkkkk','    kkswwwWWwkk','   kswwwWWWWwwwk','  kswwwWWwwwwwwsk',' kswwwwwwswwwwwssk',' kswwwwwsswwwwwwsk',' ksswwwwwskwwwwssk','  ksswwwwsswwwssk','   ksswwsswwwssk','    ksswwwwwssk','     ksssssssk','       ksssk'];
-const rearCoat=['     kkkkkkkkk','   kkdBBBBBBBdkk','  kdbbbBBbbbbbddk',' kdbdbbbbbbbdbdddk',' kddbbddddddbddbdk','  kdbbkkkkkkdbbdk','  kdbbbbbbbbbbdkk','  kddbbbdbbbbbdk','  kddbbbkbbdbbdk',' kdbdbbbkbbdbdddk',' kdbdbbbrbbdbdddk',' kddkbbRrbbdbdddk',' kdk kbrkbbkdkkdk',' kk  kdk kk k  kk'];
+const rearCoat=['     kkkkkkkkk','   kkdBBBBBBBdkk','  kdbbbBBbbbbbddk',' kdbdbbbbbbbdbdddk',' kddbbddddddbddbdk','  kdbbkkkkkkdbbdk','  kdbbbbbbbbbbdkk','  kddbbbdbbbbbdk','  kddbbbkbbdbbdk',' kdbdbbbkbbdbdddk',' kdbdbbbdbbdbdddk',' kddkbbdkbbdbdddk',' kdk kbdkbbkdkkdk',' kk  kdk kk k  kk'];
 const rearHeel=['  kkkkkk ',' kssssssk',' kppppppk',' kpPPpppk',' kssssssk','  kkkkkk '];
 // Choreograph floor contacts, then derive the hips from the feet. The first
 // step starts with both heels together; the last brings the trailing heel in.
@@ -80,7 +80,7 @@ function visitorPose(){const w=mode==='dodge'?wallPull:null,age=mode==='strike'?
  return {lean:Math.round((w?w.nx*drive*2:0)-2*settle),drop:Math.round(2*coil+Math.abs(settle)),chin:Math.round(coil-drive),hem:Math.round(settle*2+(w?w.nx*drive:0))};}
 function coatFinish(rear,hem){
  // Crisp broken seam, reflected sleeve edges and the underside of the hood.
- if(rear){jointLine(168,76,174,79,2,'#535f72');jointLine(174,79,183,80,2,'#363747');jointLine(183,80,190,76,2,'#677084');stampInk(180,82,1,6,'#515667');jointLine(179,89,176,94,1,'#784653')}
+ if(rear){jointLine(168,76,174,79,2,'#535f72');jointLine(174,79,183,80,2,'#363747');jointLine(183,80,190,76,2,'#677084');stampInk(180,82,1,6,'#515667');jointLine(179,89,176,94,1,'#424b58')}
  else{jointLine(166,77,171,81,2,'#637084');jointLine(172,80,169,87,1,'#87909a');jointLine(189,75,184,80,2,'#545c70');jointLine(184,80,179,89,1,'#a06165');stampInk(172,86,4,1,'#c2bcb2');stampInk(171,89,3,1,'#8c8990');stampInk(189,87,3,1,'#62667b');stampInk(188,88,2,1,'#30303e')}
  jointLine(166,90,165+hem,96,2,'#343342');jointLine(189,91,190+hem,95,2,'#3d4051');}
 function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visitorSheet=document.createElement('canvas');visitorSheet.width=100;visitorSheet.height=88;visitorInk=visitorSheet.getContext('2d')}visitorInk.clearRect(0,0,100,88);const p=revenantPaint,gait=rear?entryGait(step):null,swing=gait?gait.arm:0;
@@ -96,7 +96,7 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  const handCue=mode==='dodge'&&round===6?wallPull:null;for(const side of [-1,1]){visitorInk.save();visitorInk.translate(0,Math.round(-side*swing*2));revenantArm(side,handCue);visitorInk.restore()}
  // Integer row shifts lift the chin out of the collar without rotating blurry pixels.
  const droop=Math.round(4*(1-wake)),hx=159,hy=46+droop+pose.chin;
- if(rear){stampMask(rearCranium,p,160,hy+3);stampInk(177,hy+24,3,2,p.s);stampInk(174,hy+11,4,1,'#938a91');stampInk(177,hy+12,1,3,'#837b83');stampInk(178,hy+15,3,1,'#938a91');stampInk(171,77,5,1,'#718092');stampInk(176,79,7,1,'#474f60');stampInk(181,85,1,5,'#262532');stampInk(180,90,2,2,'#793f4b');if(glow){stampInk(193,hy+15,1,3,'#c48aff');stampInk(191,73,3,1,'#9562b7')}}else{
+ if(rear){stampMask(rearCranium,p,160,hy+3);stampInk(177,hy+24,3,2,p.s);stampInk(174,hy+11,4,1,'#938a91');stampInk(177,hy+12,1,3,'#837b83');stampInk(178,hy+15,3,1,'#938a91');stampInk(171,77,5,1,'#718092');stampInk(176,79,7,1,'#474f60');stampInk(181,85,1,5,'#262532');stampInk(180,90,2,2,'#3e4553');jointLine(167,74,173,77,1,'#637080');jointLine(184,77,190,74,1,'#576475');stampInk(174,78,10,1,'#404955')}else{
  for(let j=0;j<hollowSkull.length;j++){const cant=Math.round((j/16)*(2+droop/2));stampMask([hollowSkull[j]],p,hx+cant,hy+j*2)}
  // Single-pixel bevels on the broken orbital rim, teeth, seam and rib ends.
  stampInk(174,hy+5,4,1,'#eee1cf');stampInk(177,hy+7,1,3,'#625c64');stampInk(168,hy+19,3,1,'#867e84');stampInk(171,hy+20,2,1,'#ada6a3');stampInk(181,hy+25,2,2,'#cbc1b6');stampInk(184,hy+26,1,2,'#afa29a');stampInk(175,83,4,1,'#b2abac');stampInk(173,86,4,1,'#a79fa3');stampInk(181,85,2,1,'#95505a');
@@ -111,7 +111,7 @@ function whiteCross(hy,seconds){
  visitorInk.save();visitorInk.globalAlpha=reveal*(.09+.09*pulse);
  // One pixel of local spill; keep the cross as the only bright shape.
  stampInk(185,hy+14,3,6,'#a2c3dc');stampInk(184,hy+15,5,1,'#a2c3dc');stampInk(184,hy+17,5,1,'#a2c3dc');
- visitorInk.globalAlpha=reveal;stampInk(186,hy+14,1,6,'#e3eef4');stampInk(184,hy+16,5,1,'#e3eef4');
+ visitorInk.globalAlpha=reveal;stampInk(186,hy+14,1,6,'#bfcfd8');stampInk(184,hy+16,5,1,'#d3e0e7');stampInk(186,hy+15,1,4,'#f1f6f8');stampInk(185,hy+16,3,1,'#f1f6f8');
  visitorInk.globalAlpha=reveal*(.45+.55*pulse);stampInk(186,hy+16,1,1,'#ffffff');
  visitorInk.restore();
 }
