@@ -274,7 +274,7 @@ And friend do you even have friend yet?.
 
 -peace by papyrus`,`Sans im sorry for being a bad brother maybe one day that human can saved or destroyes something just keep and eye out!.
 
--peaceby papyrus`,`Hello`];
+-peace by papyrus`,`Hello`];
 let spread=0,turn=null;
 function leaf(n){const el=document.createElement('article');el.className='book-leaf '+(n%2?'recto':'verso')+(n===3?' ripped':'');el.setAttribute('aria-label','Page '+(n+1)+(n===3?' — torn out':''));
  const copy=document.createElement('div');copy.className='book-copy';copy.textContent=pages[n];el.append(copy);
