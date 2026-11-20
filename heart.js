@@ -129,18 +129,15 @@ function studyShelf(x,y,w,h,seed){
    plank(back,start,opening,end-start,0,'#4c403a');
    plank(back,start,opening,1,0,'#403733');
    if(bay)plank(back,start-2,opening,1,0,'#b39a7b');
-   // Reserve a pixel of clearance on both ends, including the book's lower edge.
-   const layout=(Math.floor(seed/3)+bay)%3,set=roll(cloth.length);let p=start+1;
-   if(layout===1){const u=back+2,width=9;
-    plank(u,p+1,width,6,0,'#453c38');plank(u,p,width,6,0,'#c3b49b');
-    plank(u,p,width,5,0,cloth[set]);plank(u,p,1,5,0,'#51494a');plank(u+3,p+2,4,1,0,'#bcaa82');p+=8;
-   }
-   for(let j=0;p+3<=end-1;j++){
-    const size=Math.min(end-1-p,layout===0?3:3+roll(2)),u=back+1+roll(2),front=tw-2-(layout===0?0:roll(2)),span=front-u+1;
-    const color=cloth[layout===0?set:(set+j*2)%cloth.length];
-    // A single intact cover wraps the inset pages; the binding faces the aisle.
-    plank(u,p,span,size,0,color);plank(u+1,p+1,span-4,size-2,0,'#c8bba2');
-    plank(front,p,1,size,0,'#574949');p+=size+(layout===2&&j===0?1:0);
+   // Divide the whole bay among complete spines. Spread the spare pixels
+   // across the run instead of truncating a book or leaving a gap at the end.
+   const length=end-start,count=Math.floor(length/2.4),set=roll(cloth.length);
+   for(let j=0;j<count;j++){
+    const p=start+Math.floor(j*length/count),size=start+Math.floor((j+1)*length/count)-p;
+    const u=back+roll(2),front=tw-2-roll(2),span=front-u+1;
+    const color=cloth[(set+Math.floor(j/2)+bay)%cloth.length];
+    plank(u,p,span,size,0,color);plank(u+1,p+1,span-3,1,0,j%3?'#c8bba2':'#aa9d88');
+    plank(front,p,1,size,0,'#574949');if(size===3)plank(front-1,p+1,1,1,0,'#bcaa82');
    }
   }
   shelfTiles.set(seed,tile);
