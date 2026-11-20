@@ -44,16 +44,32 @@ const hallStamps=new Map();
 function stoneStamp(name,cx,y){let img=hallStamps.get(name);if(!img){const rows=hallArt[name];img=document.createElement('canvas');img.width=rows[0].length;img.height=rows.length;const ctx=img.getContext('2d');rows.forEach((row,j)=>[...row].forEach((p,i)=>{if(hallTones[p]){ctx.fillStyle=hallTones[p];ctx.fillRect(i,j,1,1)}}));hallStamps.set(name,img)}g.drawImage(img,cx-(img.width>>1),y)}
 let galleryBackdrop;
 function enterRoom(){mode='room';hallX=180;hallY=346;keys.clear();drag=false;target=null;msg('The door behind you is sealed. The room is empty.');ui()}
-// The same bare chamber is revealed during the crossing and explored after the fight.
-function chamber(age=-1){
- rect(72,0,216,438,'#101112');rect(85,53,190,329,'#383b3d');rect(88,55,184,13,'#757879');
- for(let side of [89,265]){rect(side,68,6,304,'#585c5e');rect(side+2,68,1,304,'#929596')}
- rect(95,68,170,304,'#505355');g.save();g.beginPath();g.rect(95,68,170,304);g.clip();
- for(let j=0;j<16;j++)for(let i=-1;i<6;i++){const xx=95+i*34+(j%2)*17,yy=68+j*20;rect(xx,yy,33,19,['#66696a','#686b6c','#656869'][(i+3*j+7)%3]);rect(xx+1,yy,31,1,'#6f7272')}
- g.restore();rect(88,371,184,5,'#848687');rect(88,376,184,4,'#4a4d4f');
- g.save();g.translate(0,405);g.scale(1,-1);threshold(age);g.restore();
- const py=age<0?hallY:368-22*ease((age-1.85)/.95),px=age<0?hallX:180;
- rect(px-3,py+3,7,2,'#494c4d');tinySoul(px,py-1);
+// Bake the floor at room scale; the open doorway samples its actual entrance stones.
+let roomTiles;
+function roomFloor(){
+ if(roomTiles)return roomTiles;
+ const tile=document.createElement('canvas');tile.width=170;tile.height=304;
+ const ctx=tile.getContext('2d'),ink=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h)};
+ ink(0,0,170,304,'#515456');
+ for(let j=0;j<19;j++)for(let i=-1;i<7;i++){
+  const x=i*28+(j%2)*14,y=j*16,k=(11*i+7*j+33)%5;
+  ink(x,y,27,15,['#787b7b','#747879','#767a7a','#797c7c','#757879'][k]);ink(x+1,y,25,1,'#848787');ink(x+1,y+14,24,1,'#696d6e');
+  if(k===2){ink(x+5,y+9,3,1,'#696d6e');ink(x+8,y+8,2,1,'#696d6e')}
+ }
+ for(const n of [6,9]){const tone=n===6?'#565b5c':'#9a9e9c';ink(n,n,170-2*n,1,tone);ink(n,n,1,304-2*n,tone);ink(169-n,n,1,304-2*n,tone);ink(n,303-n,170-2*n,1,tone)}
+ // A recessed octagonal pavement seal, not an object in the walkable area.
+ for(let y=-16;y<=16;y++){const w=Math.min(17,24-Math.abs(y));for(const sign of [-1,1]){ink(85+sign*w,152+y,1,1,'#575c5c');ink(85+sign*(w-2),152+y,1,1,'#999d9a')}if(Math.abs(y)>=15)ink(85-w,152+y,w*2+1,1,'#838885')}
+ for(let y=-7;y<=7;y++){const w=7-Math.abs(y);ink(85-w,152+y,2*w+1,1,'#959996');if(w>1)ink(86-w,152+y,2*w-1,1,'#6a7070')}
+ roomTiles=tile;return tile;
+}
+function chamber(){
+ rect(72,0,216,438,'#101112');rect(84,48,192,336,'#35393a');rect(87,50,186,19,'#54595a');
+ for(let i=0;i<8;i++){const x=88+i*23;rect(x,52,22,11,'#818585');rect(x+1,52,20,1,'#a7aaa7');rect(x,62,22,2,'#656a6b')}
+ for(const x of [88,265]){rect(x,66,7,306,'#666b6c');rect(x+2,66,2,306,'#969b99');for(let y=68;y<371;y+=32)rect(x,y,7,2,'#494e4f')}
+ g.drawImage(roomFloor(),95,68);rect(88,372,184,4,'#848887');rect(88,376,184,5,'#515657');
+ for(const x of [91,269])for(const y of [59,369])stoneStamp('plinth',x,y);
+ g.save();g.translate(0,405);g.scale(1,-1);threshold(-1);g.restore();
+ rect(hallX-3,hallY+3,7,2,'#494c4d');tinySoul(hallX,hallY-1);
 }
 function hallway(){
  g.save();g.translate(-HALL_LEFT,0);
@@ -68,9 +84,9 @@ function hallway(){
  }
  g.drawImage(galleryBackdrop,HALL_LEFT,0);
  const age=mode==='portal'?sceneAge:-1;threshold(age);crossingSoul(age);
- if(portalView(age)>0){g.save();g.globalAlpha=portalView(age);chamber(age);g.restore()}g.restore();
+ g.restore();
 }
-const portalView=age=>ease((age-1.76)/.65);
+
 function paintGallery(){
  rect(HALL_LEFT,0,HALL_WIDTH,HALL_HEIGHT,'#101112');
  // The gallery opens into a wider landing halfway up the map.
@@ -124,6 +140,8 @@ function threshold(age){
  const active=age>=0,open=active?ease((age-.48)/.92)*(1-ease((age-2.54)/.66)):0;
  const beat=Math.floor(t*4.5),phase=t*4.5-beat,near=1-ease((hallY-38)/95);
  rect(150,12,60,24,'#36383a');rect(152,14,56,21,'#15171a');
+ // Keep the hallway camera fixed. The sliding leaves occlude this patch naturally.
+ if(open>0)g.drawImage(roomFloor(),57,283,56,21,152,14,56,21);
  for(let row=0;row<21;row++){
   const band=row>>2,slips=band===(beat*3)%5;
   const tear=slips?(beat%2?-1:1)*(phase<.32?3+Math.round(near*3):phase<.56?1:0):0;
