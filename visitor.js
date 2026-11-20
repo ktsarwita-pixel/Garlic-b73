@@ -4,18 +4,22 @@ function startSeven(first=1){encounter=7;resetBattle();keys.clear();round=first;
 function sevenBox(){return round<4?{l:94,r:266,u:162,d:217}:{l:122,r:238,u:102,d:218}}
 function sevenWave(){startWave(.55);wallPull=null;slamCount=0;const b=sevenBox();x=(b.l+b.r)/2;y=(b.u+b.d)/2;msg(['White: dodge. Blue: stop. Red: move.','Watch the fractured bones change near you.','Keep moving through red. Watch the fractures.','Look up. The ceiling is no longer safe.','The gates are closing faster.','Watch his hands. Get away from the marked wall.'][round-1]);ui()}
 // Raster the linked sleeve, wrist and finger joints without antialiasing.
-function jointLine(x0,y0,x1,y1,width,color){const n=Math.max(1,Math.ceil(Math.max(Math.abs(x1-x0),Math.abs(y1-y0))));for(let i=0;i<=n;i++)rect(Math.round(x0+(x1-x0)*i/n-width/2),Math.round(y0+(y1-y0)*i/n-width/2),width,width,color)}
-function revenantArm(side,w){const a=w?w.age:0,lead=w&&(w.nx===side||!w.nx),reach=lead?1:.48;
- const gather=ease(a/.22)*(1-ease((a-.22)/.24)),snap=ease((a-.22)/.32)*(1-ease((a-.77)/.52)),cast=ease((a-1.44)/.32)*(1-ease((a-2.64)/.42));
- const vx=w?w.nx:0,vy=w?w.ny:0,force=(snap+cast*.72)*reach;
- const sx=180+side*16,sy=78,ex=sx+side*(5+3*gather)+vx*4*force,ey=sy+9-5*gather+vy*4*force;
- const px=180+side*(22-5*gather)+vx*(15*force-4*gather),py=92-13*gather+vy*(15*force-4*gather)-3*cast;
- jointLine(sx,sy,ex,ey,7,'#262631');jointLine(sx,sy,ex,ey,5,'#414657');jointLine(ex,ey,px,py,5,'#30313d');jointLine(ex,ey,px,py,3,'#666473');
- const rest=Math.PI/2-side*.14,aim=vy<0?(side<0?Math.PI*1.5:-Math.PI*.5):vy>0?Math.PI*.5:vx<0?Math.PI:0,angle=rest+(aim-rest)*force,ux=Math.cos(angle),uy=Math.sin(angle),tx=-uy,ty=ux;
- function at(out,across){return [px+ux*out+tx*across,py+uy*out+ty*across]}
- jointLine(...at(0,0),...at(3,0),5,'#a29c9b');jointLine(...at(1,-1),...at(3,-1),3,'#d5cdc1');
- for(let i=-1;i<=1;i++){const spread=2+cast*1.4,base=at(3,i*2),knuckle=at(5-gather,i*spread),tip=at(7+force*2-Math.abs(i)-3*gather,i*spread+side*gather);jointLine(...base,...knuckle,2,'#aca2a0');jointLine(...knuckle,...tip,1,'#efe1d1')}
- jointLine(...at(1,side*2),...at(4,side*(4+cast)),2,'#beb5ae');}
+let visitorSheet, visitorInk;
+function stampInk(x,y,w,h,color){visitorInk.fillStyle=color;visitorInk.fillRect(Math.round(x)-130,Math.round(y)-32,w,h)}
+function stampMask(rows,palette,x,y){rows.forEach((row,j)=>{for(let i=0;i<row.length;i++)if(palette[row[i]])stampInk(x+2*i,y+2*j,2,2,palette[row[i]])})}
+function jointLine(x0,y0,x1,y1,width,color){const n=Math.max(1,Math.ceil(Math.max(Math.abs(x1-x0),Math.abs(y1-y0))));for(let i=0;i<=n;i++)stampInk(x0+(x1-x0)*i/n-width/2,y0+(y1-y0)*i/n-width/2,width,width,color)}
+// Forward kinematics: animate angles, never endpoints or bone lengths.
+function armRig(side,w){const a=w?w.age:0,lead=w&&(!w.nx||w.nx===side),lift=ease(a/.22)*(1-ease((a-.22)/.34)),whip=ease((a-.22)/.34)*(1-ease((a-.78)/.54)),cast=ease((a-1.44)/.32)*(1-ease((a-2.64)/.42));
+ const power=(whip+.80*cast)*(lead?1:.32),aim=w&&w.ny?w.ny*1.45:0;
+ const upper=1.14-.42*lift+(aim-1.14+.22)*power,fore=1.68-2.85*lift+(aim-1.68-.14)*power;
+ const sx=180+side*16,sy=78,ex=sx+side*9*Math.cos(upper),ey=sy+9*Math.sin(upper),px=ex+side*8*Math.cos(fore),py=ey+8*Math.sin(fore);
+ return {sx,sy,ex,ey,px,py,angle:side===1?fore:Math.PI-fore,curl:lift+.35*whip,cast};}
+function revenantArm(side,w){const {sx,sy,ex,ey,px,py,angle,curl,cast}=armRig(side,w);
+ jointLine(sx,sy,ex,ey,7,'#282532');jointLine(sx,sy,ex,ey,4,'#48505d');jointLine(ex,ey,px,py,5,'#23232c');jointLine(ex,ey,px,py,2,'#8d8992');
+ const ux=Math.cos(angle),uy=Math.sin(angle),tx=-uy,ty=ux;function at(out,across){return [px+ux*out+tx*across,py+uy*out+ty*across]}
+ jointLine(...at(0,0),...at(3,0),4,'#a29c9b');jointLine(...at(.5,-1),...at(3,-1),2,'#d5cdc1');
+ for(let i=-1;i<=1;i++){const [bx,by]=at(3,i*1.7),dir=angle+i*(.10+.16*cast)+side*.28*curl,kx=bx+2.5*Math.cos(dir),ky=by+2.5*Math.sin(dir),end=dir+side*(.24+curl*.95),len=i===0?3:2;jointLine(bx,by,kx,ky,2,'#a79e9c');jointLine(kx,ky,kx+len*Math.cos(end),ky+len*Math.sin(end),1,'#e6d9c9')}
+ jointLine(...at(1,side*1.7),...at(3,side*4),2,'#beb5ae');}
 const revenantPaint={...lastPaint,p:'#73626d',P:'#a99a99',w:'#c3bfba',W:'#ddd8d0',s:'#918b91',b:'#48566c',B:'#778291',d:'#343342',R:'#763443',r:'#452733',e:ink};
 // Hand-cut silhouettes rather than a palette swap of the corridor boss.
 // The missing cheek drops into the collar; the jaw hangs from one hinge.
@@ -53,12 +57,15 @@ const burialCoat=[
  ' kddk     kdk kddk  ',
  ' kdk      kk   kdk  ',
  ' kk             kk  '];
-function sevenFigure(glow=true,wake=1,step=0){const p=revenantPaint;mask(boot,p,159,98-step);mask(boot,p,181,98);mask(shorts,p,165,90);mask(burialCoat,p,160,69);
+function sevenFigure(glow=true,wake=1,step=0){if(!visitorSheet){visitorSheet=document.createElement('canvas');visitorSheet.width=100;visitorSheet.height=84;visitorInk=visitorSheet.getContext('2d')}visitorInk.clearRect(0,0,100,84);const p=revenantPaint;stampMask(boot,p,159,98-step);stampMask(boot,p,181,98);stampMask(shorts,p,165,90);stampMask(burialCoat,p,160,69);
  const handCue=mode==='dodge'&&round===6?wallPull:null;revenantArm(-1,handCue);revenantArm(1,handCue);
  // Integer row shifts lift the chin out of the collar without rotating blurry pixels.
  const droop=Math.round(4*(1-wake)),hx=159,hy=46+droop;
- for(let j=0;j<hollowSkull.length;j++){const cant=Math.round((j/16)*(2+droop/2));mask([hollowSkull[j]],p,hx+cant,hy+j*2)}
- if(glow){const yy=hy+17;rect(184,yy,5,2,'#653771');rect(185,yy,3,2,'#c48bef');rect(186,yy,1,2,'#fff1ff')}}
+ for(let j=0;j<hollowSkull.length;j++){const cant=Math.round((j/16)*(2+droop/2));stampMask([hollowSkull[j]],p,hx+cant,hy+j*2)}
+ // Single-pixel bevels on the broken orbital rim, teeth, seam and rib ends.
+ stampInk(174,hy+5,4,1,'#eee1cf');stampInk(177,hy+7,1,3,'#625c64');stampInk(168,hy+19,3,1,'#867e84');stampInk(171,hy+20,2,1,'#ada6a3');stampInk(181,hy+25,2,2,'#cbc1b6');stampInk(184,hy+26,1,2,'#afa29a');stampInk(175,83,4,1,'#b2abac');stampInk(173,86,4,1,'#a79fa3');stampInk(181,85,2,1,'#95505a');
+ if(glow){const yy=hy+17;stampInk(184,yy,5,2,'#653771');stampInk(185,yy,3,2,'#c48bef');stampInk(186,yy,1,2,'#fff1ff')}
+ g.save();g.imageSmoothingEnabled=false;g.drawImage(visitorSheet,130,32);g.restore();}
 function drawVisitor(){const a=revealClock,pan=ease((a-.4)/2.65),zoom=1+1.63*pan;
  // He crosses the lip of the seal, not the centre of the door texture.
  const step=ease((a-1.28)/.68),settle=ease((a-1.98)/.6),px=175+Math.round(step*2),py=375-Math.round(6*step+4*settle),wake=ease((a-2.07)/.64);
@@ -104,7 +111,7 @@ function sevenStage(b){
  for(const side of [-1,1]){const x=180+side*53;rect(x-3,y-76,7,76,'#211f24');rect(x-2,y-74,1,71,'#302c32');for(let k=0;k<4;k++)rect(x-3,y-k*18-2,7,2,'#161518');rect(x-5,y-2,11,2,'#353038')}
  rect(124,y-78,112,3,'#242127');rect(128,y-75,104,1,'#373039');for(let i=0;i<9;i++)rect(180+(i%4===2?1:0),y-72+i*8,1,8,'#282329');
  rect(163,y-1,34,2,'#252128');rect(169,y-1,22,1,'#302b33')}
-function sevenDraw(){const b=sevenBox();sevenStage(b);g.save();g.translate(180,b.u-5);g.scale(round>=4?.94:1.12,round>=4?.94:1.12);g.translate(-180,-110);if(mode==='strike'&&swings<6)blinkDodge(1.45-flash);else sevenFigure();if(mode==='strike')slash(1.45-flash,swings<6);g.restore();rect(b.l-2,b.u-2,b.r-b.l+4,b.d-b.u+4,'#cbbfd2');rect(b.l,b.u,b.r-b.l,b.d-b.u,'#111015');for(const xx of [b.l,b.r-5])for(const yy of [b.u,b.d-1])rect(xx,yy,5,1,'#55495d');g.save();g.beginPath();g.rect(b.l,b.u,b.r-b.l,b.d-b.u);g.clip();gateWarning();slamEffects(b);for(const s of shots){g.save();g.translate(s.x,s.y);if(s.horiz)g.transform(0,1,1,0,0,0);boneSprite({...s,x:0,y:0});if(s.changed!==undefined&&t-s.changed<.14){rect(-2,1,7,1,'#eee1f5');rect(-2,s.h-2,7,1,'#eee1f5')}if(s.glitch){rect(-1,2,4,s.h-4,'#50395e');rect(1,2+Math.floor(t*20)%Math.max(1,s.h-5),4,2,'#cb91ec')}g.restore()}
+function sevenDraw(){const b=sevenBox();sevenStage(b);g.save();g.translate(180,b.u-5);g.translate(-180,-110);if(mode==='strike'&&swings<6)blinkDodge(1.45-flash);else sevenFigure();if(mode==='strike')slash(1.45-flash,swings<6);g.restore();rect(b.l-2,b.u-2,b.r-b.l+4,b.d-b.u+4,'#cbbfd2');rect(b.l,b.u,b.r-b.l,b.d-b.u,'#111015');for(const xx of [b.l,b.r-5])for(const yy of [b.u,b.d-1])rect(xx,yy,5,1,'#55495d');g.save();g.beginPath();g.rect(b.l,b.u,b.r-b.l,b.d-b.u);g.clip();gateWarning();slamEffects(b);for(const s of shots){g.save();g.translate(s.x,s.y);if(s.horiz)g.transform(0,1,1,0,0,0);boneSprite({...s,x:0,y:0});if(s.changed!==undefined&&t-s.changed<.14){rect(-2,1,7,1,'#eee1f5');rect(-2,s.h-2,7,1,'#eee1f5')}if(s.glitch){rect(-1,2,4,s.h-4,'#50395e');rect(1,2+Math.floor(t*20)%Math.max(1,s.h-5),4,2,'#cb91ec')}g.restore()}
  const w=wallPull;if(w&&w.age>=.56&&!w.fired){const xx=w.nx<0?b.l:w.nx>0?b.r-3:b.l,yy=w.ny<0?b.u:w.ny>0?b.d-3:b.u;rect(xx,yy,w.nx?3:b.r-b.l,w.ny?3:b.d-b.u,Math.floor(t*10)%2?'#c15cbc':'#82426e');g.fillStyle='#ffd4ee';g.font='bold 12px monospace';g.textAlign='center';g.fillText('!',w.nx?xx-w.nx*9:180,w.ny?yy-w.ny*12+3:(b.u+b.d)/2)}if(mode==='dying')brokenSoul();else if(hp&&(inv<=0||Math.floor(t*12)%2)){if(w&&w.age<=.92){soulRows.forEach((r,j)=>[...r].forEach((v,i)=>{if(v==='r')rect(x+i-3,y+j-3,1,1,j===0||soulRows[j][i-1]!=='r'||soulRows[j][i+1]!=='r'?'#b99acb':'#09060d')}))}else tinySoul(x,y)}g.restore()}
 
 // Effects are timed from the same impact clock as the hand and collision.

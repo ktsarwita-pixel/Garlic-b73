@@ -10,6 +10,9 @@ const context = vm.createContext({assert, keys:new Set(), drag:false, target:nul
 });
 vm.runInContext(fs.readFileSync(require.resolve('../visitor.js'),'utf8'),context);
 vm.runInContext(`
+for(const side of [-1,1])for(const [nx,ny] of [[-1,0],[1,0],[0,-1],[0,1]])for(let i=0;i<=355;i++){
+  const p=armRig(side,{age:i/100,nx,ny});assert(Math.abs(Math.hypot(p.sx-p.ex,p.sy-p.ey)-9)<1e-10);assert(Math.abs(Math.hypot(p.ex-p.px,p.ey-p.py)-8)<1e-10);
+}
 startSeven();
 for(let r=1;r<=6;r++){
   assert.equal(round,r);
