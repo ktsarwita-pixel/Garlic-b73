@@ -216,11 +216,29 @@ function tickBeams(dt,b){const score=eightScore[round-1];if(sent<score.count&&el
  for(const c of cannons){const prev=c.age;c.age+=dt;if(prev<c.charge&&c.age>=c.charge)sfx('impact',c.big?.75:.43);
  if(c.age>=c.charge&&c.age<c.charge+.27&&!testGod&&inv<=0&&Math.abs((c.vertical?x:y)-c.pos)<c.width/2+2){hp=Math.max(0,hp-(c.big?6:4));inv=.85;sfx('hurt');if(!hp){mode='dying';deathAge=0;shots=[];cannons=[];msg('Your soul begins to crack.')}ui();if(!hp)return}}
  cannons=cannons.filter(c=>c.age<c.charge+.47)}
+// Side-profile skull, mandible on a separate pivot. Bake the opening arc at native resolution.
+const blasterFrames=new Map();
+function blasterSkull(open,lit){const key=open*2+Number(lit);if(blasterFrames.has(key))return blasterFrames.get(key);
+ const tile=document.createElement('canvas');tile.width=30;tile.height=32;const ctx=tile.getContext('2d');
+ const colors={k:'#282530',s:'#665e71',m:'#a59aa3',b:'#d2c7be',h:'#f4e9db',v:lit?'#fffafa':'#ad80c6'};
+ function pixel(x,y,c){ctx.fillStyle=colors[c];ctx.fillRect(Math.round(x),Math.round(y),1,1)}
+ const head=['kk','kskk      kkk',' kmbkk  kkbsk','  kmbbkkbhmsk','   kmbbWWWbbsk','  kmbWWWWbbbmskk',' kmbWWbbbbbmbbbsk','ksbWWbmbsmbbbWWbbkk','kmbWbbmskkkmbWWWWWbkk','ksbbbmkkvkkkmbbbbbbbmskk',' ksbbmkkvvkksmmmkkkmbbbsk','  kmbmskkkksbmskk  kmmssk','   ksmbbbmbbskk     kskk','    ksmmbbskk        kk','     kssskk'];
+ head.forEach((row,y)=>[...row].forEach((c,x)=>{if(c!==' ')pixel(x,y+1,c==='W'?'h':c)}));
+ const jaw=['    kkk','  kkmbbkkkk     kk',' kmbbbbbbbbkkkkkhk','  ksmmmbbbbbbbbbbsk','   kkkkssmmmbbbmsk','       kkkkkkkkkk'];
+ // Shear around the rear hinge in whole columns to keep the teeth joined at every opening.
+ jaw.forEach((row,y)=>[...row].forEach((c,x)=>{if(c!==' ')pixel(4+x,13+y+Math.max(0,x-3)*open/15,c)}));
+ blasterFrames.set(key,tile);return tile}
 function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.pos:c.reverse?b.r:b.l,c.vertical?(c.reverse?b.d:b.u):c.pos);if(c.vertical)g.rotate(c.reverse?-Math.PI/2:Math.PI/2);else if(c.reverse)g.scale(-1,1);
- const span=c.vertical?b.d-b.u:b.r-b.l,w=c.width,a=c.age-c.charge;
- if(a<0){g.globalAlpha=.28+.48*ease(c.age/c.charge);for(let k=0;k<span;k+=6)rect(k,-1,3,1,'#e6b6db');g.globalAlpha=1}
- else{g.globalAlpha=1-ease((a-.27)/.2);rect(0,-Math.floor(w/2),span,w,'#9f86ae');rect(0,2-Math.floor(w/2),span,w-4,'#fff5ff')}
- g.scale(c.big?1.5:1,c.big?1.5:1);rect(0,-5,7,10,'#aaa6b0');rect(1,-6,4,11,'#e1dcd8');rect(4,-4,5,3,'#e7dfdb');rect(4,1,5,3,'#bfb7bf');rect(3,-3,3,2,'#28232f');rect(4,-3,1,1,'#fff');g.restore()}}
+ const span=c.vertical?b.d-b.u:b.r-b.l,w=c.width,a=c.age-c.charge,q=c.age/c.charge,fade=1-ease((a-.27)/.2);
+ if(a<0){g.globalAlpha=.32+.48*ease(q);for(let k=Math.floor(c.age*24)%6;k<span;k+=6)rect(k,-1,3,1,'#dec0e6')}
+ else{const half=Math.floor(w/2);g.globalAlpha=fade;rect(0,-half,span,w,'#ad82c2');rect(0,1-half,span,w-2,'#dfc3e8');const core=Math.max(1,Math.round((w-4)*(.84+.16*Math.cos(a*52))*fade));rect(0,-Math.floor(core/2),span,core,'#fffaf3');
+ for(let k=Math.floor(a*185)%21;k<span;k+=21)rect(k,-half,Math.min(8,span-k),1,'#f7dff2')}
+ const recoil=a<0?0:3*(1-ease(a/.19)),slide=7*(1-ease(c.age/.18))+5*(1-fade),scale=c.big?1.4:1;
+ g.globalAlpha=ease(c.age/.12)*fade;g.translate(Math.round(-slide-recoil),0);g.imageSmoothingEnabled=false;
+ const opening=Math.round(6*(a<0?ease((q-.18)/.78):fade));g.drawImage(blasterSkull(opening,q>.76),-2,-Math.round(13*scale),Math.round(30*scale),Math.round(32*scale));
+ // Muzzle charge contracts inward; the flash exits along the same axis as the warning.
+ const muzzle=Math.round(20*scale);if(a<0&&q>.35){const k=ease((q-.35)/.65),r=Math.round(5*(1-k))+1;g.globalAlpha*=k;rect(muzzle-r,0,r*2+1,1,'#e4c8ee');rect(muzzle,-r,1,2*r+1,'#fff8ff')}
+ g.restore()}}
 function nextGate(){const score=encounter===8?eightScore[round-1].gates:gateScores[round-1],entry=score[patternStep%score.length],b=sevenBox(),vertical=entry[0]==='T',span=vertical?b.r-b.l:b.d-b.u;
  const gap=encounter===8?eightScore[round-1].gap:[21,20,19,30,25][round-1],cut=6+Math.round((span-gap-12)*Number(entry[1])/3);return {b,vertical,reverse:entry[0]==='R',cut,gap,span,kind:{w:'white',b:'blue',r:'red',g:'glitch'}[entry[2]]}}
 function sevenGate(){const {b,vertical,reverse,cut,gap,span,kind}=nextGate(),speed=61+round*6;
