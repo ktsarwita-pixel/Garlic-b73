@@ -62,3 +62,6 @@
 #letter .verso{padding-inline:var(--outer) var(--inner)}#letter .recto{--slope:-.75deg;--hinge:0%;padding-inline:var(--inner) var(--outer)}
 #letter :is(.book-copy,.torn-ink,.book-leaf small){transform-origin:var(--hinge) 50%;transform:skewY(var(--slope)) scaleX(.985);color:#594a3b;mix-blend-mode:multiply}
 #letter .book-copy{padding-block:2px;min-height:0}#letter .torn-ink{letter-spacing:.012em}
+/* A single transparent bitmap sits flush on each sheet. Only the parent
+   paper is transformed; ink and folio share its exact turn and torn mask. */
+.printed-ink{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}

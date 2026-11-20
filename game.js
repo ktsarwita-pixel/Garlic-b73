@@ -274,12 +274,20 @@ And friend do you even have friend yet?.
 
 -peace by papyrus`,`Hello`];
 let spread=0,turn=null;
-function leaf(n){const el=document.createElement('article');el.className='book-leaf '+(n%2?'recto':'verso')+(n===3?' ripped':'');el.setAttribute('aria-label','Page '+(n+1)+(n===3?' — torn out':''));
- if(n===3){const fragment=document.createElement('span');fragment.className='torn-ink';fragment.textContent=pages[n];el.append(fragment)}
- else {const copy=document.createElement('div');copy.className='book-copy';copy.textContent=pages[n];el.append(copy)}
- const num=document.createElement('small');num.textContent=String(n+1).padStart(2,'0');el.append(num);return el}
+// Hand-set low-resolution type. Each hexadecimal digit is one four-dot scanline.
+const bookGlyphs={a:'006197',b:'888e9e',c:'007887',d:'111797',e:'0069e7',f:'324e44',g:'0079716',h:'888e99',i:'404444',j:'202222c',k:'889ac9',l:'444443',m:'00af99',n:'00e999',o:'006996',p:'00e9e88',q:'0079711',r:'00bc88',s:'007c3e',t:'44e443',u:'009997',v:'009996',w:'0099fa',x:'009669',y:'0099716',z:'00f24f',A:'699f99',B:'e9e99e',D:'e9999e',H:'999f99',R:'e99ea9',S:'78861e',P:'e99e88',I:'e4444e',"'":'440000','?':'6912404','!':'444404','-':'000e00','.':'000004',',':'0000048','0':'699996','1':'4c444e','2':'69124f','3':'e1611e','4':'26af22'};
+const typeDots={};for(const [ch,rows] of Object.entries(bookGlyphs)){const pts=[];for(let y=0;y<rows.length;y++)for(let x=0;x<4;x++)if(parseInt(rows[y],16)&(8>>x))pts.push([x,y]);const left=Math.min(...pts.map(p=>p[0]));typeDots[ch]={w:Math.max(...pts.map(p=>p[0]))-left+1,pts:pts.map(([x,y])=>[x-left,y])}}
+function leaf(n){const el=document.createElement('article');el.className='book-leaf '+(n%2?'recto':'verso')+(n===3?' ripped':'');el.dataset.page=n;el.setAttribute('aria-label','Page '+(n+1)+(n===3?' — torn out':''));const ink=document.createElement('canvas');ink.className='printed-ink';ink.setAttribute('role','img');ink.setAttribute('aria-label',pages[n]);el.append(ink);return el}
+function printLeaf(el){const n=Number(el.dataset.page),ink=el.firstChild,w=el.clientWidth,h=el.clientHeight;if(!w||!h)return;
+ const d=Math.min(3,window.devicePixelRatio||1),W=Math.round(w*d),H=Math.round(h*d);if(ink.width===W&&ink.height===H&&ink.dataset.set)return;ink.width=W;ink.height=H;ink.dataset.set=1;
+ const ctx=ink.getContext('2d'),glyph=c=>typeDots[c]||typeDots[c.toLowerCase()]||typeDots['?'];let scale=Math.max(1,Math.round(Math.min(w/115,2.5)*d)),lines,l,r,top;
+ for(;;scale--){l=Math.round(W*(n%2?.105:.067));r=Math.round(W*(n%2?.067:.105));top=Math.round(H*.075);lines=[];
+ for(const para of pages[n].split('\n')){let line='',width=0;for(const word of para.split(' ')){const advance=[...word].reduce((v,ch)=>v+glyph(ch).w+1,0);if(line&&(width+3+advance)*scale>W-l-r){lines.push(line);line='';width=0}width+=(line?3:0)+advance;line+=(line?' ':'')+word}lines.push(line)}if(top+lines.length*10*scale<=H*.9||scale===1)break}
+ if(n===3){const em=parseFloat(getComputedStyle(el).fontSize)*d;l=Math.round(.55*em);top=Math.round(.42*em);scale=Math.max(1,Math.floor(em*.13))}
+ function stamp(text,x,y){for(const ch of text){if(ch===' '){x+=3*scale;continue}const g=glyph(ch),fold=n%2?1-x/W:x/W;const rise=Math.round((fold*fold*2)*scale);ctx.fillStyle=fold>.8?'#41352b':'#514335';for(const [gx,gy] of g.pts)ctx.fillRect(x+gx*scale,y+gy*scale+rise,scale,scale);x+=(g.w+1)*scale}}
+ lines.forEach((line,i)=>stamp(line,l,top+i*10*scale));if(n<3)stamp('0'+(n+1),Math.round(W/2-4*scale),Math.round(H*.94-3*scale));}
 function renderBook(n){spread=n;$('#spread').replaceChildren(leaf(n),leaf(n+1));$('#letter-prev').disabled=!n;$('#letter-next').disabled=!!n;$('#book-status').textContent=n?'Pages 3 and 4. Page 4 is torn out.':'Pages 1 and 2';fitBook()}
-function fitBook(){if(!letter.open)return;const copies=[...letter.querySelectorAll('#spread > article .book-copy')];for(const c of copies)c.style.fontSize='';if(!copies.length)return;let size=parseFloat(getComputedStyle(copies[0]).fontSize);while(size>8&&copies.some(c=>c.scrollHeight>c.clientHeight+1)){size-=.5;for(const c of copies)c.style.fontSize=size+'px'}}
+function fitBook(){if(letter.open)letter.querySelectorAll('#spread > article').forEach(printLeaf)}
 new ResizeObserver(fitBook).observe($('#spread'));
 const bookTurnFrames=[-1,1].map(dir=>Array.from({length:33},(_,i)=>{const t=i/32,bend=Math.sin(Math.PI*t)**2;return {offset:t,transform:`rotateY(${-dir*180*t}deg) skewY(${-dir*2.4*bend}deg) scaleX(${1-.025*bend})`}}));
 function turnBook(dir){const next=spread+dir*2;if(turn||next<0||next>2)return;
