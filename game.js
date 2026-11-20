@@ -284,14 +284,14 @@ function turnBook(dir){const next=spread+dir*2;if(turn||next<0||next>2)return;
  const old=[...$('#spread').children];renderBook(next);const now=[...$('#spread').children];const moving=dir>0?1:0;
  if(matchMedia('(prefers-reduced-motion: reduce)').matches||!Element.prototype.animate)return;
  const flap=document.createElement('div');flap.className='book-flap '+(dir>0?'forward':'backward');flap.setAttribute('aria-hidden','true');flap.inert=true;
- const front=old[moving],back=now[1-moving].cloneNode(true);front.classList.add('leaf-front');back.classList.add('leaf-back');flap.append(front,back);
- const hold=old[1-moving];now[1-moving].replaceWith(hold);$('#spread').append(flap);
+ const front=old[moving],back=now[1-moving];front.classList.add('leaf-front');back.classList.add('leaf-back');
+ const hold=old[1-moving];back.replaceWith(hold);flap.append(front,back);$('#spread').append(flap);
  // The spine stays pinned. The fore-edge rises first, bows through the
  // midpoint and settles flat while a narrow travelling shadow crosses the sheet.
  const duration=820, timing={duration,easing:'cubic-bezier(.35,.02,.18,1)',fill:'forwards'};
  const poses=[[0,0,0,1],[.14,13,1.4,.995],[.38,61,3,.97],[.62,118,2.1,.98],[.87,165,.7,.995],[1,180,0,1]];
- turn=flap.animate(poses.map(([offset,angle,bow,width])=>({offset,transform:`rotateY(${-dir*angle}deg) skewY(${-dir*bow}deg) scaleX(${width})`})),timing);
+ turn=flap.animate(poses.map(([offset,angle,bow,width])=>({offset,transform:`rotateY(${-dir*angle}deg) scaleX(${width})`})),timing);
  for(const face of [front,back]){const shade=document.createElement('i');shade.className='turn-shade';face.append(shade);shade.animate([{opacity:0,transform:'translateX(-20%)'},{offset:.48,opacity:.48,transform:'translateX(0%)'},{opacity:0,transform:'translateX(24%)'}],timing)}
- turn.onfinish=()=>{turn=null;renderBook(next)};}
+ turn.onfinish=()=>{back.lastElementChild.remove();back.classList.remove('leaf-back');hold.replaceWith(back);flap.remove();turn=null};}
 function openLetter(){keys.clear();drag=false;target=null;renderBook(0);letter.showModal();fitBook()}
 $('#letter-prev').onclick=()=>turnBook(-1);$('#letter-next').onclick=()=>turnBook(1);$('#letter-close').onclick=()=>letter.close();letter.onclose=()=>{if(turn){turn.cancel();turn=null}};letter.onkeydown=e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();turnBook(e.key==='ArrowRight'?1:-1)}};
