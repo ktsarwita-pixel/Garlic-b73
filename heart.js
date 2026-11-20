@@ -243,13 +243,13 @@ function studyDecor(){
  for(const [xx,yy,n] of [[173,209,4],[170,212,7],[170,214,6],[171,217,4],[185,209,4],[182,212,7],[182,214,5],[183,217,4]])rect(xx,yy,n,1,'#a89980');
  rect(179,220,2,5,'#8c4946');rect(179,225,1,1,'#784845');familyPhotos();
 }
-function chamber(){
+function chamber(doorAge=-1){
  rect(72,0,216,438,'#101112');rect(84,48,192,336,'#35393a');rect(87,50,186,19,'#54595a');
  for(let i=0;i<8;i++){const x=88+i*23;rect(x,52,22,11,'#818585');rect(x+1,52,20,1,'#a7aaa7');rect(x,62,22,2,'#656a6b')}
  for(const x of [88,265]){rect(x,66,7,306,'#666b6c');rect(x+2,66,2,306,'#969b99');for(let y=68;y<371;y+=32)rect(x,y,7,2,'#494e4f')}
  g.drawImage(roomFloor(),95,68);rect(94,68,1,304,'#414345');rect(265,68,1,304,'#414345');rect(95,66,170,2,'#414345');rect(88,372,184,4,'#848887');rect(88,376,184,5,'#515657');
  for(const x of [91,269])for(const y of [59,369])stoneStamp('plinth',x,y);
- g.save();g.translate(0,405);g.scale(1,-1);threshold(-1);g.restore();
+ g.save();g.translate(0,405);g.scale(1,-1);threshold(doorAge);g.restore();
  // Keep all root tips, leaves and crack highlights on the inward-facing masonry.
  g.save();g.beginPath();g.rect(88,50,184,18);g.rect(90,68,180,304);g.clip();studyPatina();studyRoots();g.restore();studyDecor();
  rect(hallX-3,hallY+3,7,2,'#494c4d');tinySoul(hallX,hallY-1,exploreInk);
