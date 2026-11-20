@@ -288,9 +288,9 @@ function turnBook(dir){const next=spread+dir*2;if(turn||next<0||next>2)return;
  const hold=old[1-moving];back.replaceWith(hold);flap.append(front,back);$('#spread').append(flap);
  // The spine stays pinned. The fore-edge rises first, bows through the
  // midpoint and settles flat while a narrow travelling shadow crosses the sheet.
- const duration=820, timing={duration,easing:'cubic-bezier(.35,.02,.18,1)',fill:'forwards'};
- const poses=[[0,0,0,1],[.14,13,1.4,.995],[.38,61,3,.97],[.62,118,2.1,.98],[.87,165,.7,.995],[1,180,0,1]];
- turn=flap.animate(poses.map(([offset,angle,bow,width])=>({offset,transform:`rotateY(${-dir*angle}deg) scaleX(${width})`})),timing);
+ const timing={duration:880,easing:'cubic-bezier(.42,0,.26,1)',fill:'forwards'};
+ const frames=Array.from({length:33},(_,i)=>{const t=i/32,bend=Math.sin(Math.PI*t)**2;return {offset:t,transform:`rotateY(${-dir*180*t}deg) skewY(${-dir*2.4*bend}deg) scaleX(${1-.025*bend})`}});
+ turn=flap.animate(frames,timing);
  for(const face of [front,back]){const shade=document.createElement('i');shade.className='turn-shade';face.append(shade);shade.animate([{opacity:0,transform:'translateX(-20%)'},{offset:.48,opacity:.48,transform:'translateX(0%)'},{opacity:0,transform:'translateX(24%)'}],timing)}
  turn.onfinish=()=>{back.lastElementChild.remove();back.classList.remove('leaf-back');hold.replaceWith(back);flap.remove();turn=null};}
 function openLetter(){keys.clear();drag=false;target=null;renderBook(0);letter.showModal();fitBook()}
