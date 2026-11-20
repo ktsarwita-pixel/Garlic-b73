@@ -1,8 +1,9 @@
 // The same wounded visitor follows the soul from study to arena.
-let revealClock=0,wallPull=null,slamCount=0;
+let revealClock=0,wallPull=null,slamCount=0,roomShift=null;
+const SHIFT_TIME=1.05;
 function startSeven(first=1){encounter=7;resetBattle();keys.clear();round=first;swings=first-1;sevenWave()}
-function sevenBox(){return round<4?{l:94,r:266,u:162,d:217}:{l:122,r:238,u:102,d:218}}
-function sevenWave(){startWave(.55);wallPull=null;slamCount=0;const b=sevenBox();x=(b.l+b.r)/2;y=(b.u+b.d)/2;msg(['White: dodge. Blue: stop. Red: move.','Watch the fractured bones change near you.','Keep moving through red. Watch the fractures.','Look up. The ceiling is no longer safe.','The gates are closing faster.','Corrupt Boke: leave the marked wall. A hit costs 10 HP.'][round-1]);ui()}
+function sevenBox(){const p=round<4?0:roomShift?ease(roomShift.age/SHIFT_TIME):1;return {l:94+28*p,r:266-28*p,u:162-60*p,d:217+p}}
+function sevenWave(morph=false){roomShift=morph?{age:0,sx:x,sy:y}:null;startWave(.55);wallPull=null;slamCount=0;const b=sevenBox();if(!roomShift){x=(b.l+b.r)/2;y=(b.u+b.d)/2;}msg(['White: dodge. Blue: stop. Red: move.','Watch the fractured bones change near you.','Keep moving through red. Watch the fractures.','Look up. The ceiling is no longer safe.','The gates are closing faster.','Corrupt Boke: leave the marked wall. A hit costs 10 HP.'][round-1]);ui()}
 // Raster the linked sleeve, wrist and finger joints without antialiasing.
 let visitorSheet, visitorInk;
 function stampInk(x,y,w,h,color){visitorInk.fillStyle=color;visitorInk.fillRect(Math.round(x)-130,Math.round(y)-32,w,h)}
@@ -11,7 +12,9 @@ function jointLine(x0,y0,x1,y1,width,color){const n=Math.max(1,Math.ceil(Math.ma
 // Forward kinematics: animate angles, never endpoints or bone lengths.
 function armRig(side,w){const a=w?w.age:0,lead=w&&(!w.nx||w.nx===side),lift=ease(a/.22)*(1-ease((a-.22)/.34)),whip=ease((a-.22)/.34)*(1-ease((a-.78)/.54)),cast=ease((a-1.44)/.32)*(1-ease((a-2.64)/.42));
  const power=(whip+.80*cast)*(lead?1:.32),aim=w&&w.ny?w.ny*1.45:0;
- const upper=1.14-.42*lift+(aim-1.14+.22)*power,fore=1.68-2.85*lift+(aim-1.68-.14)*power;
+ // The elbow leads; the wrist trails on the throw and checks back on impact.
+ const lag=ease((a-.27)/.29)*(1-ease((a-.82)/.48)),check=ease((a-.56)/.08)*(1-ease((a-.64)/.18));
+ const upper=1.14-.58*lift+(aim-1.14+.22)*power+.16*check,fore=1.68-2.85*lift+(aim-1.68-.14)*(lag+.72*cast)*(lead?1:.32)-.28*check;
  const sx=180+side*16,sy=78,ex=sx+side*9*Math.cos(upper),ey=sy+9*Math.sin(upper),px=ex+side*8*Math.cos(fore),py=ey+8*Math.sin(fore);
  return {sx,sy,ex,ey,px,py,angle:side===1?fore:Math.PI-fore,curl:lift+.35*whip,cast};}
 function revenantArm(side,w){const {sx,sy,ex,ey,px,py,angle,curl,cast}=armRig(side,w);
@@ -150,7 +153,9 @@ function wallSequence(dt,b){if(!wallPull&&slamCount>=3)return false;if(!wallPull
  // Root every spike on the marked wall. Only its exposed length changes.
  if(w.age>=1.76&&!w.fired){w.fired=true;for(let off=6;off<112;off+=10)sevenBone(w.nx?0:b.l+off,w.ny?0:b.u+off,4,0,0,!!w.nx,'corrupt boke')}
  if(w.fired){const depth=Math.round(SLAM_REACH*ease((w.age-1.76)/.17)*(1-ease((w.age-2.65)/.27)));for(const s of shots){s.h=Math.max(4,depth);if(w.nx)s.x=w.nx<0?b.l:b.r-s.h;else s.y=w.ny<0?b.u:b.d-s.h}if(w.age>=2.92)shots=[]}if(w.age>=3.55)wallPull=null;return false}
-function sevenTick(dt){if(mode==='strike'){const before=1.45-flash;flash-=dt;const age=1.45-flash;if(swings<6){if(before<.18&&age>=.18)sfx('phaseOut');if(before<1.06&&age>=1.06)sfx('phaseIn')}else if(before<.52&&age>=.52)sfx('impact');if(flash<=0){if(swings===6){mode='sevenHold';msg('…');ui()}else{round++;sevenWave()}}return}if(mode!=='dodge')return;const b=sevenBox(),ox=x,oy=y;elapsed+=dt;inv-=dt;
+function sevenTick(dt){if(mode==='strike'){const before=1.45-flash;flash-=dt;const age=1.45-flash;if(swings<6){if(before<.18&&age>=.18)sfx('phaseOut');if(before<1.06&&age>=1.06)sfx('phaseIn')}else if(before<.52&&age>=.52)sfx('impact');if(flash<=0){if(swings===6){mode='sevenHold';msg('…');ui()}else{round++;sevenWave(round===4)}}return}if(mode!=='dodge')return;
+ if(roomShift){const m=roomShift;m.age=Math.min(SHIFT_TIME,m.age+dt);const p=ease(m.age/SHIFT_TIME);x=m.sx+(180-m.sx)*p;y=m.sy+(160-m.sy)*p;if(m.age>=SHIFT_TIME)roomShift=null;return}
+ const b=sevenBox(),ox=x,oy=y;elapsed+=dt;inv-=dt;
  const held=round===6&&wallSequence(dt,b);if(held&&drag&&target){target=null}if(!held){let dx=+ (keys.has('d')||keys.has('arrowright'))- +(keys.has('a')||keys.has('arrowleft')),dy=+(keys.has('s')||keys.has('arrowdown'))- +(keys.has('w')||keys.has('arrowup'));if(drag&&target){dx=target[0]-x;dy=target[1]-y}const q=Math.hypot(dx,dy)||1,step=drag&&target?Math.min(q,dt*95):dt*95;x=Math.max(b.l+5,Math.min(b.r-5,x+step*dx/q));y=Math.max(b.u+5,Math.min(b.d-5,y+step*dy/q))}if(round<6&&(spawn-=dt)<=0)sevenGate();const moving=Math.hypot(x-ox,y-oy)>.001;
  for(const s of shots){s.x+=s.vx*dt;s.y+=s.vy*dt;const width=s.horiz?s.h:3,height=s.horiz?3:s.h,dist=Math.hypot(Math.max(s.x-x,0,x-s.x-width),Math.max(s.y-y,0,y-s.y-height));if(s.glitch&&dist<31){s.glitch=false;s.changed=t;s.blue=Math.random()<.5;s.red=!s.blue}if(!testGod&&inv<=0&&dist<3&&(!s.blue||moving)&&(!s.red||!moving)){hp=Math.max(0,hp-s.damage);inv=.85;sfx('hurt');if(!hp){mode='dying';deathAge=0;shots=[];wallPull=null;msg('Your soul begins to crack.')}ui();if(!hp)return}}
  shots=shots.filter(s=>s.x+(s.horiz?s.h:3)>=b.l&&s.x<=b.r&&s.y+(s.horiz?3:s.h)>=b.u&&s.y<=b.d);if(round===6?slamCount===3&&!wallPull:elapsed>6+round*.45){shots=[];wallPull=null;mode='ready';msg('An opening. FIGHT.');ui()}}
@@ -161,7 +166,7 @@ function sevenStage(b){
  rect(124,y-78,112,3,'#242127');rect(128,y-75,104,1,'#373039');for(let i=0;i<9;i++)rect(180+(i%4===2?1:0),y-72+i*8,1,8,'#282329');
  rect(163,y-1,34,2,'#252128');rect(169,y-1,22,1,'#302b33')}
 function sevenDraw(){const b=sevenBox();sevenStage(b);g.save();g.translate(180,b.u-5);g.translate(-180,-110);if(mode==='strike'&&swings<6)blinkDodge(1.45-flash);else sevenFigure();if(mode==='strike')slash(1.45-flash,swings<6);g.restore();rect(b.l-2,b.u-2,b.r-b.l+4,b.d-b.u+4,'#cbbfd2');rect(b.l,b.u,b.r-b.l,b.d-b.u,'#111015');for(const xx of [b.l,b.r-5])for(const yy of [b.u,b.d-1])rect(xx,yy,5,1,'#55495d');g.save();g.beginPath();g.rect(b.l,b.u,b.r-b.l,b.d-b.u);g.clip();gateWarning();slamEffects(b);for(const s of shots){g.save();g.translate(s.x,s.y);if(s.horiz)g.transform(0,1,1,0,0,0);drawVisitorBone(s);g.restore()}
- const w=wallPull;if(w&&!w.fired)drawSlamAlert(b,w);if(mode==='dying')brokenSoul();else if(hp&&(inv<=0||Math.floor(t*12)%2)){if(w&&w.age<=.92){soulRows.forEach((r,j)=>[...r].forEach((v,i)=>{if(v==='r')rect(x+i-3,y+j-3,1,1,j===0||soulRows[j][i-1]!=='r'||soulRows[j][i+1]!=='r'?'#b99acb':'#09060d')}))}else tinySoul(x,y)}g.restore()}
+ const w=wallPull;if(w&&!w.fired)drawSlamAlert(b,w);if(mode==='dying')brokenSoul();else if(hp&&(inv<=0||Math.floor(t*12)%2)){if(w&&w.age<=.92){g.save();const flatten=pulse(w.age,.54,.80);g.translate(Math.round(x),Math.round(y));g.scale(1+flatten*(w.nx?-.26:.20),1+flatten*(w.ny?-.26:.20));g.translate(-x,-y);soulRows.forEach((r,j)=>[...r].forEach((v,i)=>{if(v==='r')rect(x+i-3,y+j-3,1,1,j===0||soulRows[j][i-1]!=='r'||soulRows[j][i+1]!=='r'?'#b99acb':'#09060d')}));g.restore()}else tinySoul(x,y)}g.restore()}
 
 // Effects are timed from the same impact clock as the hand and collision.
 function slamEffects(b){const w=wallPull;if(!w)return;const px=w.nx<0?b.l:w.nx>0?b.r-1:w.sx,py=w.ny<0?b.u:w.ny>0?b.d-1:w.sy;
