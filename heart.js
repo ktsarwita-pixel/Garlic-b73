@@ -1,7 +1,7 @@
 // Beyond the wall: hallway traversal and the two forms of the sixth opponent.
 let glideDistance=0;
 let hallX=180,hallY=398,sceneAge=0,purple=false,cracks=0;
-const walking=()=>mode==='hall'||mode==='portal';
+const walking=()=>mode==='hall'||mode==='portal'||mode==='room';
 const heartBusy=()=>['heartHit','reform','destroy'].includes(mode);
 function enterHall(){encounter=6;resetBattle();glideDistance=0;hallX=180;hallY=398;sceneAge=0;keys.clear();purple=false;cracks=0;mode='hall';msg('Follow the stone inlay north. Move with arrows / WASD, or hold and drag.');ui()}
 function enterHeart(){encounter=6;resetBattle();cracks=0;purple=false;sceneAge=0;msg('A white heart hangs still on the other side.');ui()}
@@ -19,6 +19,7 @@ function moveInHall(dt){
  let step=92*dt;
  if(drag&&target){dx=target[0]+HALL_LEFT-hallX;dy=target[1]-hallY;step=Math.min(step,Math.hypot(dx,dy))}
  const len=Math.hypot(dx,dy);if(!len)return;
+ if(mode==='room'){hallX=hallClamp(hallX+dx/len*step,95,265);hallY=hallClamp(hallY+dy/len*step,75,365);return}
  const oldX=hallX,oldY=hallY;const width=hallWidth(hallY);hallX=hallClamp(hallX+dx/len*step,180-width+4,180+width-4);
  const next=hallClamp(hallY+dy/len*step,HALL_NORTH,HALL_SOUTH);
  if(Math.abs(hallX-180)<=hallWidth(next)-4)hallY=next;
@@ -42,6 +43,18 @@ const hallArt={
 const hallStamps=new Map();
 function stoneStamp(name,cx,y){let img=hallStamps.get(name);if(!img){const rows=hallArt[name];img=document.createElement('canvas');img.width=rows[0].length;img.height=rows.length;const ctx=img.getContext('2d');rows.forEach((row,j)=>[...row].forEach((p,i)=>{if(hallTones[p]){ctx.fillStyle=hallTones[p];ctx.fillRect(i,j,1,1)}}));hallStamps.set(name,img)}g.drawImage(img,cx-(img.width>>1),y)}
 let galleryBackdrop;
+function enterRoom(){mode='room';hallX=180;hallY=346;keys.clear();drag=false;target=null;msg('The door behind you is sealed. The room is empty.');ui()}
+// The same bare chamber is revealed during the crossing and explored after the fight.
+function chamber(age=-1){
+ rect(72,0,216,438,'#101112');rect(85,53,190,329,'#383b3d');rect(88,55,184,13,'#757879');
+ for(let side of [89,265]){rect(side,68,6,304,'#585c5e');rect(side+2,68,1,304,'#929596')}
+ rect(95,68,170,304,'#505355');g.save();g.beginPath();g.rect(95,68,170,304);g.clip();
+ for(let j=0;j<16;j++)for(let i=-1;i<6;i++){const xx=95+i*34+(j%2)*17,yy=68+j*20;rect(xx,yy,33,19,['#66696a','#686b6c','#656869'][(i+3*j+7)%3]);rect(xx+1,yy,31,1,'#6f7272')}
+ g.restore();rect(88,371,184,5,'#848687');rect(88,376,184,4,'#4a4d4f');
+ g.save();g.translate(0,405);g.scale(1,-1);threshold(age);g.restore();
+ const py=age<0?hallY:368-22*ease((age-1.85)/.95),px=age<0?hallX:180;
+ rect(px-3,py+3,7,2,'#494c4d');tinySoul(px,py-1);
+}
 function hallway(){
  g.save();g.translate(-HALL_LEFT,0);
  if(!galleryBackdrop){
@@ -54,8 +67,10 @@ function hallway(){
   bg.translate(HALL_WIDTH,0);bg.scale(-1,1);bg.drawImage(g.canvas,0,0,half,HALL_HEIGHT,0,0,half,HALL_HEIGHT);
  }
  g.drawImage(galleryBackdrop,HALL_LEFT,0);
- const age=mode==='portal'?sceneAge:-1;threshold(age);crossingSoul(age);g.restore();
+ const age=mode==='portal'?sceneAge:-1;threshold(age);crossingSoul(age);
+ if(portalView(age)>0){g.save();g.globalAlpha=portalView(age);chamber(age);g.restore()}g.restore();
 }
+const portalView=age=>ease((age-1.76)/.65);
 function paintGallery(){
  rect(HALL_LEFT,0,HALL_WIDTH,HALL_HEIGHT,'#101112');
  // The gallery opens into a wider landing halfway up the map.
@@ -181,30 +196,39 @@ function shardSprite(id,tone){const key=id+tone;if(shardCache.has(key))return sh
  for(const [x,y,w,h,band] of shardPixels[id]){ctx.fillStyle=pal[band];ctx.fillRect(x,y,w,h)}
  shardCache.set(key,tile);return tile}
 function heartOpponent(){
- if(mode==='end'&&boss===0)return;
+ if(mode==='look'||mode==='end'&&boss===0)return;
  const forming=mode==='reform',breaking=mode==='destroy',hit=mode==='heartHit';
  const tint=purple?1:forming?ease((sceneAge-.64)/1.48):0;
  if(tint>0)watchingEyes();
  const order=purple?'BAFEDC':'ADEBFC',total=purple?5:4,n=cracks===total?6:cracks;
  const progress=hit?ease((sceneAge-.20)/.32):1;
- g.save();if(breaking)g.globalAlpha=1-ease((sceneAge-.8)/.95);
+ g.save();if(breaking)g.globalAlpha=1-ease((sceneAge-2.55)/.82);
  g.imageSmoothingEnabled=false;
  for(const id of order){const index=order.indexOf(id),[dx,dy]=drift[id],[cx,cy]=pivots[id];
   const gap=count=>index<count?.24+.13*(count-index):0;
   const prev=hit?gap(Math.max(0,cracks-1)):gap(n);
-  const bind=forming?1-ease((sceneAge-.91-index*.055)/.84):1;
-  const burst=breaking?ease(sceneAge/1.45):forming?ease(sceneAge/.69)*bind:0;
+  const bind=breaking?1-ease((sceneAge-.62-index*.045)/1.12):forming?1-ease((sceneAge-.91-index*.055)/.84):1;
+  const burst=breaking?ease(sceneAge/.55)*bind:forming?ease(sceneAge/.69)*bind:0;
   const offset=(prev+(gap(n)-prev)*progress)*bind+burst*2.7;
   const angle=(dx<0?-1:1)*burst*(.36+.07*index);
   g.save();g.translate(Math.round(158+cx*3+dx*offset),Math.round(52+cy*3+dy*offset));g.rotate(angle);g.drawImage(shardSprite(id,Math.round(64*tint)),-cx*3,-cy*3);g.restore();
  }g.restore();if(hit)slash(sceneAge*1.6,false);
+ if(purple&&cracks===5&&(hit||breaking)){const age=hit?sceneAge:sceneAge+1.05;
+  for(let i=0;i<52;i++){const f=i/51,u=age-.46-f*.22;if(u<0||u>1.18)continue;
+   const px=154+i+Math.sin(i*19)*u*7,py=98-40*f-5*Math.sin(f*Math.PI)-u*(5+i%8)+u*u*22;
+   g.save();g.globalAlpha=(1-ease((u-.46)/.72))*ease(u/.1);rect(px,py,2,2,'#535056');rect(px,py,2,1,'#111014');g.restore()}
+ }
 }
 function heartAction(a){if(mode!=='ready')return;if(a==='fight'){cracks++;boss=Math.max(0,100-100*cracks/(purple?5:4));mode='heartHit';sceneAge=0;sampleCue((purple?'violet':'white')+cracks);msg(`Fracture ${cracks} / ${purple?5:4}.`)}else{if(purple)return;if(a==='item'){if(!food){sampleCue('empty');msg('No pie left.');return}sfx('heal');food--;hp=Math.min(20,hp+8);msg(`Pie restores your soul. ${food} left.`)}else msg(a==='act'?'You call out. No answer.':'You offer mercy. Its pulse stays steady.');startWave(.55)}ui()}
 const seamPattern=['seam','seam-slip','seam','seam-freeze','seam-slip'];
 function seamBeat(dt,level){const beat=Math.floor(t*4.5);if(beat!==Math.floor((t-dt)*4.5))sampleCue(seamPattern[beat%seamPattern.length],1,level)}
-function chapterTick(dt){if(mode==='hall'){moveInHall(dt);if(hallY<133)seamBeat(dt,mode==='portal'?.7:.45+.55*ease((133-hallY)/90));return true}
+function chapterTick(dt){if(mode==='room'){moveInHall(dt);if(hallY>321)seamBeat(dt,.32);return true}if(mode==='look')return true;if(mode==='hall'){moveInHall(dt);if(hallY<133)seamBeat(dt,mode==='portal'?.7:.45+.55*ease((133-hallY)/90));return true}
  if(mode==='portal'){seamBeat(dt,.7);const before=sceneAge;sceneAge+=dt;if(before<.48&&sceneAge>=.48)sampleCue('seal-open');if(before<1.22&&sceneAge>=1.22){sampleCue('rift');msg('The seam opens. Your shadow stays on the stone.')}if(before<2.54&&sceneAge>=2.54)sampleCue('seal-close');if(sceneAge>=CROSS_END)enterHeart();return true}
  if(!heartBusy())return false;sceneAge+=dt;
  if(mode==='heartHit'&&sceneAge>=1.05){if(boss>0)startWave(.5);else{sampleCue('soul-scatter',purple?.78:1.08);mode=purple?'destroy':'reform';sceneAge=0;msg(purple?'The last eye closes.':'The pieces stop falling. Something pulls them back.')}ui()}
  else if(mode==='reform'&&sceneAge>=2.25){sfx('reform');sfx('awaken');purple=true;cracks=0;boss=100;mode='ready';msg('The heart reforms in violet. Only FIGHT responds.');ui()}
- else if(mode==='destroy'&&sceneAge>=1.9){mode='end';msg('The violet heart is gone. Select an action to replay.');ui()}return true}
+ else if(mode==='destroy'){
+  if(sceneAge-dt<.78&&sceneAge>=.78)sfx('reform');
+  const restored=Math.round(100*ease((sceneAge-.62)/1.36));if(boss!==restored){boss=restored;ui()}
+  if(sceneAge>=3.42){cracks=0;mode='look';msg('The violet heart is gone. Press anything to look around.');ui()}
+ }return true}
