@@ -69,3 +69,16 @@ skip=1-.78*np.exp(-((t-.35)/.016)**2)-.57*np.exp(-((t-.41)/.012)**2)
 wave=slide*skip*(.34*bp(noise(d),190,920)+.19*sweep(132,66,d))
 u=np.maximum(t-.64,0);wave+=np.minimum(u/.002,1)*np.exp(-u*45)*(.93*np.sin(2*np.pi*(88*u+.23*(1-np.exp(-u*75))))+.26*bp(noise(d),390,1450))
 save('seal-close',wave)
+# Paired soul cues: a single brittle fault, then a fan of smaller resonances.
+reseed(802)
+for name,d,events in [('soul-split',.30,[(0,810,1),(.022,530,.72),(.061,1230,.27)]),
+                      ('soul-scatter',.64,[(0,630,.85),(.012,1380,.74),(.048,940,.64),(.092,1820,.46),(.151,1160,.36),(.226,1540,.27),(.325,860,.19)])]:
+    t=t_(d);wave=np.zeros_like(t)
+    for at,f,gain in events:
+        u=np.maximum(t-at,0);attack=np.minimum(u/.0018,1)
+        phase=2*np.pi*f*(u+.0014*(1-np.exp(-u*90)))
+        ring=(np.sin(phase)+.27*np.sin(phase*2.37))*np.exp(-u*(33 if name=='soul-split' else 24))
+        snap=bp(noise(d),650,4100)*np.exp(-u*175)
+        wave+=gain*attack*(.56*ring+.8*snap)
+    wave+=.5*sweep(205,66,d)*env_ad(d,.003,.044)
+    save(name,wave)

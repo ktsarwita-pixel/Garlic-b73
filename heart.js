@@ -205,6 +205,6 @@ function seamBeat(dt,level){const beat=Math.floor(t*4.5);if(beat!==Math.floor((t
 function chapterTick(dt){if(mode==='hall'){moveInHall(dt);if(hallY<133)seamBeat(dt,mode==='portal'?.7:.45+.55*ease((133-hallY)/90));return true}
  if(mode==='portal'){seamBeat(dt,.7);const before=sceneAge;sceneAge+=dt;if(before<.48&&sceneAge>=.48)sampleCue('seal-open');if(before<1.22&&sceneAge>=1.22){sampleCue('rift');msg('The seam opens. Your shadow stays on the stone.')}if(before<2.54&&sceneAge>=2.54)sampleCue('seal-close');if(sceneAge>=CROSS_END)enterHeart();return true}
  if(!heartBusy())return false;sceneAge+=dt;
- if(mode==='heartHit'&&sceneAge>=1.05){if(boss>0)startWave(.5);else{sfx('shatter');mode=purple?'destroy':'reform';sceneAge=0;msg(purple?'The last eye closes.':'The pieces stop falling. Something pulls them back.')}ui()}
+ if(mode==='heartHit'&&sceneAge>=1.05){if(boss>0)startWave(.5);else{sampleCue('soul-scatter',purple?.78:1.08);mode=purple?'destroy':'reform';sceneAge=0;msg(purple?'The last eye closes.':'The pieces stop falling. Something pulls them back.')}ui()}
  else if(mode==='reform'&&sceneAge>=2.25){sfx('reform');sfx('awaken');purple=true;cracks=0;boss=100;mode='ready';msg('The heart reforms in violet. Only FIGHT responds.');ui()}
  else if(mode==='destroy'&&sceneAge>=1.9){mode='end';msg('The violet heart is gone. Select an action to replay.');ui()}return true}
