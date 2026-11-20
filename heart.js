@@ -80,11 +80,13 @@ function roomFloor(){
  const tile=document.createElement('canvas');tile.width=170;tile.height=304;
  const ctx=tile.getContext('2d'),ink=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h)};
  ink(0,0,170,304,'#515456');
- for(let j=0;j<19;j++)for(let i=-1;i<7;i++){
-  const x=i*28+(j%2)*14,y=j*16,k=(11*i+7*j+33)%5;
-  ink(x,y,27,15,['#787b7b','#747879','#767a7a','#797c7c','#757879'][k]);ink(x+1,y,25,1,'#848787');ink(x+1,y+14,24,1,'#696d6e');
-  if(k===2){ink(x+5,y+9,3,1,'#696d6e');ink(x+8,y+8,2,1,'#696d6e')}
- }
+ // Offset courses of irregular cut slate. Highlights follow the upper lip;
+ // worn centres are broad and quiet so they do not compete with the soul.
+ let seed=931;const pick=n=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return (seed>>>8)%n};
+ for(let j=0;j<19;j++){const y=j*16;for(let x=-pick(22);x<170;){const w=22+pick(16),k=pick(4);
+ ink(x,y,w-1,15,['#767a78','#797d7b','#717674','#757977'][k]);ink(x+2,y,w-5,1,'#858984');ink(x+1,y+14,w-3,1,'#686d6a');
+ if(k===0){const v=x+5+pick(w-16),b=y+4+pick(6);ink(v,b,5,1,'#808480');ink(v+5,b-1,3,1,'#808480')}
+ if(k===2){ink(x+w-4,y+13,3,1,'#646966');ink(x+w-2,y+12,1,1,'#686c69')}x+=w}}
  for(const n of [6,9]){const tone=n===6?'#565b5c':'#9a9e9c';ink(n,n,170-2*n,1,tone);ink(n,n,1,304-2*n,tone);ink(169-n,n,1,304-2*n,tone);ink(n,303-n,170-2*n,1,tone)}
  // A recessed octagonal pavement seal, not an object in the walkable area.
  for(let y=-16;y<=16;y++){const w=Math.min(17,24-Math.abs(y));for(const sign of [-1,1]){ink(85+sign*w,152+y,1,1,'#575c5c');ink(85+sign*(w-2),152+y,1,1,'#999d9a')}if(Math.abs(y)>=15)ink(85-w,152+y,w*2+1,1,'#838885')}
@@ -124,18 +126,16 @@ function studyShelf(x,y,w,h,seed){
 // Faded prints stay in the north wall band, clear of the playable floor.
 function familyPhotos(){
  const frame=(x,y,w,h)=>{rect(x+1,y+1,w,h,'#484644');rect(x,y,w,h,'#655347');rect(x+1,y+1,w-2,h-2,'#b79e78');rect(x+2,y+2,w-4,h-4,'#d5c9ab');rect(x+3,y+3,w-6,h-6,'#777f7b')};
- frame(162,49,36,18);frame(140,50,20,16);frame(200,51,18,15);
+ frame(168,50,24,16);frame(147,52,15,13);frame(198,53,13,12);
  // Use a narrow mount so the face, not the frame, occupies the print.
  const ink={h:'#f3ead6',e:'#e4d7bc',s:'#b4a58e',q:'#3e4144',p:'#f1e4cd',d:'#70675e',c:'#c4beb0',j:'#607987',b:'#455f70',z:'#b8aa89',w:'#cccbbc',t:'#526459'};
  const print=(x,y,rows)=>rows.forEach((r,v)=>[...r].forEach((k,u)=>{if(ink[k])rect(x+u,y+v,1,1,ink[k])}));
- rect(164,51,32,14,'#7e8985');rect(164,61,32,4,'#697673');
- print(171,51,['     hhhhhh     ','   hhheeeeess   ','  heeeeeeeeees  ',' heeeeeeeeeeees ',' hessseeeessses ',' eeqqqseeqqqqes ',' seqpqseeqpqqes ','  seeeesqeeees  ','  seqeeeeeeds   ','   seeqdddess   ','    seeeeess    ','  jbccsssscbbj  ',' jbbbcczzccbbbj ',' jbbjbczjcjbbbj ']);
+ rect(170,52,20,12,'#7e8985');
+ print(172,52,['     hhhhhh     ','   hhheeeeess   ',' heeeeeeeeeeees ',' eeqqqseeqqqqes ',' seqpqseeqpqqes ','  seeeesqeeees  ','  seqeeeeeeds   ','   seeqdddess   ','    seeeeess    ','  jbccsssscbbj  ',' jbbbcczzccbbbj ',' jbbjbczjcjbbbj ']);
  // Snow-day candid: winding snowbank, stepped evergreen and a raised mitten.
- rect(142,52,16,12,'#8d9999');rect(142,60,16,4,'#c4c7ba');rect(149,59,9,2,'#d8dacb');
- print(142,53,['  t  ','  w  ',' ttt ',' twt ','ttttt','  d  ']);
- print(149,54,[' hhh  ','heees ','eqeqs ',' seess',' jcc j',' bjjj ','  bs  ',' b  b ']);
- // Preserve the pressed sprig as a companion keepsake.
- rect(208,55,1,8,'#5f6857');rect(205,56,3,2,'#829078');rect(206,58,2,1,'#62735e');rect(209,54,3,2,'#97a187');rect(209,59,3,2,'#78846b');
+ rect(149,54,11,9,'#8d9999');rect(149,60,11,3,'#c4c7ba');print(149,55,[' t ','twt','ttt',' d ']);
+ print(153,54,[' hhh ','heees','eqeqs',' sees',' jccj',' bjj ','  bs ',' b  b']);
+ rect(204,56,1,7,'#5f6857');rect(201,57,3,2,'#829078');rect(205,56,3,2,'#97a187');rect(205,60,2,1,'#78846b');
 }
 function studyRoots(){
  // Step along mortar joints before branching over a stone; static, not obstacles.
@@ -177,8 +177,9 @@ function studyPatina(){
  const cx=249,cy=58;for(let v=-6;v<=6;v++)for(let u=-6;u<=6;u++){const r=u*u+v*v;if(r>37)continue;
  dot(cx+u,cy+v,1,1,r>27?(u+v<0?'#b59d75':'#514a40'):(u+v<0?'#e0d7c0':'#cabea3'))}
  for(const [u,v] of [[0,-4],[4,0],[0,4],[-4,0]])dot(cx+u,cy+v,1,1,'#80755e');line(cx,cy,cx-2,cy-2,'#464742');line(cx,cy,cx-1,cy+2,'#464742');
- // Rim strike at two o'clock: dark jagged seam with a chipped, light-catching lip.
- line(254,55,251,57,'#403f3b');dot(251,58,2,1,'#444540');line(252,59,250,62,'#4a4842');line(252,59,254,60,'#57554e');dot(252,57,1,1,'#faf3da');dot(251,60,1,1,'#f5ecd1');
+ // Single impact at the lower rim; split glass facets catch light on one edge.
+ line(247,63,249,61,'#4d4940');line(249,61,251,61,'#575248');line(251,61,250,59,'#494840');line(250,59,253,57,'#57534b');
+ dot(248,63,1,1,'#ede6cc');dot(251,60,1,1,'#f7eed7');line(250,61,252,62,'#756c5b');
  c.save();c.translate(-113,0);dot(239,53,11,11,'#68685d');dot(238,52,11,11,'#b4a88c');line(240,59,244,55,'#817d68');line(244,55,246,59,'#817d68');dot(242,53,1,1,'#645b4b');dot(246,61,3,2,'#d2c5a7');c.restore();
  }
  g.drawImage(patina,72,48);
@@ -203,7 +204,8 @@ function chamber(){
  g.drawImage(roomFloor(),95,68);rect(94,68,1,304,'#414345');rect(265,68,1,304,'#414345');rect(95,66,170,2,'#414345');rect(88,372,184,4,'#848887');rect(88,376,184,5,'#515657');
  for(const x of [91,269])for(const y of [59,369])stoneStamp('plinth',x,y);
  g.save();g.translate(0,405);g.scale(1,-1);threshold(-1);g.restore();
- studyPatina();studyRoots();studyDecor();
+ // Keep all root tips, leaves and crack highlights on the inward-facing masonry.
+ g.save();g.beginPath();g.rect(88,50,184,18);g.rect(90,68,180,304);g.clip();studyPatina();studyRoots();g.restore();studyDecor();
  rect(hallX-3,hallY+3,7,2,'#494c4d');tinySoul(hallX,hallY-1,exploreInk);
 }
 function hallway(){
