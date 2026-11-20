@@ -138,7 +138,6 @@ for(let py=0;py<shell.length*2;py++)for(let px=0;px<30;px++){
  if(!cellAt(px+1,py+1))band=5;
  if(!cellAt(px,py+1)&&py>8)band=6;
  if(px>=22&&py>=8&&py<=13&&!cellAt(px+1,py)&&cellAt(px-1,py+1))band=4;
- if(px>=14&&px<=16&&py>=4&&py<=7)band=Math.max(band,3);
  const left=Math.floor(px*1.5),top=Math.floor(py*1.5);
  shardPixels[id].push([left,top,Math.floor((px+1)*1.5)-left,Math.floor((py+1)*1.5)-top,band]);
 }
