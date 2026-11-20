@@ -4,9 +4,9 @@ let hallX=180,hallY=398,sceneAge=0,purple=false,cracks=0;
 const walking=()=>mode==='hall'||mode==='portal';
 const heartBusy=()=>['heartHit','reform','destroy'].includes(mode);
 function enterHall(){encounter=6;resetBattle();glideDistance=0;hallX=180;hallY=398;sceneAge=0;keys.clear();purple=false;cracks=0;mode='hall';msg('Follow the stone inlay north. Move with arrows / WASD, or hold and drag.');ui()}
-function enterHeart(){encounter=6;resetBattle();cracks=0;purple=false;sceneAge=0;msg('A white heart beats on the other side.');ui()}
-const soulInk=[' pr rr ','phrrrbr','rrrrrbd',' rrrbd ','  rbd  ','   d   '];
-const soulColor={p:'#ff99a4',h:'#fff1da',r:'#ff465c',b:'#d82f51',d:'#a12245'};
+function enterHeart(){encounter=6;resetBattle();cracks=0;purple=false;sceneAge=0;msg('A white heart hangs still on the other side.');ui()}
+const soulInk=[' pp rr ','phrrrbr','prrrrbd',' rrbbd ','  bbd  ','   d   '];
+const soulColor={p:'#ff99a4',h:'#ffd9ce',r:'#ff465c',b:'#d82f51',d:'#a12245'};
 function tinySoul(cx,cy){soulInk.forEach((row,j)=>[...row].forEach((v,i)=>{if(soulColor[v])rect(cx+i-3,cy+j-3,1,1,soulColor[v])}))}
 // World coordinates are in floor pixels; the camera never scales or rotates.
 const HALL_NORTH=38,HALL_SOUTH=410;
@@ -120,23 +120,33 @@ function watchingEyes(){watchers.forEach(([cx,cy,r],i)=>{
 const shell=['  AAA     BBB  ',' AAAAA   BBBBB ','AAAAAAACBBBBBBB','AAAAAACCCBBBBBB','DAAAAACCCCBBBBE',' DDAAACCCCBBEE ','  DDDACCCCEEE  ','   DDDCCCEEE   ','    DDCCCEE    ','     FFFCE     ','      FFF      ','       F       '];
 const drift={A:[-7,-6],B:[6,-8],C:[0,-1],D:[-9,4],E:[8,5],F:[1,10]};
 // Cache a ramp for each value band so the lighting stays consistent as color returns.
-const heartRamp=Array.from({length:65},(_,k)=>[[255,254,250,246,223,255],[227,224,217,203,145,243],[197,193,187,161,101,200],[156,153,150,113,62,147]].map(c=>'rgb('+[0,1,2].map(i=>Math.round(c[i]+(c[i+3]-c[i])*k/64)).join(',')+')'));
+const heartRamp=Array.from({length:65},(_,k)=>[[255,252,243,248,226,255],[243,238,228,222,181,249],[226,222,216,198,143,235],[204,202,202,170,108,211],[177,178,184,143,84,181],[148,150,161,111,66,146],[116,120,133,82,48,112]].map(c=>'rgb('+[0,1,2].map(i=>Math.round(c[i]+(c[i+3]-c[i])*k/64)).join(',')+')'));
 const pivots={A:[3,2],B:[11,2],C:[7,5],D:[4,5],E:[11,5],F:[7,9]};
 // Rasterize each solid shard before rotation: adjacent texels share one transform.
+// Shade the unbroken silhouette once. Each shard inherits those exact pixels,
+// so cut edges cannot leave a dark grid when the pieces come back together.
+const shardPixels=Object.fromEntries(Object.keys(drift).map(id=>[id,[]]));
+const cellAt=(px,py)=>shell[py>>1]?.[px>>1]?.trim();
+for(let py=0;py<shell.length*2;py++)for(let px=0;px<30;px++){
+ const id=cellAt(px,py);if(!id)continue;
+ const lobe=px<15?7:21;
+ const gleam=((px-lobe+2)/4.6)**2+((py-3)/2.8)**2;
+ let band=gleam<.48?0:gleam<1.5?1:2;
+ // Broad lower-right penumbra, then a narrow contact edge and reflected light.
+ if(!cellAt(px+4,py+4))band=Math.max(band,3);
+ if(!cellAt(px+2,py+3))band=Math.max(band,4);
+ if(!cellAt(px+1,py+1))band=5;
+ if(!cellAt(px,py+1)&&py>8)band=6;
+ if(px>=22&&py>=8&&py<=13&&!cellAt(px+1,py)&&cellAt(px-1,py+1))band=4;
+ if(px>=14&&px<=16&&py>=4&&py<=7)band=Math.max(band,3);
+ const left=Math.floor(px*1.5),top=Math.floor(py*1.5);
+ shardPixels[id].push([left,top,Math.floor((px+1)*1.5)-left,Math.floor((py+1)*1.5)-top,band]);
+}
 const shardCache=new Map();
 function shardSprite(id,tone){const key=id+tone;if(shardCache.has(key))return shardCache.get(key);
  const tile=document.createElement('canvas');tile.width=45;tile.height=shell.length*3;const ctx=tile.getContext('2d'),pal=heartRamp[tone];
- const solid=(i,j)=>!!shell[j]?.[i]?.trim();
- shell.forEach((row,j)=>[...row].forEach((cell,i)=>{if(cell!==id)return;
-  // Model the two lobes and tapered underside with clustered pixel tones.
-  const rim=!solid(i+1,j)||!solid(i,j+1),crest=!solid(i,j-1);
-  const lobe=i<7?3:10,volume=((i-lobe)/4)**2+((j-2)/5)**2;
-  const shade=rim?3:crest?1:j>=8||i>=12||volume>1.2?2:1;
-  ctx.fillStyle=pal[shade];ctx.fillRect(3*i,3*j,3,3);
-  if(j===1&&(i===2||i===3||i===10)){ctx.fillStyle=pal[0];ctx.fillRect(3*i,3*j+1,3,2)}
-  if(i===1&&j===2){ctx.fillStyle=pal[0];ctx.fillRect(4,6,2,2)}
-  if(i===7&&j>=2&&j<=4){ctx.fillStyle=pal[2];ctx.fillRect(3*i+(j===4?1:0),3*j,2,3)}
- }));shardCache.set(key,tile);return tile}
+ for(const [x,y,w,h,band] of shardPixels[id]){ctx.fillStyle=pal[band];ctx.fillRect(x,y,w,h)}
+ shardCache.set(key,tile);return tile}
 function heartOpponent(){
  if(mode==='end'&&boss===0)return;
  const forming=mode==='reform',breaking=mode==='destroy',hit=mode==='heartHit';
