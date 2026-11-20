@@ -123,11 +123,25 @@ function studyShelf(x,y,w,h,seed){
   const bays=h>30?2:1;
   for(let bay=0;bay<bays;bay++){
    const start=2+Math.floor(bay*(th-3)/bays),end=1+Math.floor((bay+1)*(th-3)/bays);
-   for(let p=start;p<end;){const thick=Math.min(end-p,2+roll(4)),back=4+roll(3),front=tw-3-roll(3),cover=cloth[roll(cloth.length)];
-    // Recessed paper block above a deeper, cloth-bound spine facing the aisle.
-    for(let z=4;z>=1;z--)plank(back,p,front-back,thick,z,z===4?'#463c35':cover);
-    plank(back,p,front-back,thick,0,cover);if(thick>2)plank(back+1,p+1,front-back-2,thick-2,0,'#c8bda5');
-    if(thick>=3)plank(front-1,p+1,1,1,2,'#bcaa82');p+=thick+roll(2);
+   // Arrange volumes in groups: bound sets flush to the lip, loose journals
+   // slightly inset, and occasional folios stored flat with their covers visible.
+   const layout=(Math.floor(seed/3)+bay)%4,setColor=roll(cloth.length);
+   let p=start+1;
+   if(layout===1||layout===3){
+    const u=7,v=p,span=layout===1?9:7;
+    plank(u,v,span,7,3,'#493e3a');plank(u,v,span,7,2,cloth[(setColor+2)%7]);
+    plank(u,v,span-1,6,1,'#c3b49b');plank(u-1,v,span,6,0,cloth[setColor]);
+    plank(u,v,1,6,0,'#51494a');plank(u+2,v+2,span-5,1,0,'#cbb38c');plank(u+3,v+4,2,1,0,'#aa9476');p+=8;
+   }
+   for(let j=0;p+1<end;j++){
+    const thick=Math.min(end-p,layout===0&&j<3?3:2+roll(4)),front=layout===0?tw-2:tw-2-roll(3),back=5+roll(3),cover=cloth[(layout===0&&j<3)?setColor:roll(7)];
+    const tilted=layout===2&&j===0&&thick+1<end-p;
+    for(let z=3;z>=0;z--)for(let u=back;u<front;u++){
+     const v=p+(tilted&&u>=front-4?1:0);plank(u,v,1,thick,z,z===3?'#4b403b':cover);
+     if(!z&&u>back&&u<front-2&&thick>2)plank(u,v+1,1,thick-2,0,u===back+1?'#a99980':'#d1c4ab');
+    }
+    if(thick>=3)plank(front-1,p+1+(tilted?1:0),1,1,1,'#c8ac82');
+    p+=thick+(tilted||layout===2&&j===1?1:0);
    }
    if(bay<bays-1)timber(1,end,tw-1,2,4);
   }
