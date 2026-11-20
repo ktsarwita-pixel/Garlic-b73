@@ -93,25 +93,33 @@ function roomFloor(){
 }
 // Freestanding furniture is scenery only. Bounds are shared with movement.
 const roomFurniture=[[95,169,22,40],[95,211,22,40],[95,303,22,40],[95,345,22,24],[243,303,22,40],[243,345,22,24],[160,204,40,26]];
+// Draw each cabinet once at game resolution. Local +x runs from wall to aisle.
+const shelfTiles=new Map();
 function studyShelf(x,y,w,h,seed){
- // Local +x points from the back panel into the aisle. Mirror the east bank.
- g.save();g.translate(x+(x>180?w:0),y);if(x>180)g.scale(-1,1);
- // Shallow wall rail, then the page blocks seen from above. Rounded bindings
- // line the aisle edge instead of lining the back of the cabinet.
- rect(0,0,w,h,'#463e39');rect(1,1,w-3,h-2,'#55483e');rect(1,1,2,h-2,'#aa9580');
- const covers=['#9d6971','#637d83','#889479','#b38b68','#887895','#897664','#76869a'];
- for(let bay=0;bay<(h>30?2:1);bay++){
-  const start=2+bay*19,end=h>30?start+17:h-2;
-  for(let p=start,j=0;p<end;j++){
-   const k=seed*13+j*17+bay*7,bh=Math.min(2+k%4,end-p),front=w-3-(k%3),back=4+k%3;
-   rect(back,p,front-back+1,bh,covers[k%covers.length]);
-   if(bh>=3){rect(back+1,p+1,front-back-2,bh-2,k%2?'#c7bba2':'#afa68e');if(bh===5)rect(back+2,p+2,front-back-4,1,'#ac9f89')}
-   rect(front,p,1,bh,'#574d49');if(bh>2)rect(front-1,p+1,1,1,'#d0b797');
-   p+=bh+(k%7===0?1:0);
+ let tile=shelfTiles.get(seed);
+ if(!tile){tile=document.createElement('canvas');tile.width=w;tile.height=h;
+  const c=tile.getContext('2d'),ink=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(x,y,w,h)};
+  let state=317+seed;const roll=n=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return Math.floor(state/4294967296*n)};
+  const cloth=['#805759','#516e72','#71755a','#9a7652','#746577','#776149','#596878'];
+  ink(0,0,w,h,'#423831');ink(1,1,w-2,h-2,'#77614d');ink(3,2,2,h-4,'#534438');
+  for(let i=0;i<10;i++)ink(2+roll(w-5),2+roll(h-9),1,3+roll(5),'#6a5544');
+  for(let bay=0;bay<(h>30?2:1);bay++){
+   const start=2+bay*19,end=h>30?start+17:h-2;let p=start;
+   // A few oversize atlases are stored flat: stepped covers and offset leaves.
+   if((seed+bay)%5===1){const depth=12,ax=5;ink(ax+1,p+1,depth,8,'#514741');ink(ax,p,depth,8,'#765552');ink(ax+1,p+1,depth-1,6,'#c1b59d');ink(ax-1,p,depth,6,'#536c6d');ink(ax,p,1,6,'#87938b');ink(ax+3,p+2,5,1,'#b8aa85');p+=9}
+   while(p<end){const thick=Math.min(end-p,2+roll(4)),front=w-4-roll(3),back=4+roll(4),cover=cloth[roll(cloth.length)],lean=thick>=3&&end-p>thick&&roll(4)===0;
+    for(let u=back;u<=front;u++){const yy=p+(lean&&u>=front-5?1:0);ink(u,yy,1,thick,cover);
+     if(thick>2&&u>back&&u<front-1)ink(u,yy+1,1,thick-2,u<back+3?'#a49a86':'#c8bda5');
+     if(u===front&&thick>2)ink(u,yy+1,1,thick-2,'#453d38');}
+    if(thick>=4)ink(front-1,p+1+(lean?1:0),1,1,'#bcaa82');p+=thick+(lean?1:0);
+   }
+   if(end<h-2){ink(2,end,w-4,2,'#93785f');ink(3,end,w-6,1,'#b29879')}
   }
-  if(end<h-2)rect(2,end,w-3,2,'#977f68');
+  for(const yy of [0,h-2]){ink(0,yy,w-1,2,'#94785e');ink(2,yy,w-6,1,'#b39a7b');ink(w-4,yy,1,1,'#5d4c3e')}
+  ink(w-2,2,1,h-4,'#ae9170');ink(w-1,2,1,h-4,'#645041');shelfTiles.set(seed,tile);
  }
- rect(1,0,w-2,2,'#ac9480');rect(1,h-2,w-2,2,'#816b58');rect(w-2,2,1,h-4,'#9f8970');g.restore();
+ g.save();g.translate(x+(x>180?w:0),y);if(x>180)g.scale(-1,1);
+ g.globalAlpha=.22;rect(2,2,w,h,'#262322');g.globalAlpha=1;g.drawImage(tile,0,0);g.restore();
 }
 function studyDecor(){
  roomFurniture.slice(0,-1).forEach((v,i)=>studyShelf(...v,i*3+1));
