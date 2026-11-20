@@ -102,10 +102,12 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  jointLine(167,hy+15,173,hy+12,2,'#827e80');jointLine(173,hy+12,176,hy+11,1,'#e2dace');
  jointLine(181,hy+12,187,hy+13,2,'#90898a');jointLine(187,hy+13,192,hy+15,2,'#777279');
  jointLine(167,hy+19,170,hy+21,1,'#706b70');jointLine(190,hy+20,187,hy+22,1,'#878084');
- // A single unbroken frown: flat and tightly shut in the middle, corners drawn down.
+ // The original closed grin, pulled tight at one cheek. Keep the bite unbroken.
  const jaw=hx+Math.round(13/16*(2+droop/2));
- jointLine(jaw+12,hy+28,jaw+16,hy+25,2,p.d);stampInk(jaw+15,hy+25,8,2,p.k);
- jointLine(jaw+22,hy+25,jaw+27,hy+28,2,p.k);stampInk(jaw+16,hy+28,7,1,p.s);
+ stampInk(jaw+11,hy+24,2,3,p.d);stampInk(jaw+12,hy+26,4,2,p.k);
+ stampInk(jaw+15,hy+27,10,2,p.k);stampInk(jaw+24,hy+26,3,2,p.k);
+ stampInk(jaw+26,hy+24,2,3,p.k);stampInk(jaw+27,hy+23,2,2,p.d);
+ stampInk(jaw+16,hy+29,8,1,p.s);
  // Single-pixel bevels on the broken orbital rim, seam and rib ends.
  stampInk(174,hy+5,4,1,'#eee1cf');stampInk(177,hy+7,1,3,'#625c64');stampInk(168,hy+19,3,1,'#867e84');stampInk(171,hy+20,2,1,'#ada6a3');stampInk(175,83,4,1,'#b2abac');stampInk(173,86,4,1,'#a79fa3');stampInk(181,85,2,1,'#95505a');
  if(glow){const age=mode==='sevenHold'?endingAge+.93:mode==='strike'&&swings===6?.93-flash:-1;
