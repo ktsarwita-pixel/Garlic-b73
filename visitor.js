@@ -124,12 +124,19 @@ function visitorWound(clock){
  }
  // Blood catches in folds first; uneven rivulets pool at their tips before a bead falls.
  for(const [x,len,delay,bend] of [[170,5,.4,1],[176,11,.53,-1],[182,8,.63,1],[188,5,.72,-1]]){
-  const flow=ease((clock-delay)/(len*.21)),h=Math.round(len*flow),y=Math.round(cutHeight(x))+2;
-  for(let j=0;j<h;j++){const xx=x+(j>len*.4?bend:0);stampInk(xx,y+j,j<3?3:2,1,rim[4]);stampInk(xx,y+j,1,1,pool[5])}
-  if(h){const xx=x+(h>len*.4?bend:0);stampInk(xx,y+h-1,2,2,pool[6]);if(h<len)stampInk(xx,y+h-1,1,1,'#ac638c');}
-  const fall=clock-delay-len*.21-.38;if(fall>0&&fall<.85){const yy=y+len+80*fall*fall;if(yy<107)stampInk(x+bend,yy,2,2+Math.round(fall*2),'#883e69');else stampInk(x+bend-1,107,4,1,'#5c2a49')}
+  if(x>tip||clock<=delay)continue;
+  const duration=len*.21,h=Math.round(len*ease((clock-delay)/duration)),root=Math.round(cutHeight(x))+1;
+  // Start inside the cut. Adjacent scanlines share a pixel even where the flow bends.
+  const path=j=>x+Math.round(bend*ease(j/len));let end=x;
+  for(let j=0;j<=h;j++){const cx=path(j),left=Math.min(end,cx)-(j<2?1:0),right=Math.max(end,cx)+(j<len*.65?1:0);
+   stampInk(left,root+j,right-left+1,1,rim[4]);stampInk(cx,root+j,1,1,pool[5]);end=cx}
+  const age=clock-delay-duration,stretch=Math.round(3*ease(age/.38)),neck=root+h;
+  if(age<=.38)stampInk(end,neck,1,stretch+1,pool[5]);
+  const yy=neck+stretch+Math.round(80*Math.max(0,age-.38)**2);
+  if(yy<106){stampInk(end,yy,1,1,pool[5]);stampInk(end-1,yy+1,2,1,pool[6]);stampInk(end,yy+2,1,1,pool[6])}
+  else stampInk(end-1,107,3,1,rim[4]);
  }
- for(let i=0;i<12;i++){const x=170+i*1.7,a=clock-(.27+i*.019);if(a<=0||a>.85)continue;
+ for(let i=0;i<12;i++){const x=170+i*1.7,a=clock-(.27+i*.019);if(x>tip||a<=0||a>.85)continue;
  const vx=17+i*2.2,vy=-36+(i*11)%31,px=x+vx*a,py=cutHeight(x)+vy*a+70*a*a;
  visitorInk.save();visitorInk.globalAlpha=1-ease((a-.58)/.27);jointLine(px-vx*.035,py-(vy+140*a)*.035,px,py,i%3?1:2,i%3?'#a55081':'#68294f');visitorInk.restore()}
 }
