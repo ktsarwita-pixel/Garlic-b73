@@ -105,22 +105,28 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  visitorInk.save();visitorInk.globalAlpha=1-ease((age-6.5)/1.9);visitorGaze(hy+17);visitorInk.restore();
  if(age>9.1){const light=ease((age-9.1)/.72);visitorInk.save();visitorInk.globalAlpha=light;
  // Centered on the overlapping hollow pixels of skull rows 7–9. No detached glints.
- stampInk(185,hy+15,2,4,'#8f9da6');stampInk(184,hy+16,4,2,'#d8e3e8');stampInk(185,hy+16,2,3,'#fff');visitorInk.restore()}}}
+ stampInk(186,hy+14,1,6,'#c8d6de');stampInk(184,hy+16,5,1,'#e6f2f6');stampInk(186,hy+15,1,4,'#fff');visitorInk.restore()}}}
  visitorInk.restore();g.save();g.imageSmoothingEnabled=false;g.drawImage(visitorSheet,130,32);g.restore();}
 // The final sweep is the original blade arc, lowered ten pixels onto the coat.
 function cutHeight(x){const f=(x-154)/51;return 108-40*f-5*Math.sin(Math.PI*f)}
+// Precompute shades so aging never allocates colors in the pixel loop.
+const agingBlood=Array.from({length:64},(_,i)=>[
+ [0x49213f,0x2c192a],[0x843762,0x47253f],[0x32132f,0x211121],[0xb56a9d,0x573349],
+ [0x49243f,0x301b2c],[0x793459,0x402237],[0x67294e,0x391d32]
+].map(([wet,dry])=>'#'+[16,8,0].map(k=>Math.round(((wet>>k)&255)*(1-i/63)+((dry>>k)&255)*i/63).toString(16).padStart(2,'0')).join('')));
 function visitorWound(clock){
+ const rim=agingBlood[Math.round(63*ease((clock-.7)/9))],pool=agingBlood[Math.round(63*ease((clock-2)/18))];
  const u=Math.min(1,clock/.72),tip=154+Math.ceil(52*u*u*(3-2*u))-1;
  for(let x=168;x<=Math.min(191,tip);x++){
   const y=cutHeight(x),belly=Math.sin(Math.PI*(x-168)/23),width=Math.round(3*belly);
-  stampInk(x,y-width,1,2*width+2,'#49213f');stampInk(x,y-width+1,1,width+1,'#843762');
-  stampInk(x,y,1,1+Math.round(belly),'#32132f');if(x%8<4)stampInk(x,y-1,1,1,'#b56a9d');
+  stampInk(x,y-width,1,2*width+2,rim[0]);stampInk(x,y-width+1,1,width+1,pool[1]);
+  stampInk(x,y,1,1+Math.round(belly),pool[2]);if(x%8<4)stampInk(x,y-1,1,1,rim[3]);
  }
  // Blood catches in folds first; uneven rivulets pool at their tips before a bead falls.
  for(const [x,len,delay,bend] of [[170,5,.4,1],[176,11,.53,-1],[182,8,.63,1],[188,5,.72,-1]]){
   const flow=ease((clock-delay)/(len*.21)),h=Math.round(len*flow),y=Math.round(cutHeight(x))+2;
-  for(let j=0;j<h;j++){const xx=x+(j>len*.4?bend:0);stampInk(xx,y+j,j<3?3:2,1,'#49243f');stampInk(xx,y+j,1,1,'#793459')}
-  if(h){const xx=x+(h>len*.4?bend:0);stampInk(xx,y+h-1,2,2,'#67294e');if(h<len)stampInk(xx,y+h-1,1,1,'#ac638c');}
+  for(let j=0;j<h;j++){const xx=x+(j>len*.4?bend:0);stampInk(xx,y+j,j<3?3:2,1,rim[4]);stampInk(xx,y+j,1,1,pool[5])}
+  if(h){const xx=x+(h>len*.4?bend:0);stampInk(xx,y+h-1,2,2,pool[6]);if(h<len)stampInk(xx,y+h-1,1,1,'#ac638c');}
   const fall=clock-delay-len*.21-.38;if(fall>0&&fall<.85){const yy=y+len+80*fall*fall;if(yy<107)stampInk(x+bend,yy,2,2+Math.round(fall*2),'#883e69');else stampInk(x+bend-1,107,4,1,'#5c2a49')}
  }
  for(let i=0;i<12;i++){const x=170+i*1.7,a=clock-(.27+i*.019);if(a<=0||a>.85)continue;
@@ -179,7 +185,7 @@ function wallSequence(dt,b){if(!wallPull&&slamCount>=3)return false;if(!wallPull
  if(w.age>=1.76&&!w.fired){w.fired=true;for(let off=6;off<112;off+=10)sevenBone(w.nx?0:b.l+off,w.ny?0:b.u+off,4,0,0,!!w.nx,'corrupt boke')}
  if(w.fired){const depth=Math.round(SLAM_REACH*ease((w.age-1.76)/.17)*(1-ease((w.age-2.65)/.27)));for(const s of shots){s.h=Math.max(4,depth);if(w.nx)s.x=w.nx<0?b.l:b.r-s.h;else s.y=w.ny<0?b.u:b.d-s.h}if(w.age>=2.92)shots=[]}if(w.age>=3.55)wallPull=null;return false}
 let endingAge=0;
-function sevenTick(dt){if(mode==='sevenHold'){if(encounter===7&&(endingAge+=dt)>=12){encounter=8;boss=100;ui()}return}if(mode==='strike'){const before=1.45-flash;flash-=dt;const age=1.45-flash;if(swings<6){if(before<.18&&age>=.18)sfx('phaseOut');if(before<1.06&&age>=1.06)sfx('phaseIn')}else if(before<.52&&age>=.52)sfx('impact');if(flash<=0){if(swings===6){endingAge=0;mode='sevenHold';msg('…');ui()}else{round++;sevenWave(round===4)}}return}if(mode!=='dodge')return;
+function sevenTick(dt){if(mode==='sevenHold'){endingAge=Math.min(22,endingAge+dt);if(encounter===7&&endingAge>=12){encounter=8;boss=100;ui()}return}if(mode==='strike'){const before=1.45-flash;flash-=dt;const age=1.45-flash;if(swings<6){if(before<.18&&age>=.18)sfx('phaseOut');if(before<1.06&&age>=1.06)sfx('phaseIn')}else if(before<.52&&age>=.52)sfx('impact');if(flash<=0){if(swings===6){endingAge=0;mode='sevenHold';msg('…');ui()}else{round++;sevenWave(round===4)}}return}if(mode!=='dodge')return;
  if(roomShift){const m=roomShift;m.age=Math.min(SHIFT_TIME,m.age+dt);const p=ease(m.age/SHIFT_TIME);x=m.sx+(180-m.sx)*p;y=m.sy+(160-m.sy)*p;if(m.age>=SHIFT_TIME)roomShift=null;return}
  const b=sevenBox(),ox=x,oy=y;elapsed+=dt;inv-=dt;
  const held=round===6&&wallSequence(dt,b);if(held&&drag&&target){target=null}if(!held){let dx=+ (keys.has('d')||keys.has('arrowright'))- +(keys.has('a')||keys.has('arrowleft')),dy=+(keys.has('s')||keys.has('arrowdown'))- +(keys.has('w')||keys.has('arrowup'));if(drag&&target){dx=target[0]-x;dy=target[1]-y}const q=Math.hypot(dx,dy)||1,step=drag&&target?Math.min(q,dt*95):dt*95;x=Math.max(b.l+5,Math.min(b.r-5,x+step*dx/q));y=Math.max(b.u+5,Math.min(b.d-5,y+step*dy/q))}if(round<6&&(spawn-=dt)<=0)sevenGate();const moving=Math.hypot(x-ox,y-oy)>.001;
