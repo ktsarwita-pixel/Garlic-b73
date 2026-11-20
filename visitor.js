@@ -97,6 +97,10 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  // Integer row shifts lift the chin out of the collar without rotating blurry pixels.
  const droop=Math.round(4*(1-wake)),hx=159,hy=46+droop+pose.chin;
  if(rear){stampMask(rearCranium,p,160,hy+3);stampInk(177,hy+24,3,2,p.s);stampInk(174,hy+11,4,1,'#938a91');stampInk(177,hy+12,1,3,'#837b83');stampInk(178,hy+15,3,1,'#938a91');stampInk(171,77,5,1,'#718092');stampInk(176,79,7,1,'#474f60');stampInk(181,85,1,5,'#262532');stampInk(180,90,2,2,'#3e4553');jointLine(167,74,173,77,1,'#637080');jointLine(184,77,190,74,1,'#576475');stampInk(174,78,10,1,'#404955')}else{
+ // Seat the mandible on a short neck tucked between the stationary lapels.
+ const nape=hy+30;stampInk(176,nape,9,85-nape,'#57535b');
+ stampInk(178,nape,5,84-nape,'#999499');stampInk(177,82,6,1,'#75717a');
+ jointLine(175,82,178,85,2,p.d);jointLine(184,81,181,85,2,p.b);
  for(let j=0;j<hollowSkull.length;j++){const cant=Math.round((j/16)*(2+droop/2));stampMask([hollowSkull[j]],p,hx+cant,hy+j*2)}
  // Raise the inner brows and let the outer lids sag; leave the empty socket dark.
  jointLine(167,hy+15,173,hy+12,2,'#827e80');jointLine(173,hy+12,176,hy+11,1,'#e2dace');
