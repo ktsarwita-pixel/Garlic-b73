@@ -1,5 +1,7 @@
 // Short one-shot instruments: waveform, onset, duration, starting/ending Hz, gain.
 const cues={
+ phaseOut:[['sine',0,.12,630,90,.055],['triangle',.026,.07,443,111,.028]],
+ phaseIn:[['triangle',0,.11,112,450,.035],['sine',.07,.085,450,340,.027]],
  evade:[['triangle',0,.055,890,290,.045],['sine',.035,.12,380,820,.036]],
  heal:[['sine',0,.15,392,400,.065],['triangle',.085,.16,494,500,.05],['sine',.16,.26,659,675,.05]],
  impact:[['sine',0,.38,168,39,.14],['triangle',.032,.19,290,63,.068]],
