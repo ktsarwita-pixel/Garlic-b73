@@ -64,4 +64,4 @@
 #letter .book-copy{padding-block:2px;min-height:0}#letter .torn-ink{letter-spacing:.012em}
 
 /* Both faces use the exact grid track, including its fractional pixels. */
-.book-flap.forward{grid-column:2;left:0;width:100%}.book-flap.backward{grid-column:1;left:0;width:100%}#spread{grid-template-columns:repeat(2,minmax(0,1fr))}.book-copy{overflow-wrap:break-word}
+.book-flap.forward{grid-column:2/3;left:0;width:100%}.book-flap.backward{grid-column:1/2;left:0;width:100%}#spread{grid-template-columns:repeat(2,minmax(0,1fr))}.book-copy{overflow-wrap:break-word}
