@@ -60,8 +60,11 @@ const burialCoat=[
 const rearCranium=['      kkkkkkk','    kkswwwWWwkk','   kswwwWWWWwwwk','  kswwwWWwwwwwwsk',' kswwwwwwswwwwwssk',' kswwwwwsswwwwwwsk',' ksswwwwwskwwwwssk','  ksswwwwsswwwssk','   ksswwsswwwssk','    ksswwwwwssk','     ksssssssk','       ksssk'];
 const rearCoat=['     kkkkkkkkk','   kkdBBBBBBBdkk','  kdbbbBBbbbbbddk',' kdbdbbbbbbbdbdddk',' kddbbddddddbddbdk','  kdbbkkkkkkdbbdk','  kdbbbbbbbbbbdkk','  kddbbbdbbbbbdk','  kddbbbkbbdbbdk',' kdbdbbbkbbdbdddk',' kdbdbbbrbbdbdddk',' kddkbbRrbbdbdddk',' kdk kbrkbbkdkkdk',' kk  kdk kk k  kk'];
 const rearHeel=['  kkkkkk ',' kssssssk',' kppppppk',' kpPPpppk',' kssssssk','  kkkkkk '];
-function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visitorSheet=document.createElement('canvas');visitorSheet.width=100;visitorSheet.height=84;visitorInk=visitorSheet.getContext('2d')}visitorInk.clearRect(0,0,100,84);const p=revenantPaint;const swing=rear?step:0,bob=Math.round(Math.abs(swing));
- stampMask(rear?rearHeel:boot,p,161,98+Math.round(swing*3));stampMask(rear?rearHeel:boot,p,181,98-Math.round(swing*3));
+// While planted, the heel's local offset cancels the body's northward travel.
+// On release it rolls up, swings through and plants flat on the next stone.
+function heelPose(distance,side){const p=(distance/16+(side<0?.25:.75))%1,air=p>.5?(p-.5)*2:0,lift=Math.sin(Math.PI*air)*(side<0?2.8:1.6),settle=Math.min(1,distance/5,(72-distance)/5);return {dy:Math.round(((p<=.5?16*p-4:4+8*air-16*ease(air))/.61-lift)*settle),lift:Math.round(lift*settle)}}
+function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visitorSheet=document.createElement('canvas');visitorSheet.width=100;visitorSheet.height=88;visitorInk=visitorSheet.getContext('2d')}visitorInk.clearRect(0,0,100,88);const p=revenantPaint,weight=rear?Math.min(1,step/5,(72-step)/5):0,swing=weight*Math.sin(step*Math.PI/8),bob=Math.round(Math.abs(swing));
+ for(const side of [-1,1]){const foot=rear?heelPose(step,side):{dy:0,lift:0},fx=side<0?161:181,fy=98+foot.dy;if(rear){stampInk(fx+6,95,4,Math.max(2,fy-94),p.s);stampInk(fx+6,fy+1,5,2,p.k)}stampMask(rear?rearHeel:boot,p,fx,fy);if(foot.lift)stampInk(fx+5,fy+9,8,1,'#605763')}
  visitorInk.save();visitorInk.translate(Math.round(swing),-bob);stampMask(shorts,p,165,90);stampMask(rear?rearCoat:burialCoat,p,160,69);
  const handCue=mode==='dodge'&&round===6?wallPull:null;for(const side of [-1,1]){visitorInk.save();visitorInk.translate(0,Math.round(-side*swing*2));revenantArm(side,handCue);visitorInk.restore()}
  // Integer row shifts lift the chin out of the collar without rotating blurry pixels.
@@ -77,7 +80,7 @@ function drawVisitor(){const a=revealClock,pan=ease((a-.4)/2.65),zoom=1+1.63*pan
  // walk from behind its far sill; both heels clear the near sill before closing.
  const travel=ease((a-1.17)/2.65),px=180,py=430-72*travel;
  const gateAge=a<1.18?.48+.92*ease((a-.38)/.8):2.54+.66*ease((a-3.83)/.62);
- const stride=Math.sin(travel*8*Math.PI)*Math.min(1,travel*14,(1-travel)*14);
+ const stride=72*travel;
  const cx=180,cy=HALL_HEIGHT/2+(361-HALL_HEIGHT/2)*pan;
  g.save();g.translate(HALL_WIDTH/2,HALL_HEIGHT/2);g.scale(zoom,zoom);g.translate(-cx,-Math.min(HALL_HEIGHT-HALL_HEIGHT/(2*zoom),cy));chamber(gateAge);
  if(a>1.17){g.save();g.beginPath();g.rect(95,68,170,302);g.rect(162,370,36,21);g.clip();rect(px-8,Math.round(py),16,2,'#48434a');g.translate(px,Math.round(py));g.scale(.61,.61);g.translate(-180,-110);sevenFigure(a>=3.43,ease((a-3.04)/.52),stride,true);g.restore()}g.restore();}
@@ -136,8 +139,9 @@ function drawSlamAlert(b,w){const color='#ffc46b';
  const cx=w.nx<0?b.l+8:w.nx>0?b.r-8:(b.l+b.r)/2,cy=w.ny<0?b.u+8:w.ny>0?b.d-8:(b.u+b.d)/2;
  rect(cx-1,cy-4,3,5,color);rect(cx-1,cy+3,3,2,color)}
 function drawVisitorBone(s){if(!s.glitch){boneSprite({...s,x:0,y:0});const age=t-s.changed;if(age>=0&&age<.18){const k=Math.round((s.h-2)*age/.18);rect(-1,k,5,1,s.blue?'#c1fbff':'#ffdbbf')}return}
- // Keep a continuous shaft; only a fine hairline in the ink slips.
- const h=Math.round(s.h),len=Math.max(0,h-4),cut=2+(Math.floor(t*10)+s.phase)%Math.max(1,len);
- rect(0,2,3,len,'#ae90bd');rect(2,2,1,len,'#68536e');rect(0,2,1,len,'#d4c2d7');
- if(len>3){rect(1,cut,2,1,'#80518d');rect(-1,cut+1,3,1,'#c18bc9')}
- for(const d of [1,-1]){const tip=d===1?0:h-1;rect(-1,tip,2,1,'#e6dbe7');rect(2,tip,2,1,'#ccafcf');rect(-2,tip+d,7,1,'#b49abb');if(h>4)rect(-1,tip+2*d,5,1,'#806c87')}}
+ // Ash-gray cortex around a violet marrow line. A narrow ripple runs along
+ // each bone at its own phase; its caps and collision silhouette stay steady.
+ const h=Math.round(s.h),len=Math.max(0,h-4),cycle=(t*1.15+s.phase*.137)%1,cut=2+Math.floor(cycle*Math.max(1,len));
+ rect(0,2,3,len,'#77508e');rect(0,2,1,len,'#bbb6c1');rect(2,2,1,len,'#615c69');
+ if(len>2){const trail=Math.min(4,cut-2);rect(1,cut-trail,1,trail,'#ad7ccb');rect(0,cut,3,1,'#c9a3e6');if(cycle>.34&&cycle<.52)rect(-1,cut,1,1,'#a883c4')}
+ for(const d of [1,-1]){const tip=d===1?0:h-1;rect(-1,tip,2,1,'#ddd9df');rect(2,tip,2,1,'#ada6b5');rect(-2,tip+d,7,1,'#998ca4');if(h>4)rect(-1,tip+2*d,5,1,'#786384')}}
