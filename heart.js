@@ -121,6 +121,25 @@ function studyShelf(x,y,w,h,seed){
  g.save();g.translate(x+(x>180?w:0),y);if(x>180)g.scale(-1,1);
  g.globalAlpha=.22;rect(2,2,w,h,'#262322');g.globalAlpha=1;g.drawImage(tile,0,0);g.restore();
 }
+// Faded prints stay in the north wall band, clear of the playable floor.
+function familyPhotos(){
+ const frame=(x,y,w,h)=>{rect(x+1,y+1,w,h,'#484644');rect(x,y,w,h,'#655347');rect(x+1,y+1,w-2,h-2,'#b79e78');rect(x+2,y+2,w-4,h-4,'#d5c9ab');rect(x+3,y+3,w-6,h-6,'#777f7b')};
+ frame(163,49,34,18);frame(142,51,18,15);frame(200,51,18,15);
+ const portrait=['    hhhhh    ','  hheeeeess  ',' heeeeeeeess ',' eeqqeeqqqes ',' eepqeeqpqes ','  eeeqeeeess ','  seesssdes  ','   seeeees   ','  jccjjjccj  ',' jjbccjccbbj ',' jbbbjzjbbbj ',' jjbbjzjbbjj '];
+ const ink={h:'#f3e5c6',e:'#dfd0b0',s:'#aa9c88',q:'#48484b',p:'#e8dcc0',d:'#6d625b',c:'#c4bba6',j:'#687b81',b:'#566972',z:'#b09e7f'};
+ portrait.forEach((row,y)=>[...row].forEach((v,x)=>{if(ink[v])rect(173+x,52+y,1,1,ink[v])}));
+ // A small outdoor snapshot: Sans beside a pine against distant snow.
+ rect(145,60,12,3,'#bfc1b0');rect(146,57,1,5,'#595f57');rect(145,57,3,2,'#64766c');rect(150,55,4,3,'#e0d4b8');rect(150,56,1,1,'#575554');rect(153,56,1,1,'#575554');rect(151,58,2,1,'#c0b29b');rect(150,59,4,2,'#687c84');rect(150,61,1,1,'#504f4d');rect(153,61,1,1,'#504f4d');
+ // Preserve the pressed sprig as a companion keepsake.
+ rect(208,55,1,8,'#5f6857');rect(205,56,3,2,'#829078');rect(206,58,2,1,'#62735e');rect(209,54,3,2,'#97a187');rect(209,59,3,2,'#78846b');
+}
+function studyRoots(){
+ // Step along mortar joints before branching over a stone; static, not obstacles.
+ const root=(x,y,side,steps)=>{for(const [dx,dy,n] of steps){for(let i=0;i<n;i++){rect(x+1,y+1,2,1,'#55564d');rect(x,y,2,1,'#69604c');x+=dx*side;y+=dy}}};
+ root(96,67,1,[[0,1,9],[1,1,7],[1,0,5],[1,1,8],[0,1,6]]);root(102,82,1,[[0,1,8],[-1,1,5],[0,1,5]]);
+ root(263,227,-1,[[0,1,12],[1,1,7],[0,1,9],[1,1,6],[1,0,7]]);root(258,244,-1,[[1,0,5],[1,1,5],[1,0,4]]);
+ for(const [x,y,d] of [[97,73,1],[101,81,-1],[110,89,1],[105,86,-1],[263,233,-1],[260,241,-1],[255,251,1],[250,260,-1]]){rect(x,y,1,3,'#465748');rect(x+(d<0?-3:0),y-1,4,2,'#65745c');rect(x+(d<0?-4:2),y-2,3,2,'#798469');rect(x+d,y,2,1,'#586753')}
+}
 function studyDecor(){
  roomFurniture.slice(0,-1).forEach((v,i)=>studyShelf(...v,i*3+1));
  // Woven runner under the writing desk; the fringe stays walkable.
@@ -129,15 +148,10 @@ function studyDecor(){
  const [x,y,w,h]=roomFurniture[roomFurniture.length-1];rect(x+2,y+4,w,h-2,'#515250');rect(x+2,y+15,4,11,'#554941');rect(x+w-6,y+15,4,11,'#554941');rect(x,y,w,20,'#51463f');rect(x+1,y+1,w-2,15,'#988673');rect(x+2,y+1,w-4,1,'#b5a48d');rect(x+2,y+17,w-4,1,'#796857');
  // Uneven page edges, fine ink lines, folded ribbon at the gutter.
  rect(171,207,17,10,'#675653');rect(172,207,7,8,'#e2d8c0');rect(180,206,7,9,'#d2c8af');rect(179,207,1,9,'#a0937e');rect(180,214,1,4,'#92605c');for(const p of [173,181])for(let j=0;j<2;j++)rect(p,209+j*2,4-j,1,'#a69e90');
- // A little skeleton in an oversized striped jumper, in a faded family print.
- rect(168,50,24,17,'#463e39');rect(169,51,22,15,'#baa38a');rect(170,52,20,13,'#ded3ba');rect(171,53,18,11,'#838880');
- const child=['   sssss   ','  sssssss  ',' ssddssdds ',' ssdhsdhds ','  sssnsss  ','   sndns   ','    sss    ','  jjjjjjj  ',' jhjhhh jh ','  jjjjjjj  '];
- child.forEach((row,j)=>[...row].forEach((v,i)=>{const c={s:'#eee4cc',d:'#444647',h:'#bebeb0',n:'#867b72',j:'#687d87'}[v];if(c)rect(175+i,54+j,1,1,c)}));
+ familyPhotos();
  // Brass desk light and ink pot sit on the tabletop, separate from the open book.
  rect(188,213,6,2,'#665346');rect(190,208,2,5,'#b49769');rect(188,205,5,1,'#ae9067');rect(187,206,7,3,'#c9ad78');rect(188,209,5,1,'#ead5a2');rect(164,212,4,3,'#494954');rect(165,211,2,1,'#ada59a');
- // Two smaller keepsakes: a mountain silhouette and a pressed sprig.
- for(const xx of [151,197]){rect(xx,51,12,14,'#514a43');rect(xx+1,52,10,12,'#b8ab95');rect(xx+2,53,8,10,'#858981')}
- for(let j=0;j<5;j++)rect(157-j,57+j,j+1,1,'#596361');rect(203,56,1,6,'#566156');rect(201,57,2,2,'#687868');rect(204,55,2,2,'#667666');
+
 }
 function chamber(){
  rect(72,0,216,438,'#101112');rect(84,48,192,336,'#35393a');rect(87,50,186,19,'#54595a');
@@ -146,7 +160,7 @@ function chamber(){
  g.drawImage(roomFloor(),95,68);rect(94,68,1,304,'#414345');rect(265,68,1,304,'#414345');rect(95,66,170,2,'#414345');rect(88,372,184,4,'#848887');rect(88,376,184,5,'#515657');
  for(const x of [91,269])for(const y of [59,369])stoneStamp('plinth',x,y);
  g.save();g.translate(0,405);g.scale(1,-1);threshold(-1);g.restore();
- studyDecor();
+ studyRoots();studyDecor();
  rect(hallX-3,hallY+3,7,2,'#494c4d');tinySoul(hallX,hallY-1,exploreInk);
 }
 function hallway(){
