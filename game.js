@@ -268,13 +268,11 @@ if(new URLSearchParams(location.search).get('admin')==='1')openTest();
 
 const letter=$('#letter'),pages=[`Dear Sans if you see this you need to watch that human she is dangerous and probably she will challenge you and also don't forget that something is inside of you.... Sans thats its your brother and i found a way to stop your brother went you went uncontrol
 
--peace by papyrus.`,`Remember you are also a living thing you have heart so keep it alive kid!.
+-peace by papyrus.`,`Dear Sans if you see this you need to watch that human she is dangerous and probably she will challenge you and also don't forget that something is inside of you.... Sans thats its gester and i found a way to stop gester went you went uncontrol.
 
-And friend do you even have friend yet?.
+-peace by papyrus.`,`Sans im sorry for being a bad brother maybe one day that human can saved or destroyes something just keep and eye out!.
 
--peace by papyrus`,`Sorry Sans before your mom disappear we live such amazing lives but went mom dissapear our lives changed sorry for telling you about mom is just working outside this town.
-
--peace by papyrus`,`Hello`];
+-peaceby papyrus`,`Hello`];
 let spread=0,turn=null;
 function leaf(n){const el=document.createElement('article');el.className='book-leaf '+(n%2?'recto':'verso')+(n===3?' ripped':'');el.setAttribute('aria-label','Page '+(n+1)+(n===3?' — torn out':''));
  const copy=document.createElement('div');copy.className='book-copy';copy.textContent=pages[n];el.append(copy);
