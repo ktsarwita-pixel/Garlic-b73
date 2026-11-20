@@ -103,16 +103,21 @@ function crossingSoul(age){
  g.save();g.beginPath();g.rect(100,17,160,410);g.clip();g.globalAlpha=1-ease((age-2.12)/.36);tinySoul(px,ground-lift);g.restore();
 }
 const watchers=[[19,43,9],[51,78,17],[85,29,12],[127,53,9],[95,105,8],[16,102,6],[142,95,6],[221,34,7],[239,94,10],[263,57,18],[305,29,10],[337,78,15],[301,106,7],[350,41,5],[33,22,6],[61,48,8],[108,73,6],[126,19,6],[153,38,5],[183,24,10],[209,104,6],[244,18,6],[287,82,8],[325,49,6],[354,106,5],[70,111,5]];
+function eyePresence(i){const lag=((i*11)%26)/25*.48;
+ if(mode==='reform')return ease((sceneAge-.8-lag)/.94);
+ if(mode==='destroy')return 1-ease((sceneAge-.12-lag)/1.12);
+ return 1}
 function watchingEyes(){watchers.forEach(([cx,cy,r],i)=>{
- const phase=(t+i*.71)%(3.3+i*.09),lid=Math.min(1,Math.abs(phase-.23)*5), gaze=Math.round(Math.max(-1,Math.min(1,(x-cx)/80))*r*.31);
+ const visible=eyePresence(i);if(visible<=0)return;g.save();g.globalAlpha*=visible;
+ const phase=(t+i*.71)%(3.3+i*.09),lid=visible*ease(Math.abs(phase-.31)/(phase<.31?.25:.38)), gaze=Math.round(Math.max(-1,Math.min(1,(x-cx)/80))*r*.31);
  for(let u=-r;u<=r;u++){
  const h=Math.round((1-(Math.abs(u)/r)**1.6)*r*.43*lid),v=Math.round(u*(i%2?.12:-.12));
  const roof=cy+v-h,base=cy+v+h;rect(cx+u,roof-2,1,1,'#392940');rect(cx+u,roof-1,1,1,'#91699e');rect(cx+u,roof,1,2*h+1,'#71557a');rect(cx+u,base+1,1,1,'#49354f');if(h<2)continue;
  for(let k=1-h;k<h;k++){const du=u-gaze,d=du*du+(k-1)**2,rad=r*.32;let color=k<2-h?'#58425f':'#927a99';if(d<rad*rad)color=d>(rad-1)**2?'#46304f':k<0?'#9462ad':'#bf8bd0';if(Math.abs(du)<=Math.max(0,1-Math.abs(k)*.18)&&d<rad*rad)color='#29182e';if(du===-1&&k===-1)color='#ead9ed';rect(cx+u,cy+v+k,1,1,color)}
- }
+ }g.restore();
 })}
 // Each letter is a fitted shard. Separating actual pieces exposes the void between them.
-const shell=['  AAAA   BBBB  ',' AAAAAA BBBBBB ','AAAAAAACBBBBBBB','DAAAAACCCBBBBBE',' DDAAACCCCBBEE ','  DDDACCCCEEE  ','   DDDCCCEEE   ','    DDCCCEE    ','     FFFCE     ','      FFF      ','       F       '];
+const shell=['    AA  B B    ','    AAA BBB    ','  AAAAAACBBBB  ',' AAAAAACCCBBBB ','DAAAAACCCCBBBBE','DDAAACCCCCBBEEE',' DDAACCCCCBEEE ','  DDDACCCCEEEE ','   DDDCCCEEEE  ','    DDCCCEEE   ','     FFFFEE    ','      FFFF     ','       FF      '];
 const drift={A:[-7,-6],B:[6,-8],C:[0,-1],D:[-9,4],E:[8,5],F:[1,10]};
 // Cache a ramp for each value band so the lighting stays consistent as color returns.
 const heartRamp=Array.from({length:65},(_,k)=>[[255,254,250,246,223,255],[227,224,217,203,145,243],[197,193,187,161,101,200],[156,153,150,113,62,147]].map(c=>'rgb('+[0,1,2].map(i=>Math.round(c[i]+(c[i+3]-c[i])*k/64)).join(',')+')'));
@@ -120,24 +125,29 @@ const pivots={A:[3,2],B:[11,2],C:[7,5],D:[4,5],E:[11,5],F:[7,9]};
 // Rasterize each solid shard before rotation: adjacent texels share one transform.
 const shardCache=new Map();
 function shardSprite(id,tone){const key=id+tone;if(shardCache.has(key))return shardCache.get(key);
- const tile=document.createElement('canvas');tile.width=45;tile.height=33;const ctx=tile.getContext('2d'),pal=heartRamp[tone];
+ const tile=document.createElement('canvas');tile.width=45;tile.height=shell.length*3;const ctx=tile.getContext('2d'),pal=heartRamp[tone];
  const solid=(i,j)=>!!shell[j]?.[i]?.trim();
  shell.forEach((row,j)=>[...row].forEach((cell,i)=>{if(cell!==id)return;
   const rim=!solid(i+1,j)||!solid(i,j+1),ridge=!solid(i-1,j)||!solid(i,j-1);
   const shade=rim?3:ridge?1:j>6||i>11?2:1;
   ctx.fillStyle=pal[shade];ctx.fillRect(3*i,3*j,3,3);
   if((i===2&&j===2)||(i===3&&j===1)||(i===10&&j===1)){ctx.fillStyle=pal[0];ctx.fillRect(3*i,3*j,3,2)}
-  if(!rim&&shell[j-1]?.[i]!==id&&j>3){ctx.fillStyle=pal[2];ctx.fillRect(3*i,3*j,3,1)}
+  // A curved coronary groove branches over the rounded ventricular face.
+  const vein=[-1,-1,-1,7,7,8,8,7,6,6,5][j];
+  if(!rim&&(i===vein||(j>=5&&j<=7&&i===vein+j-4))){ctx.fillStyle=pal[2];ctx.fillRect(3*i+1,3*j,1,3);ctx.fillStyle=pal[1];ctx.fillRect(3*i+2,3*j,1,2)}
  }));shardCache.set(key,tile);return tile}
 function heartOpponent(){
  if(mode==='end'&&boss===0)return;
  const forming=mode==='reform',breaking=mode==='destroy',hit=mode==='heartHit';
  const tint=purple?1:forming?ease((sceneAge-.64)/1.48):0;
- if(tint>0){g.save();g.globalAlpha=forming?ease((sceneAge-1.55)/.7):1;watchingEyes();g.restore()}
+ if(tint>0)watchingEyes();
  const order=purple?'BAFEDC':'ADEBFC',total=purple?5:4,n=cracks===total?6:cracks;
  const progress=hit?ease((sceneAge-.20)/.32):1;
  g.save();if(breaking)g.globalAlpha=1-ease((sceneAge-.8)/.95);
  g.imageSmoothingEnabled=false;
+ // A small double beat reads as living tissue; release it before the shards fly.
+ const beat=(t*(purple?1.3:1.02))%1,bump=(Math.exp(-((beat-.17)**2)/.003)+.38*Math.exp(-((beat-.37)**2)/.004))*(1-(forming||breaking?ease(sceneAge/.35):0));
+ g.translate(180,73);g.scale(1+.035*bump,1-.024*bump);g.translate(-180,-73);
  for(const id of order){const index=order.indexOf(id),[dx,dy]=drift[id],[cx,cy]=pivots[id];
   const gap=count=>index<count?.24+.13*(count-index):0;
   const prev=hit?gap(Math.max(0,cracks-1)):gap(n);
