@@ -7,7 +7,8 @@ function enterHall(){encounter=6;resetBattle();glideDistance=0;hallX=180;hallY=3
 function enterHeart(){encounter=6;resetBattle();cracks=0;purple=false;sceneAge=0;msg('A white heart hangs still on the other side.');ui()}
 const soulInk=[' pp rr ','phrrrbr','prrrrbd',' rrbbd ','  bbd  ','   d   '];
 const soulColor={p:'#ff99a4',h:'#ffd9ce',r:'#ff465c',b:'#d82f51',d:'#a12245'};
-function tinySoul(cx,cy){soulInk.forEach((row,j)=>[...row].forEach((v,i)=>{if(soulColor[v])rect(cx+i-3,cy+j-3,1,1,soulColor[v])}))}
+const exploreInk=[' ppp rrr ','phrrprrrb','prrrrrrbb',' rrrrrbd ','  rrrbd  ','   bbd   ','    d    '];
+function tinySoul(cx,cy,ink=soulInk){const ox=ink[0].length>>1;ink.forEach((row,j)=>[...row].forEach((v,i)=>{if(soulColor[v])rect(cx+i-ox,cy+j-3,1,1,soulColor[v])}))}
 // World coordinates are in floor pixels; the camera never scales or rotates.
 const HALL_NORTH=38,HALL_SOUTH=410;
 const hallClamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -16,7 +17,7 @@ function hallWidth(y){return (y>=154&&y<=254)?87:65}
 // Inclusive floor spans on each raster row, including the shoulders of the landing.
 // Check the silhouette rather than its centre: the tip can approach a ledge
 // without either lobe passing through it. Reserve both extremes of the hall bob.
-const soulSpans=soulInk.map((row,i)=>[i-3,row.search(/\S/)-3,row.trimEnd().length-4]);
+const soulSpans=exploreInk.map((row,i)=>[i-3,row.search(/\S/)-4,row.trimEnd().length-5]);
 function soulFits(px,py,room){
  const cx=Math.round(px),top=Math.round(py-(room?1:.65)),bottom=Math.round(py+(room?-1:.65));
  for(const [dy,l,r] of soulSpans)for(let y=top+dy;y<=bottom+dy;y++){
@@ -95,12 +96,22 @@ const roomFurniture=[[95,169,22,40],[95,211,22,40],[95,303,22,40],[95,345,22,24]
 function studyShelf(x,y,w,h,seed){
  // Local +x points from the back panel into the aisle. Mirror the east bank.
  g.save();g.translate(x+(x>180?w:0),y);if(x>180)g.scale(-1,1);
- rect(0,0,w,h,'#403733');rect(1,1,6,h-2,'#8f7966');rect(2,2,1,h-4,'#ae9a80');
- rect(7,1,w-8,h-2,'#4b403c');const tones=['#997783','#889886','#b28870','#938da0','#81969a'];
- for(let bay=0;bay<(h>30?2:1);bay++){const start=3+bay*19,end=bay===0&&h<30?h-3:start+15;
-  for(let p=start,j=0;p<end;j++){const k=seed+j*7+bay*13,d=7+k%5,bh=Math.min(2+k%3,end-p);rect(8,p,d,bh,tones[k%5]);rect(9,p,1,bh,'#cebea1');rect(8+d-2,p,1,bh,'#645856');p+=bh+1}
-  rect(6,end+1,w-7,2,'#99816a');}
- rect(w-2,1,1,h-2,'#ae9780');rect(1,h-2,w-2,1,'#675544');g.restore();
+ // Shallow wall rail, then the page blocks seen from above. Rounded bindings
+ // line the aisle edge instead of lining the back of the cabinet.
+ rect(0,0,w,h,'#463e39');rect(1,1,w-3,h-2,'#55483e');rect(1,1,2,h-2,'#aa9580');
+ const covers=['#9d6971','#637d83','#889479','#b38b68','#887895','#897664','#76869a'];
+ for(let bay=0;bay<(h>30?2:1);bay++){
+  const start=2+bay*19,end=h>30?start+17:h-2;
+  for(let p=start,j=0;p<end;j++){
+   const k=seed*13+j*17+bay*7,bh=Math.min(2+k%4,end-p),front=w-3-(k%3),back=4+k%3;
+   rect(back,p,front-back+1,bh,covers[k%covers.length]);
+   if(bh>=3){rect(back+1,p+1,front-back-2,bh-2,k%2?'#c7bba2':'#afa68e');if(bh===5)rect(back+2,p+2,front-back-4,1,'#ac9f89')}
+   rect(front,p,1,bh,'#574d49');if(bh>2)rect(front-1,p+1,1,1,'#d0b797');
+   p+=bh+(k%7===0?1:0);
+  }
+  if(end<h-2)rect(2,end,w-3,2,'#977f68');
+ }
+ rect(1,0,w-2,2,'#ac9480');rect(1,h-2,w-2,2,'#816b58');rect(w-2,2,1,h-4,'#9f8970');g.restore();
 }
 function studyDecor(){
  roomFurniture.slice(0,-1).forEach((v,i)=>studyShelf(...v,i*3+1));
@@ -128,7 +139,7 @@ function chamber(){
  for(const x of [91,269])for(const y of [59,369])stoneStamp('plinth',x,y);
  g.save();g.translate(0,405);g.scale(1,-1);threshold(-1);g.restore();
  studyDecor();
- rect(hallX-3,hallY+3,7,2,'#494c4d');tinySoul(hallX,hallY-1);
+ rect(hallX-3,hallY+3,7,2,'#494c4d');tinySoul(hallX,hallY-1,exploreInk);
 }
 function hallway(){
  g.save();g.translate(-HALL_LEFT,0);
@@ -234,7 +245,7 @@ function crossingSoul(age){
  // Layer translucent shadow pixels over the actual stone and inlay beneath them.
  const w=4+Math.round(lift*.5);g.save();g.globalAlpha=.19*(1-pull);rect(px-w,ground+4,w*2+1,2,'#151619');rect(px-w+2,ground+3,w*2-3,4,'#151619');
  g.globalAlpha=.29*(1-pull);rect(px-2,ground+4,5,2,'#141416');g.restore();
- g.save();if(age>=0){g.beginPath();g.rect(HALL_LEFT,17,HALL_WIDTH,HALL_HEIGHT-17);g.clip()}g.globalAlpha=1-ease((age-2.12)/.36);tinySoul(px,ground-lift);g.restore();
+ g.save();if(age>=0){g.beginPath();g.rect(HALL_LEFT,17,HALL_WIDTH,HALL_HEIGHT-17);g.clip()}g.globalAlpha=1-ease((age-2.12)/.36);tinySoul(px,ground-lift,exploreInk);g.restore();
 }
 const watchers=[[19,43,9],[51,78,17],[85,29,12],[127,53,9],[95,105,8],[16,102,6],[142,95,6],[221,34,7],[239,94,10],[263,57,18],[305,29,10],[337,78,15],[301,106,7],[350,41,5],[33,22,6],[61,48,8],[108,73,6],[126,19,6],[153,38,5],[183,24,10],[209,104,6],[244,18,6],[287,82,8],[325,49,6],[354,106,5],[70,111,5]];
 function eyePresence(i){const lag=((i*11)%26)/25*.48;
