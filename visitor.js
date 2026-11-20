@@ -210,18 +210,19 @@ function startEight(retry=false){encounter=8;if(retry)resetBattle();endingAge=Ma
 function eightWave(){startWave(.7);roomShift=round===4?{age:0,sx:x,sy:y}:null;const b=sevenBox();if(!roomShift){x=180;y=(b.u+b.d)/2}cannons=[];sent=0;nextBeam=.65;msg(['Watch the skulls. Step out of their sights.','Fractured bones. Blue: stop. Red: move.','Heavy blasters. Watch the wide lanes.','Crossfire. Keep clear of the white gates.','Blasters only. Keep moving.'][round-1]);ui()}
 const THROAT_X=12;
 function blastRadius(width,d){return Math.min(Math.floor(width/2),1+Math.floor(Math.max(0,d)/2))}
-function blasterPose(c){const a=c.age-c.charge,fade=1-ease((a-.27)/.2),scale=c.big?1.4:1;
+function blasterPose(c){const a=c.age-c.charge,fade=1-ease((a-.27)/.2),scale=c.big?1.25:1;
  const offset=-Math.round(7*(1-ease(c.age/.18))+5*(1-fade)+(a<0?0:3*(1-ease(a/.19))));
- return {fade,scale,offset,muzzle:offset-2+Math.round(THROAT_X*scale)}}
+ const shift=offset+(c.big?6-2*Math.round(ease(c.age/c.charge)*(a<0?1:0)):0);
+ return {fade,scale,offset:shift,muzzle:shift-2+Math.round(THROAT_X*scale)}}
 function tickBeams(dt,b){const score=eightScore[round-1];if(sent<score.count&&elapsed>=nextBeam){const vertical=sent%2===0,big=round===3||round===5&&sent>=20;
- cannons.push({vertical,reverse:sent%4>=2,pos:Math.round(vertical?x:y),big,age:0,charge:big?.92:round<4?.77:.58,width:big?21:9});sent++;nextBeam+=big?Math.max(1.25,score.beat):score.beat}
+ cannons.push({vertical,reverse:sent%4>=2,pos:Math.round(big?Math.max((vertical?b.l:b.u)+18,Math.min((vertical?b.r:b.d)-18,vertical?x:y)):vertical?x:y),big,age:0,charge:big?.92:round<4?.77:.58,width:big?13:9});sent++;nextBeam+=big?Math.max(1.25,score.beat):score.beat}
  for(const c of cannons){const prev=c.age;c.age+=dt;if(prev<c.charge&&c.age>=c.charge)sfx('impact',c.big?.75:.43);
  const along=c.vertical?(c.reverse?b.d-y:y-b.u):(c.reverse?b.r-x:x-b.l),distance=along-blasterPose(c).muzzle;
  if(distance>=-2&&c.age>=c.charge&&c.age<c.charge+.27&&!testGod&&inv<=0&&Math.abs((c.vertical?x:y)-c.pos)<blastRadius(c.width,distance)+2){hp=Math.max(0,hp-(c.big?6:4));inv=.85;sfx('hurt');if(!hp){mode='dying';deathAge=0;shots=[];cannons=[];msg('Your soul begins to crack.')}ui();if(!hp)return}}
  cannons=cannons.filter(c=>c.age<c.charge+.47)}
 // Side-profile skull, mandible on a separate pivot. Bake the opening arc at native resolution.
 const blasterFrames=new Map();
-function blasterSkull(open){const key=open;if(blasterFrames.has(key))return blasterFrames.get(key);
+function blasterSkull(open,big=false){const key=open+(big?16:0);if(blasterFrames.has(key))return blasterFrames.get(key);
  const tile=document.createElement('canvas');tile.width=30;tile.height=32;const ctx=tile.getContext('2d');
  const colors={k:'#282530',s:'#665e71',m:'#a59aa3',b:'#d2c7be',h:'#f4e9db',v:'#282530'};
  function pixel(x,y,c){ctx.fillStyle=colors[c];ctx.fillRect(Math.round(x),Math.round(y),1,1)}
@@ -233,6 +234,10 @@ function blasterSkull(open){const key=open;if(blasterFrames.has(key))return blas
  // The cheek pivot overlaps both bones even in the widest open pose.
  const hinge=[' skk ','sbbmk','mhbsk',' mbsk','  msk'];hinge.forEach((r,j)=>[...r].forEach((v,i)=>{if(v!==' ')pixel(4+i,12+j,v)}));
  for(const [x,y,v] of [[13,6,'s'],[14,7,'m'],[15,7,'s'],[16,8,'m'],[18,9,'h'],[19,9,'h'],[3,4,'b']])pixel(x,y,v);
+ if(big){const crest=['kk',' kmkk     kk','  khbkk  kms','   kbbhkkbsk','    ksmhhbmk','      kmmssk'];crest.forEach((row,y)=>[...row].forEach((v,x)=>{if(v!==' ')pixel(x+3,y,v)}));
+  // Reinforced jaw rail follows the mandible rather than sliding over it.
+  for(let x=9;x<20;x++){const y=17+Math.round((x-7)*open/15);pixel(x,y,x<13?'s':'m');if(x%4!==0)pixel(x,y-1,'b')}
+ }
  blasterFrames.set(key,tile);return tile}
 function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.pos:c.reverse?b.r:b.l,c.vertical?(c.reverse?b.d:b.u):c.pos);if(c.vertical)g.rotate(c.reverse?-Math.PI/2:Math.PI/2);else if(c.reverse)g.scale(-1,1);
  const span=c.vertical?b.d-b.u:b.r-b.l,w=c.width,a=c.age-c.charge,q=c.age/c.charge,{fade,scale,offset,muzzle}=blasterPose(c),length=span-muzzle;
@@ -246,8 +251,10 @@ function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.
   for(let k=w+flow%23;k<length;k+=23){rect(k,-half,6,1,'#f4ddff');rect(k+7,half-1,4,1,'#c59ed7')}
  }
  g.restore();g.globalAlpha=ease(c.age/.12)*fade;g.translate(offset-2,-Math.round(14*scale));g.scale(scale,scale);g.imageSmoothingEnabled=false;
- const opening=Math.round(6*(a<0?ease((q-.18)/.78):fade));g.drawImage(blasterSkull(opening),0,0);
+ const opening=Math.round(6*(a<0?ease((q-.18)/.78):fade));g.drawImage(blasterSkull(opening,c.big),0,0);
  crossEye(g,9,10,t,1);
+ if(c.big&&a<0){g.save();const gather=ease(q/.9);g.globalAlpha*=gather;for(let i=0;i<3;i++){const phase=(q*1.8+i/3)%1,dist=Math.round(11*(1-phase));rect(THROAT_X+dist,14+Math.round((i-1)*dist*.38),2,1,phase>.55?'#f5eafa':'#a783bc')}
+  rect(THROAT_X,13,1+Math.round(4*gather),3,'#ead7ef');g.restore()}
  if(a<0&&q>.35){const k=ease((q-.35)/.65),r=Math.round(4*(1-k))+1;g.globalAlpha*=k;rect(THROAT_X,14,r*2+1,1,'#e4c8ee');rect(THROAT_X+r,14-r,1,2*r+1,'#fff8ff')}
  g.restore()}}
 function nextGate(){const score=encounter===8?eightScore[round-1].gates:gateScores[round-1],entry=score[patternStep%score.length],b=sevenBox(),vertical=entry[0]==='T',span=vertical?b.r-b.l:b.d-b.u;
