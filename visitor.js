@@ -109,7 +109,7 @@ function wallSequence(dt,b){if(!wallPull&&slamCount>=3)return false;if(!wallPull
  if(w.age<=.92){const p=ease((w.age-.22)/.34);x=w.sx+((w.nx<0?b.l+5:w.nx>0?b.r-5:w.sx)-w.sx)*p;y=w.sy+((w.ny<0?b.u+5:w.ny>0?b.d-5:w.sy)-w.sy)*p;return true}
  // Root every spike on the marked wall. Only its exposed length changes.
  if(w.age>=1.76&&!w.fired){w.fired=true;for(let off=6;off<112;off+=10)sevenBone(w.nx?0:b.l+off,w.ny?0:b.u+off,4,0,0,!!w.nx,'glitch')}
- if(w.fired){const depth=Math.round(26*ease((w.age-1.76)/.17)*(1-ease((w.age-2.65)/.27)));for(const s of shots){s.h=Math.max(4,depth);if(w.nx)s.x=w.nx<0?b.l:b.r-s.h;else s.y=w.ny<0?b.u:b.d-s.h}if(w.age>=2.92)shots=[]}if(w.age>=3.55)wallPull=null;return false}
+ if(w.fired){const depth=Math.round(SLAM_REACH*ease((w.age-1.76)/.17)*(1-ease((w.age-2.65)/.27)));for(const s of shots){s.h=Math.max(4,depth);if(w.nx)s.x=w.nx<0?b.l:b.r-s.h;else s.y=w.ny<0?b.u:b.d-s.h}if(w.age>=2.92)shots=[]}if(w.age>=3.55)wallPull=null;return false}
 function sevenTick(dt){if(mode==='strike'){const before=1.45-flash;flash-=dt;const age=1.45-flash;if(swings<6){if(before<.18&&age>=.18)sfx('phaseOut');if(before<1.06&&age>=1.06)sfx('phaseIn')}else if(before<.52&&age>=.52)sfx('impact');if(flash<=0){if(swings===6){mode='sevenHold';msg('…');ui()}else{round++;sevenWave()}}return}if(mode!=='dodge')return;const b=sevenBox(),ox=x,oy=y;elapsed+=dt;inv-=dt;
  const held=round===6&&wallSequence(dt,b);if(held&&drag&&target){target=null}if(!held){let dx=+ (keys.has('d')||keys.has('arrowright'))- +(keys.has('a')||keys.has('arrowleft')),dy=+(keys.has('s')||keys.has('arrowdown'))- +(keys.has('w')||keys.has('arrowup'));if(drag&&target){dx=target[0]-x;dy=target[1]-y}const q=Math.hypot(dx,dy)||1,step=drag&&target?Math.min(q,dt*95):dt*95;x=Math.max(b.l+5,Math.min(b.r-5,x+step*dx/q));y=Math.max(b.u+5,Math.min(b.d-5,y+step*dy/q))}if(round<6&&(spawn-=dt)<=0)sevenGate();const moving=Math.hypot(x-ox,y-oy)>.001;
  for(const s of shots){s.x+=s.vx*dt;s.y+=s.vy*dt;const width=s.horiz?s.h:3,height=s.horiz?3:s.h,dist=Math.hypot(Math.max(s.x-x,0,x-s.x-width),Math.max(s.y-y,0,y-s.y-height));if(s.glitch&&dist<31){s.glitch=false;s.changed=t;s.blue=Math.random()<.5;s.red=!s.blue}if(!testGod&&inv<=0&&dist<3&&(!s.blue||moving)&&(!s.red||!moving)){hp=Math.max(0,hp-3);inv=.85;sfx('hurt');if(!hp){mode='dying';deathAge=0;shots=[];wallPull=null;msg('Your soul begins to crack.')}ui();if(!hp)return}}
@@ -128,16 +128,16 @@ function slamEffects(b){const w=wallPull;if(!w)return;const px=w.nx<0?b.l:w.nx>0
  if(w.age>.22&&w.age<.56){for(let i=1;i<=3;i++){g.save();g.globalAlpha=.28/i;const d=i*3;rect(x-w.nx*d-2,y-w.ny*d-1,4,2,'#a57cbb');g.restore()}}
  const f=(w.age-.56)/.42;if(f<0||f>=1)return;g.save();g.globalAlpha=1-ease(f);for(let i=-3;i<=3;i++){const across=i*(1+f*4),back=(1-Math.abs(i)/5)*f*12;rect(px-w.nx*back-w.ny*across,py-w.ny*back+w.nx*across,2,1,i%2?'#b99bc9':'#87738e')}g.restore()}
 
+const SLAM_REACH=26;
 // One steady wall highlight and one upright warning, for any orientation.
 function drawSlamAlert(b,w){const color='#ffc46b';
+ g.save();g.globalAlpha=.19;rect(w.nx>0?b.r-SLAM_REACH:b.l,w.ny>0?b.d-SLAM_REACH:b.u,w.nx?SLAM_REACH:b.r-b.l,w.ny?SLAM_REACH:b.d-b.u,'#e59298');g.restore();
  rect(w.nx>0?b.r-2:b.l,w.ny>0?b.d-2:b.u,w.nx?2:b.r-b.l,w.ny?2:b.d-b.u,color);
  const cx=w.nx<0?b.l+8:w.nx>0?b.r-8:(b.l+b.r)/2,cy=w.ny<0?b.u+8:w.ny>0?b.d-8:(b.u+b.d)/2;
  rect(cx-1,cy-4,3,5,color);rect(cx-1,cy+3,3,2,color)}
 function drawVisitorBone(s){if(!s.glitch){boneSprite({...s,x:0,y:0});const age=t-s.changed;if(age>=0&&age<.18){const k=Math.round((s.h-2)*age/.18);rect(-1,k,5,1,s.blue?'#c1fbff':'#ffdbbf')}return}
- // Split vertebrae: dark axial gap, bright offset plates, not a recolored solid shaft.
- const h=Math.round(s.h),phase=Math.floor(t*7)+s.phase;
- rect(0,1,3,Math.max(1,h-2),'#301737');
- for(let y=2,i=0;y<h-2;y+=6,i++){const len=Math.min(5,h-2-y),shift=(phase+i)%9===0?1:0,side=i%2?-1:1;
-  rect(side+shift,y,3,len,'#a54adb');rect(side+shift,y,1,len,'#e9a8ff');
-  if(len>2)rect(side+shift+1,y+1,2,1,'#502663')}
- for(const d of [1,-1]){const end=d===1?0:h-1;rect(-2,end,2,1,'#f4d7ff');rect(3,end,2,1,'#e4a4ff');rect(-2,end+d,3,1,'#ba6be0');rect(2,end+d,3,1,'#ba6be0');if(h>4)rect(-1,end+2*d,5,1,'#69358b')}}
+ // Keep a continuous shaft; only a fine hairline in the ink slips.
+ const h=Math.round(s.h),len=Math.max(0,h-4),cut=2+(Math.floor(t*10)+s.phase)%Math.max(1,len);
+ rect(0,2,3,len,'#ae90bd');rect(2,2,1,len,'#68536e');rect(0,2,1,len,'#d4c2d7');
+ if(len>3){rect(1,cut,2,1,'#80518d');rect(-1,cut+1,3,1,'#c18bc9')}
+ for(const d of [1,-1]){const tip=d===1?0:h-1;rect(-1,tip,2,1,'#e6dbe7');rect(2,tip,2,1,'#ccafcf');rect(-2,tip+d,7,1,'#b49abb');if(h>4)rect(-1,tip+2*d,5,1,'#806c87')}}
