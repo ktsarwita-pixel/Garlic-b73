@@ -140,6 +140,32 @@ function studyRoots(){
  root(263,227,-1,[[0,1,12],[1,1,7],[0,1,9],[1,1,6],[1,0,7]]);root(258,244,-1,[[1,0,5],[1,1,5],[1,0,4]]);
  for(const [x,y,d] of [[97,73,1],[101,81,-1],[110,89,1],[105,86,-1],[263,233,-1],[260,241,-1],[255,251,1],[250,260,-1]]){rect(x,y,1,3,'#465748');rect(x+(d<0?-3:0),y-1,4,2,'#65745c');rect(x+(d<0?-4:2),y-2,3,2,'#798469');rect(x+d,y,2,1,'#586753')}
 }
+// One transparent, native-resolution layer keeps the weathering still and cheap on mobile.
+let patina;
+function studyPatina(){
+ if(!patina){patina=document.createElement('canvas');patina.width=216;patina.height=338;
+ const c=patina.getContext('2d');c.translate(-72,-48);
+ const dot=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),w,h)};
+ const line=(x,y,X,Y,col)=>{const n=Math.max(1,Math.abs(X-x),Math.abs(Y-y));for(let i=0;i<=n;i++)dot(x+(X-x)*i/n,y+(Y-y)*i/n,1,1,col)};
+ const crack=(x,y,points)=>{for(const [dx,dy] of points){line(x,y+1,x+dx,y+dy+1,'#93938a');line(x,y,x+dx,y+dy,'#484c49');x+=dx;y+=dy}};
+ for(const [x,y,d] of [[102,102,1],[248,137,-1],[134,267,1],[234,323,-1],[101,57,1],[258,56,-1]]){
+ crack(x,y,[[4*d,3],[3*d,-1],[2*d,4],[5*d,2],[2*d,3]]);crack(x+7*d,y+2,[[1*d,-3],[4*d,-1]])}
+ // Woody runners taper into fine rootlets. Leaf pairs alternate along the ivy.
+ for(const [x,y,d,len] of [[93,64,1,58],[117,54,1,36],[265,61,-1,64],[265,151,-1,43],[94,250,1,48],[263,264,-1,37],[97,354,1,17],[230,55,-1,30]]){
+ let a=x,b=y;for(let j=0;j<len;j++){const turn=(j+(x%9))%17;if(turn<5)a+=d;else if(turn===11)a-=d;
+ dot(a+1,b+1,2,1,'#54594f');dot(a,b,j<len/2?2:1,1,j<len/2?'#675e4a':'#716b54');
+ if(j%11===5){const side=(j%22<11?1:-1)*d;line(a,b,a+6*side,b+4,'#5b614c');line(a+6*side,b+4,a+8*side,b+9,'#656751');
+ for(let k=0;k<3;k++){const lx=a+side*(2+k*2),ly=b+k;dot(lx,ly,3,3,'#4c604d');dot(lx,ly,2,2,'#7c8967');dot(lx+side,ly-1,2,1,'#909773')}}b++}
+ }
+ // Fern rosettes sprout at damp joints, not in the central path.
+ for(const [x,y,n] of [[103,130,9],[253,98,12],[102,282,11],[249,289,10],[236,76,7]]){
+ for(const dir of [-1,1])for(let k=0;k<n;k++){const px=x+dir*k,py=y-Math.round(k*.8+3*Math.sin(k/n*Math.PI));dot(px,py,1,2,'#536852');if(k%2===0){dot(px,py-2,2,3,'#738568');dot(px,py+1,2,2,'#62795d')}}}
+ // Tarnished wall clock and a curling field sketch pinned beside the cabinets.
+ dot(124,52,9,12,'#534e45');dot(125,53,7,9,'#a79a7c');dot(126,54,5,6,'#d1c6a8');line(128,57,128,54,'#57584d');line(128,57,130,58,'#57584d');dot(127,62,3,2,'#897958');
+ dot(239,53,11,11,'#68685d');dot(238,52,11,11,'#b4a88c');line(240,59,244,55,'#817d68');line(244,55,246,59,'#817d68');dot(242,53,1,1,'#645b4b');dot(246,61,3,2,'#d2c5a7');
+ }
+ g.drawImage(patina,72,48);
+}
 function studyDecor(){
  roomFurniture.slice(0,-1).forEach((v,i)=>studyShelf(...v,i*3+1));
  // Woven runner under the writing desk; the fringe stays walkable.
@@ -160,7 +186,7 @@ function chamber(){
  g.drawImage(roomFloor(),95,68);rect(94,68,1,304,'#414345');rect(265,68,1,304,'#414345');rect(95,66,170,2,'#414345');rect(88,372,184,4,'#848887');rect(88,376,184,5,'#515657');
  for(const x of [91,269])for(const y of [59,369])stoneStamp('plinth',x,y);
  g.save();g.translate(0,405);g.scale(1,-1);threshold(-1);g.restore();
- studyRoots();studyDecor();
+ studyRoots();studyPatina();studyDecor();
  rect(hallX-3,hallY+3,7,2,'#494c4d');tinySoul(hallX,hallY-1,exploreInk);
 }
 function hallway(){
