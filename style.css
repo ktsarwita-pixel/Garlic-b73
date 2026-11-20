@@ -75,6 +75,6 @@
 /* ITEM needs the same local positioning context as ACT and MERCY. */
 .actions button.night-lock{position:relative;overflow:hidden;isolation:isolate}
 /* Preserve square battle pixels on short landscape screens as well as phones. */
-.world.visitor-fight{container-type:size}.world.visitor-fight #scene{width:min(185cqw,155cqh);height:auto;max-height:none;bottom:1%;object-fit:contain}
+.world.visitor-fight{container-type:size}.world.visitor-fight #scene{image-rendering:crisp-edges;image-rendering:pixelated;width:min(185cqw,155cqh);height:auto;max-height:none;bottom:1%;object-fit:contain}
 /* Keep the visitor HUD above the painted arch, including its empty HP track. */
 .world.visitor-fight :is(.boss,.turn){z-index:2;pointer-events:none}.world.visitor-fight .boss .meter{background:#38313e;outline:1px solid #937f9a;box-shadow:0 0 0 2px #18141c}
