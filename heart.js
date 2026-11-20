@@ -124,12 +124,16 @@ function studyShelf(x,y,w,h,seed){
 // Faded prints stay in the north wall band, clear of the playable floor.
 function familyPhotos(){
  const frame=(x,y,w,h)=>{rect(x+1,y+1,w,h,'#484644');rect(x,y,w,h,'#655347');rect(x+1,y+1,w-2,h-2,'#b79e78');rect(x+2,y+2,w-4,h-4,'#d5c9ab');rect(x+3,y+3,w-6,h-6,'#777f7b')};
- frame(163,49,34,18);frame(142,51,18,15);frame(200,51,18,15);
- const portrait=['    hhhhh    ','  hheeeeess  ',' heeeeeeeess ',' eeqqeeqqqes ',' eepqeeqpqes ','  eeeqeeeess ','  seesssdes  ','   seeeees   ','  jccjjjccj  ',' jjbccjccbbj ',' jbbbjzjbbbj ',' jjbbjzjbbjj '];
- const ink={h:'#f3e5c6',e:'#dfd0b0',s:'#aa9c88',q:'#48484b',p:'#e8dcc0',d:'#6d625b',c:'#c4bba6',j:'#687b81',b:'#566972',z:'#b09e7f'};
- portrait.forEach((row,y)=>[...row].forEach((v,x)=>{if(ink[v])rect(173+x,52+y,1,1,ink[v])}));
- // A small outdoor snapshot: Sans beside a pine against distant snow.
- rect(145,60,12,3,'#bfc1b0');rect(146,57,1,5,'#595f57');rect(145,57,3,2,'#64766c');rect(150,55,4,3,'#e0d4b8');rect(150,56,1,1,'#575554');rect(153,56,1,1,'#575554');rect(151,58,2,1,'#c0b29b');rect(150,59,4,2,'#687c84');rect(150,61,1,1,'#504f4d');rect(153,61,1,1,'#504f4d');
+ frame(162,49,36,18);frame(140,50,20,16);frame(200,51,18,15);
+ // Use a narrow mount so the face, not the frame, occupies the print.
+ const ink={h:'#f3ead6',e:'#e4d7bc',s:'#b4a58e',q:'#3e4144',p:'#f1e4cd',d:'#70675e',c:'#c4beb0',j:'#607987',b:'#455f70',z:'#b8aa89',w:'#cccbbc',t:'#526459'};
+ const print=(x,y,rows)=>rows.forEach((r,v)=>[...r].forEach((k,u)=>{if(ink[k])rect(x+u,y+v,1,1,ink[k])}));
+ rect(164,51,32,14,'#7e8985');rect(164,61,32,4,'#697673');
+ print(171,51,['     hhhhhh     ','   hhheeeeess   ','  heeeeeeeeees  ',' heeeeeeeeeeees ',' hessseeeessses ',' eeqqqseeqqqqes ',' seqpqseeqpqqes ','  seeeesqeeees  ','  seqeeeeeeds   ','   seeqdddess   ','    seeeeess    ','  jbccsssscbbj  ',' jbbbcczzccbbbj ',' jbbjbczjcjbbbj ']);
+ // Snow-day candid: winding snowbank, stepped evergreen and a raised mitten.
+ rect(142,52,16,12,'#8d9999');rect(142,60,16,4,'#c4c7ba');rect(149,59,9,2,'#d8dacb');
+ print(142,53,['  t  ','  w  ',' ttt ',' twt ','ttttt','  d  ']);
+ print(149,54,[' hhh  ','heees ','eqeqs ',' seess',' jcc j',' bjjj ','  bs  ',' b  b ']);
  // Preserve the pressed sprig as a companion keepsake.
  rect(208,55,1,8,'#5f6857');rect(205,56,3,2,'#829078');rect(206,58,2,1,'#62735e');rect(209,54,3,2,'#97a187');rect(209,59,3,2,'#78846b');
 }
@@ -170,10 +174,11 @@ function studyPatina(){
  for(const [x,y,n] of [[103,130,9],[253,98,10],[102,282,10],[249,289,9],[236,76,7]]){
  for(let j=0;j<7;j++){const angle=j*.898+x*.1,len=n-(j%3),dx=Math.cos(angle),dy=Math.sin(angle);for(let k=0;k<len;k++){const px=x+dx*k,py=y+dy*k;dot(px,py,1,1,'#465c49');if(k%2===1){dot(px-dy,py+dx,2,1,'#899579');dot(px+dy,py-dx,1,2,'#677b61')}}}dot(x-1,y-1,3,2,'#52674f')}
  // The stopped brass clock: stepped bezel, four indices and a fork across the glass.
- const cx=249,cy=58;for(let v=-8;v<=8;v++)for(let u=-8;u<=8;u++){const r=u*u+v*v;if(r>65)continue;
- dot(cx+u,cy+v,1,1,r>53?'#49463f':r>39?(u+v<0?'#b69e75':'#837050'):(u+v<0?'#d7ceb3':'#c1b69b'))}
- for(const [u,v] of [[0,-5],[5,0],[0,5],[-5,0]])dot(cx+u,cy+v,1,1,'#716953');line(cx,cy,cx-2,cy-2,'#474941');line(cx,cy,cx+1,cy-4,'#474941');
- line(255,54,252,56,'#65675d');line(252,56,253,59,'#74756a');line(253,59,250,62,'#696b61');line(253,58,255,60,'#86887a');dot(252,59,1,1,'#e6ddc4');
+ const cx=249,cy=58;for(let v=-6;v<=6;v++)for(let u=-6;u<=6;u++){const r=u*u+v*v;if(r>37)continue;
+ dot(cx+u,cy+v,1,1,r>27?(u+v<0?'#b59d75':'#514a40'):(u+v<0?'#e0d7c0':'#cabea3'))}
+ for(const [u,v] of [[0,-4],[4,0],[0,4],[-4,0]])dot(cx+u,cy+v,1,1,'#80755e');line(cx,cy,cx-2,cy-2,'#464742');line(cx,cy,cx-1,cy+2,'#464742');
+ // Rim strike at two o'clock: dark jagged seam with a chipped, light-catching lip.
+ line(254,55,251,57,'#403f3b');dot(251,58,2,1,'#444540');line(252,59,250,62,'#4a4842');line(252,59,254,60,'#57554e');dot(252,57,1,1,'#faf3da');dot(251,60,1,1,'#f5ecd1');
  c.save();c.translate(-113,0);dot(239,53,11,11,'#68685d');dot(238,52,11,11,'#b4a88c');line(240,59,244,55,'#817d68');line(244,55,246,59,'#817d68');dot(242,53,1,1,'#645b4b');dot(246,61,3,2,'#d2c5a7');c.restore();
  }
  g.drawImage(patina,72,48);
