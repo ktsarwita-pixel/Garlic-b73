@@ -280,6 +280,7 @@ function leaf(n){const el=document.createElement('article');el.className='book-l
 function renderBook(n){spread=n;$('#spread').replaceChildren(leaf(n),leaf(n+1));$('#letter-prev').disabled=!n;$('#letter-next').disabled=!!n;$('#book-status').textContent=n?'Pages 3 and 4. Page 4 is torn out.':'Pages 1 and 2';fitBook()}
 function fitBook(){if(!letter.open)return;const copies=[...letter.querySelectorAll('#spread > article .book-copy')];for(const c of copies)c.style.fontSize='';if(!copies.length)return;let size=parseFloat(getComputedStyle(copies[0]).fontSize);while(size>8&&copies.some(c=>c.scrollHeight>c.clientHeight+1)){size-=.5;for(const c of copies)c.style.fontSize=size+'px'}}
 new ResizeObserver(fitBook).observe($('#spread'));
+const bookTurnFrames=[-1,1].map(dir=>Array.from({length:33},(_,i)=>{const t=i/32,bend=Math.sin(Math.PI*t)**2;return {offset:t,transform:`rotateY(${-dir*180*t}deg) skewY(${-dir*2.4*bend}deg) scaleX(${1-.025*bend})`}}));
 function turnBook(dir){const next=spread+dir*2;if(turn||next<0||next>2)return;
  const old=[...$('#spread').children];renderBook(next);const now=[...$('#spread').children];const moving=dir>0?1:0;
  if(matchMedia('(prefers-reduced-motion: reduce)').matches||!Element.prototype.animate)return;
@@ -287,11 +288,9 @@ function turnBook(dir){const next=spread+dir*2;if(turn||next<0||next>2)return;
  const front=old[moving],back=now[1-moving];front.classList.add('leaf-front');back.classList.add('leaf-back');
  const hold=old[1-moving];back.replaceWith(hold);flap.append(front,back);$('#spread').append(flap);
  // The spine stays pinned. The fore-edge rises first, bows through the
- // midpoint and settles flat while a narrow travelling shadow crosses the sheet.
+ // midpoint and settles flat. The gutter shading travels with the paper.
  const timing={duration:880,easing:'cubic-bezier(.42,0,.26,1)',fill:'forwards'};
- const frames=Array.from({length:33},(_,i)=>{const t=i/32,bend=Math.sin(Math.PI*t)**2;return {offset:t,transform:`rotateY(${-dir*180*t}deg) skewY(${-dir*2.4*bend}deg) scaleX(${1-.025*bend})`}});
- turn=flap.animate(frames,timing);
- for(const face of [front,back]){const shade=document.createElement('i');shade.className='turn-shade';face.append(shade);shade.animate([{opacity:0,transform:'translateX(-20%)'},{offset:.48,opacity:.48,transform:'translateX(0%)'},{opacity:0,transform:'translateX(24%)'}],timing)}
- turn.onfinish=()=>{back.lastElementChild.remove();back.classList.remove('leaf-back');hold.replaceWith(back);flap.remove();turn=null};}
+ turn=flap.animate(bookTurnFrames[dir===1?1:0],timing);
+ turn.onfinish=()=>{back.classList.remove('leaf-back');hold.replaceWith(back);flap.remove();turn=null};}
 function openLetter(){keys.clear();drag=false;target=null;renderBook(0);letter.showModal();fitBook()}
 $('#letter-prev').onclick=()=>turnBook(-1);$('#letter-next').onclick=()=>turnBook(1);$('#letter-close').onclick=()=>letter.close();letter.onclose=()=>{if(turn){turn.cancel();turn=null}};letter.onkeydown=e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();turnBook(e.key==='ArrowRight'?1:-1)}};
