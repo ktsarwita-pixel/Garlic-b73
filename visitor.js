@@ -83,8 +83,19 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  for(let j=0;j<hollowSkull.length;j++){const cant=Math.round((j/16)*(2+droop/2));stampMask([hollowSkull[j]],p,hx+cant,hy+j*2)}
  // Single-pixel bevels on the broken orbital rim, teeth, seam and rib ends.
  stampInk(174,hy+5,4,1,'#eee1cf');stampInk(177,hy+7,1,3,'#625c64');stampInk(168,hy+19,3,1,'#867e84');stampInk(171,hy+20,2,1,'#ada6a3');stampInk(181,hy+25,2,2,'#cbc1b6');stampInk(184,hy+26,1,2,'#afa29a');stampInk(175,83,4,1,'#b2abac');stampInk(173,86,4,1,'#a79fa3');stampInk(181,85,2,1,'#95505a');
- if(glow){const yy=hy+17;stampInk(182,yy,8,3,'#7935bf');stampInk(184,yy-1,4,5,'#a646f1');stampInk(183,yy,6,2,'#dd77ff');stampInk(185,yy,3,2,'#fff4ff');stampInk(186,yy,1,2,'#fff')}}
+ if(glow)visitorGaze(hy+17)}
  visitorInk.restore();g.save();g.imageSmoothingEnabled=false;g.drawImage(visitorSheet,130,32);g.restore();}
+// A low inner brow leaves a hooked aperture. The face stays still: only the
+// iris follows the soul, contracting into a needle as the wall pull begins.
+function visitorGaze(y0){const track=x<166?-1:x>194?1:0,iris=186+track;
+ const lock=mode==='dodge'&&wallPull&&wallPull.age<1.76;
+ stampInk(181,y0-2,9,5,'#211528');stampInk(182,y0+2,6,2,'#36203f');
+ stampInk(181,y0-2,3,2,'#716674');stampInk(183,y0-1,3,1,'#504452');
+ stampInk(188,y0-2,3,2,'#794396');stampInk(185,y0,5,2,'#ac49de');stampInk(182,y0+1,4,2,'#863db5');
+ stampInk(iris-1,y0,3,3,lock?'#ef86ff':'#d96bff');stampInk(iris,y0,1,lock?3:2,'#fff6ff');
+ stampInk(189,y0+3,2,1,'#935eac');stampInk(190,y0+4,1,2,'#674576');
+ if(lock){stampInk(191,y0-2,2,1,'#b77bc7');stampInk(193,y0-3,1,1,'#795388')}
+}
 function drawVisitor(){const a=revealClock,pan=ease((a-.4)/2.65),zoom=1+1.63*pan;
  // The mirrored seal spans y=370..391. Wait for full clearance, then
  // walk from behind its far sill; both heels clear the near sill before closing.
