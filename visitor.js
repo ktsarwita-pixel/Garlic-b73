@@ -125,20 +125,22 @@ function visitorWound(clock){
  // Blood catches in folds first; uneven rivulets pool at their tips before a bead falls.
  for(const [x,len,delay,bend] of [[170,5,.4,1],[176,11,.53,-1],[182,8,.63,1],[188,5,.72,-1]]){
   if(x>tip||clock<=delay)continue;
-  const duration=len*.21,h=Math.round(len*ease((clock-delay)/duration)),root=Math.round(cutHeight(x))+1;
-  // Start inside the cut. Adjacent scanlines share a pixel even where the flow bends.
+  const duration=len*.21,flow=ease((clock-delay)/duration),travel=len*flow,h=Math.floor(travel),root=Math.round(cutHeight(x))+1;
+  // Wet the cut first: only a single darkening pixel advances beyond the last full row.
+  // Never stamp the finished bead or a rectangular collar at the origin.
   const path=j=>x+Math.round(bend*ease(j/len));let end=x;
-  for(let j=0;j<=h;j++){const cx=path(j),left=Math.min(end,cx)-(j<2?1:0),right=Math.max(end,cx)+(j<len*.65?1:0);
-   stampInk(left,root+j,right-left+1,1,rim[4]);stampInk(cx,root+j,1,1,pool[5]);end=cx}
-  const age=clock-delay-duration,stretch=Math.round(3*ease(age/.38)),neck=root+h;
+  for(let j=0;j<=h;j++){const cx=path(j);stampInk(Math.min(end,cx),root+j,1+Math.abs(end-cx),1,pool[5]);end=cx}
+  visitorInk.save();visitorInk.globalAlpha=travel-h;stampInk(end,root+h+1,1,1,pool[5]);visitorInk.restore();
+  const age=clock-delay-duration;if(age<=0)continue;
+  const swell=ease(age/.38),stretch=Math.round(3*swell),neck=root+h;
   if(age<=.38)stampInk(end,neck,1,stretch+1,pool[5]);
   const yy=neck+stretch+Math.round(80*Math.max(0,age-.38)**2);
-  if(yy<106){stampInk(end,yy,1,1,pool[5]);stampInk(end-1,yy+1,2,1,pool[6]);stampInk(end,yy+2,1,1,pool[6])}
+  if(yy<106){visitorInk.save();visitorInk.globalAlpha=swell;stampInk(end,yy+1,1,1,pool[6]);visitorInk.globalAlpha=swell*swell;stampInk(end-1,yy+1,1,1,pool[6]);stampInk(end,yy+2,1,1,pool[6]);visitorInk.restore()}
   else stampInk(end-1,107,3,1,rim[4]);
  }
  for(let i=0;i<12;i++){const x=170+i*1.7,a=clock-(.27+i*.019);if(x>tip||a<=0||a>.85)continue;
  const vx=17+i*2.2,vy=-36+(i*11)%31,px=x+vx*a,py=cutHeight(x)+vy*a+70*a*a;
- visitorInk.save();visitorInk.globalAlpha=1-ease((a-.58)/.27);jointLine(px-vx*.035,py-(vy+140*a)*.035,px,py,i%3?1:2,i%3?'#a55081':'#68294f');visitorInk.restore()}
+ visitorInk.save();visitorInk.globalAlpha=ease(a/.10)*(1-ease((a-.58)/.27));jointLine(px-vx*.035,py-(vy+140*a)*.035,px,py,i%3?1:2,i%3?'#a55081':'#68294f');visitorInk.restore()}
 }
 // A low inner brow leaves a hooked aperture. The face stays still: only the
 // iris follows the soul, contracting into a needle as the wall pull begins.
