@@ -16,6 +16,7 @@ function armRig(side,w){const a=w?w.age:0,lead=w&&(!w.nx||w.nx===side),lift=ease
  return {sx,sy,ex,ey,px,py,angle:side===1?fore:Math.PI-fore,curl:lift+.35*whip,cast};}
 function revenantArm(side,w){const {sx,sy,ex,ey,px,py,angle,curl,cast}=armRig(side,w);
  jointLine(sx,sy,ex,ey,7,'#282532');jointLine(sx,sy,ex,ey,4,'#48505d');jointLine(ex,ey,px,py,5,'#23232c');jointLine(ex,ey,px,py,2,'#8d8992');
+ stampInk(ex-1,ey-1,3,2,'#606475');stampInk(px-1,py-1,2,2,'#bcb3b0');
  const ux=Math.cos(angle),uy=Math.sin(angle),tx=-uy,ty=ux;function at(out,across){return [px+ux*out+tx*across,py+uy*out+ty*across]}
  jointLine(...at(0,0),...at(3,0),4,'#a29c9b');jointLine(...at(.5,-1),...at(3,-1),2,'#d5cdc1');
  for(let i=-1;i<=1;i++){const [bx,by]=at(3,i*1.7),dir=angle+i*(.10+.16*cast)+side*.28*curl,kx=bx+2.5*Math.cos(dir),ky=by+2.5*Math.sin(dir),end=dir+side*(.24+curl*.95),len=i===0?3:2;jointLine(bx,by,kx,ky,2,'#a79e9c');jointLine(kx,ky,kx+len*Math.cos(end),ky+len*Math.sin(end),1,'#e6d9c9')}
@@ -66,6 +67,19 @@ const passingHeel=['  kkkkkk ',' kssssssk',' kppppppk',' kpPPpppk','  ksssssk'];
 function entryGait(progress){const beat=Math.min(11,Math.floor(progress*12)),f=progress*12-beat,left=beat%2===0;
  const plant=beat*6,from=Math.max(0,plant-6),to=Math.min(66,plant+6),arc=Math.sin(Math.PI*f),s=f*f*(3-2*f),swing=from+(to-from)*s,hips=(plant+swing)/2;
  const pose=(z,moving)=>({dy:Math.round((hips-z)/.61-(moving?arc*1.6:0)),lift:moving&&arc>.64});return {hips,left:pose(left?swing:plant,left),right:pose(left?plant:swing,!left),weight:(left?1:-1)*arc,arm:(swing-plant)/6*(left?1:-1)};}
+// Body motion follows actions, not a looping breath: the dead figure goes
+// completely still between gestures. Feet remain outside these transforms.
+function visitorPose(){const w=mode==='dodge'?wallPull:null,age=mode==='strike'?1.45-flash:-2;
+ const coil=w?pulse(w.age,0,.38):0,drive=w?pulse(w.age,.22,.86):0;
+ const teleport=mode==='strike'&&swings<6,side=round%2?1:-1;
+ const settle=teleport?(pulse(age,.18,.48)-pulse(age,1.06,1.38))*side:0;
+ const hit=mode==='strike'&&swings===6?pulse(age,.34,1.12):0;
+ return {lean:Math.round((w?w.nx*drive*2:0)-2*settle+2*hit),drop:Math.round(2*coil+Math.abs(settle)+hit),chin:Math.round(coil-drive+hit),hem:Math.round(settle*2+(w?w.nx*drive:0))};}
+function coatFinish(rear,hem){
+ // Crisp broken seam, reflected sleeve edges and the underside of the hood.
+ if(rear){jointLine(168,76,174,79,2,'#535f72');jointLine(174,79,183,80,2,'#363747');jointLine(183,80,190,76,2,'#677084');stampInk(180,82,1,6,'#515667');jointLine(179,89,176,94,1,'#784653')}
+ else{jointLine(166,77,171,81,2,'#637084');jointLine(172,80,169,87,1,'#87909a');jointLine(189,75,184,80,2,'#545c70');jointLine(184,80,179,89,1,'#a06165');stampInk(172,86,4,1,'#c2bcb2');stampInk(171,89,3,1,'#8c8990');stampInk(189,87,3,1,'#62667b');stampInk(188,88,2,1,'#30303e')}
+ jointLine(166,90,165+hem,96,2,'#343342');jointLine(189,91,190+hem,95,2,'#3d4051');}
 function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visitorSheet=document.createElement('canvas');visitorSheet.width=100;visitorSheet.height=88;visitorInk=visitorSheet.getContext('2d')}visitorInk.clearRect(0,0,100,88);const p=revenantPaint,gait=rear?entryGait(step):null,swing=gait?gait.arm:0;
  if(rear){
   // Animate the two halves of Sans's own shorts. Waist fixed under the jacket;
@@ -75,10 +89,10 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
    stampMask(foot.lift?passingHeel:rearHeel,p,hip-2,cuff-1);
   }
  }else{stampMask(boot,p,161,98);stampMask(boot,p,181,98);stampMask(shorts,p,165,90)}
- visitorInk.save();visitorInk.translate(gait?Math.round(gait.weight):0,0);stampMask(rear?rearCoat:burialCoat,p,160,69);
+ visitorInk.save();const pose=rear?{lean:Math.round(gait.weight),drop:0,chin:0,hem:Math.round(gait.arm)}:visitorPose();visitorInk.translate(pose.lean,pose.drop);stampMask(rear?rearCoat:burialCoat,p,160,69);coatFinish(rear,pose.hem);
  const handCue=mode==='dodge'&&round===6?wallPull:null;for(const side of [-1,1]){visitorInk.save();visitorInk.translate(0,Math.round(-side*swing*2));revenantArm(side,handCue);visitorInk.restore()}
  // Integer row shifts lift the chin out of the collar without rotating blurry pixels.
- const droop=Math.round(4*(1-wake)),hx=159,hy=46+droop;
+ const droop=Math.round(4*(1-wake)),hx=159,hy=46+droop+pose.chin;
  if(rear){stampMask(rearCranium,p,160,hy+3);stampInk(177,hy+24,3,2,p.s);stampInk(174,hy+11,4,1,'#938a91');stampInk(177,hy+12,1,3,'#837b83');stampInk(178,hy+15,3,1,'#938a91');stampInk(171,77,5,1,'#718092');stampInk(176,79,7,1,'#474f60');stampInk(181,85,1,5,'#262532');stampInk(180,90,2,2,'#793f4b');if(glow){stampInk(193,hy+15,1,3,'#c48aff');stampInk(191,73,3,1,'#9562b7')}}else{
  for(let j=0;j<hollowSkull.length;j++){const cant=Math.round((j/16)*(2+droop/2));stampMask([hollowSkull[j]],p,hx+cant,hy+j*2)}
  // Single-pixel bevels on the broken orbital rim, teeth, seam and rib ends.
@@ -87,12 +101,15 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  visitorInk.restore();g.save();g.imageSmoothingEnabled=false;g.drawImage(visitorSheet,130,32);g.restore();}
 // A low inner brow leaves a hooked aperture. The face stays still: only the
 // iris follows the soul, contracting into a needle as the wall pull begins.
-function visitorGaze(y0){const track=x<166?-1:x>194?1:0,iris=186+track;
+function visitorGaze(y0){const track=x<166?-1:x>194?1:0,iris=186+track,box=sevenBox(),low=y>(box.u+box.d)/2?1:0;
  const lock=mode==='dodge'&&wallPull&&wallPull.age<1.76;
  stampInk(181,y0-2,9,5,'#211528');stampInk(182,y0+2,6,2,'#36203f');
  stampInk(181,y0-2,3,2,'#716674');stampInk(183,y0-1,3,1,'#504452');
  stampInk(188,y0-2,3,2,'#794396');stampInk(185,y0,5,2,'#ac49de');stampInk(182,y0+1,4,2,'#863db5');
- stampInk(iris-1,y0,3,3,lock?'#ef86ff':'#d96bff');stampInk(iris,y0,1,lock?3:2,'#fff6ff');
+ // A stepped lower lid frames the pupil; its light catches bone, not the empty socket.
+ stampInk(182,y0+3,3,1,'#5b376f');stampInk(186,y0+3,4,1,'#b379c6');
+ stampInk(iris-1,y0+low,3,2,lock?'#f3a0ff':'#d96bff');stampInk(iris,y0+low-1,1,lock?4:3,'#fff6ff');
+ if(lock){const spread=ease(wallPull.age/.22)*(1-ease((wallPull.age-1.36)/.4));stampInk(189,y0-1,1+Math.round(3*spread),1,'#ac63ce');stampInk(190,y0+5,1,1+Math.round(2*spread),'#83599b')}
  stampInk(189,y0+3,2,1,'#935eac');stampInk(190,y0+4,1,2,'#674576');
  if(lock){stampInk(191,y0-2,2,1,'#b77bc7');stampInk(193,y0-3,1,1,'#795388')}
 }
