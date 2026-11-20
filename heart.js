@@ -91,24 +91,31 @@ function roomFloor(){
  roomTiles=tile;return tile;
 }
 // Freestanding furniture is scenery only. Bounds are shared with movement.
-const roomFurniture=[[98,170,31,35],[98,209,31,35],[98,312,31,35],[131,312,31,35],[160,204,40,26]];
+const roomFurniture=[[95,169,22,40],[95,211,22,40],[95,303,22,40],[95,345,22,24],[243,303,22,40],[243,345,22,24],[160,204,40,26]];
 function studyShelf(x,y,w,h,seed){
- const spines=['#a78771','#818e86','#827586','#afa388','#677987'];
- rect(x+2,y+3,w,h,'#4d4e4b');rect(x,y,w,h,'#443d39');rect(x+1,y+1,w-2,4,'#978977');rect(x+2,y+1,w-4,1,'#b3a794');
- for(let r=0;r<3;r++){const base=y+13+9*r;rect(x+2,base-7,w-4,8,'#393638');let j=0;
-  for(let p=x+3;p<x+w-4;j++){const k=seed+j*7+r*11,bw=2+k%3,bh=4+k%4;rect(p,base-bh,bw,bh,spines[k%5]);rect(p,base-bh+1,bw,1,'#b2a79a');p+=bw+1}
-  rect(x+1,base,w-2,2,'#8d806f');rect(x+1,base+2,w-2,1,'#594e46');}
- rect(x+1,y+4,1,h-5,'#a29380');
+ // Local +x points from the back panel into the aisle. Mirror the east bank.
+ g.save();g.translate(x+(x>180?w:0),y);if(x>180)g.scale(-1,1);
+ rect(0,0,w,h,'#403733');rect(1,1,6,h-2,'#8f7966');rect(2,2,1,h-4,'#ae9a80');
+ rect(7,1,w-8,h-2,'#4b403c');const tones=['#997783','#889886','#b28870','#938da0','#81969a'];
+ for(let bay=0;bay<(h>30?2:1);bay++){const start=3+bay*19,end=bay===0&&h<30?h-3:start+15;
+  for(let p=start,j=0;p<end;j++){const k=seed+j*7+bay*13,d=7+k%5,bh=Math.min(2+k%3,end-p);rect(8,p,d,bh,tones[k%5]);rect(9,p,1,bh,'#cebea1');rect(8+d-2,p,1,bh,'#645856');p+=bh+1}
+  rect(6,end+1,w-7,2,'#99816a');}
+ rect(w-2,1,1,h-2,'#ae9780');rect(1,h-2,w-2,1,'#675544');g.restore();
 }
 function studyDecor(){
- roomFurniture.slice(0,4).forEach((v,i)=>studyShelf(...v,i*3+1));
- const [x,y,w,h]=roomFurniture[4];rect(x+2,y+4,w,h-2,'#515250');rect(x+2,y+15,4,11,'#554941');rect(x+w-6,y+15,4,11,'#554941');rect(x,y,w,20,'#51463f');rect(x+1,y+1,w-2,15,'#988673');rect(x+2,y+1,w-4,1,'#b5a48d');rect(x+2,y+17,w-4,1,'#796857');
+ roomFurniture.slice(0,-1).forEach((v,i)=>studyShelf(...v,i*3+1));
+ // Woven runner under the writing desk; the fringe stays walkable.
+ rect(153,197,54,40,'#686064');rect(155,199,50,36,'#898084');rect(157,201,46,32,'#726c74');
+ for(let i=155;i<206;i+=3){rect(i,195,1,2,'#a29790');rect(i,237,1,2,'#a29790')}
+ const [x,y,w,h]=roomFurniture[roomFurniture.length-1];rect(x+2,y+4,w,h-2,'#515250');rect(x+2,y+15,4,11,'#554941');rect(x+w-6,y+15,4,11,'#554941');rect(x,y,w,20,'#51463f');rect(x+1,y+1,w-2,15,'#988673');rect(x+2,y+1,w-4,1,'#b5a48d');rect(x+2,y+17,w-4,1,'#796857');
  // Uneven page edges, fine ink lines, folded ribbon at the gutter.
  rect(171,207,17,10,'#675653');rect(172,207,7,8,'#e2d8c0');rect(180,206,7,9,'#d2c8af');rect(179,207,1,9,'#a0937e');rect(180,214,1,4,'#92605c');for(const p of [173,181])for(let j=0;j<2;j++)rect(p,209+j*2,4-j,1,'#a69e90');
  // A little skeleton in an oversized striped jumper, in a faded family print.
- rect(166,45,28,26,'#44403d');rect(167,46,26,24,'#aa9880');rect(169,48,22,20,'#ddd4bc');rect(170,49,20,18,'#777d78');
- const child=['   sssss   ','  sssssss  ',' sssssssss ',' ssddssdds ',' ssddssdds ','  ssssdss  ','   sddds   ','   sssss   ','  jjjjjjj  ',' jhhjjjhhj ',' jjhhhhjjj ','  jjjjjjj  '];
- child.forEach((row,j)=>[...row].forEach((v,i)=>{const c={s:'#e9dfc8',d:'#48494a',j:'#697b85',h:'#acb0a1'}[v];if(c)rect(175+i,53+j,1,1,c)}));
+ rect(168,50,24,17,'#463e39');rect(169,51,22,15,'#baa38a');rect(170,52,20,13,'#ded3ba');rect(171,53,18,11,'#838880');
+ const child=['   sssss   ','  sssssss  ',' ssddssdds ',' ssdhsdhds ','  sssnsss  ','   sndns   ','    sss    ','  jjjjjjj  ',' jhjhhh jh ','  jjjjjjj  '];
+ child.forEach((row,j)=>[...row].forEach((v,i)=>{const c={s:'#eee4cc',d:'#444647',h:'#bebeb0',n:'#867b72',j:'#687d87'}[v];if(c)rect(175+i,54+j,1,1,c)}));
+ // Brass desk light and ink pot sit on the tabletop, separate from the open book.
+ rect(188,213,6,2,'#665346');rect(190,208,2,5,'#b49769');rect(188,205,5,1,'#ae9067');rect(187,206,7,3,'#c9ad78');rect(188,209,5,1,'#ead5a2');rect(164,212,4,3,'#494954');rect(165,211,2,1,'#ada59a');
  // Two smaller keepsakes: a mountain silhouette and a pressed sprig.
  for(const xx of [151,197]){rect(xx,51,12,14,'#514a43');rect(xx+1,52,10,12,'#b8ab95');rect(xx+2,53,8,10,'#858981')}
  for(let j=0;j<5;j++)rect(157-j,57+j,j+1,1,'#596361');rect(203,56,1,6,'#566156');rect(201,57,2,2,'#687868');rect(204,55,2,2,'#667666');
