@@ -101,11 +101,24 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  // Single-pixel bevels on the broken orbital rim, teeth, seam and rib ends.
  stampInk(174,hy+5,4,1,'#eee1cf');stampInk(177,hy+7,1,3,'#625c64');stampInk(168,hy+19,3,1,'#867e84');stampInk(171,hy+20,2,1,'#ada6a3');stampInk(181,hy+25,2,2,'#cbc1b6');stampInk(184,hy+26,1,2,'#afa29a');stampInk(175,83,4,1,'#b2abac');stampInk(173,86,4,1,'#a79fa3');stampInk(181,85,2,1,'#95505a');
  if(glow){const age=mode==='sevenHold'?endingAge+.93:mode==='strike'&&swings===6?.93-flash:-1;
- if(age>=0){jointLine(185,78,174,87,3,'#50235f');jointLine(184,79,176,86,1,'#ca67de');stampInk(177,85,2,1+Math.round(7*ease(age)), '#853b99');stampInk(182,81,1,4,'#ae54b9');
- if(age<.7)for(let i=0;i<7;i++){const vx=12+i*5,vy=-30+(i*13)%32;stampInk(181+vx*age,82+vy*age+65*age*age,1+i%2,2,i%2?'#b75dcc':'#723686')}}
+ if(age>=-.28)visitorWound(age+.52);
  visitorInk.save();visitorInk.globalAlpha=1-ease((age-1.3)/1.15);visitorGaze(hy+17);visitorInk.restore();
  if(age>2.75){const length=1+Math.round(4*ease((age-2.75)/.28));stampInk(186,hy+16,1,length,'#ffffff');stampInk(185,hy+17,3,1,'#edfaff')}}}
  visitorInk.restore();g.save();g.imageSmoothingEnabled=false;g.drawImage(visitorSheet,130,32);g.restore();}
+// The final sweep is the original blade arc, lowered ten pixels onto the coat.
+function cutHeight(x){const f=(x-154)/51;return 108-40*f-5*Math.sin(Math.PI*f)}
+function visitorWound(clock){
+ const u=Math.min(1,clock/.72),tip=154+Math.ceil(52*u*u*(3-2*u))-1;
+ for(let x=168;x<=Math.min(191,tip);x++){
+  const y=cutHeight(x),belly=Math.sin(Math.PI*(x-168)/23),width=Math.round(3*belly);
+  stampInk(x,y-width,1,2*width+2,'#49213f');stampInk(x,y-width+1,1,width+1,'#983c91');
+  stampInk(x,y,1,1+Math.round(belly),'#32132f');if(x%8<4)stampInk(x,y-1,1,1,'#ce72bf');
+ }
+ for(const [x,len,delay] of [[171,6,.42],[177,12,.51],[185,8,.59]]){const h=Math.round(len*ease((clock-delay)/1.2));if(h){const y=cutHeight(x)+2;stampInk(x,y,2,h,'#682655');stampInk(x,y+h-1,2,2,'#a34793')}}
+ for(let i=0;i<12;i++){const x=170+i*1.7,a=clock-(.27+i*.019);if(a<=0||a>.85)continue;
+ const vx=17+i*2.2,vy=-36+(i*11)%31,px=x+vx*a,py=cutHeight(x)+vy*a+70*a*a;
+ visitorInk.save();visitorInk.globalAlpha=1-ease((a-.58)/.27);jointLine(px-vx*.035,py-(vy+140*a)*.035,px,py,i%3?1:2,i%3?'#be59aa':'#822f78');visitorInk.restore()}
+}
 // A low inner brow leaves a hooked aperture. The face stays still: only the
 // iris follows the soul, contracting into a needle as the wall pull begins.
 function visitorGaze(y0){const track=x<166?-1:x>194?1:0,iris=186+track,box=sevenBox(),low=y>(box.u+box.d)/2?1:0;
@@ -170,7 +183,7 @@ function sevenStage(b){
  for(const side of [-1,1]){const x=180+side*53;rect(x-3,y-76,7,76,'#211f24');rect(x-2,y-74,1,71,'#302c32');for(let k=0;k<4;k++)rect(x-3,y-k*18-2,7,2,'#161518');rect(x-5,y-2,11,2,'#353038')}
  rect(124,y-78,112,3,'#242127');rect(128,y-75,104,1,'#373039');for(let i=0;i<9;i++)rect(180+(i%4===2?1:0),y-72+i*8,1,8,'#282329');
  rect(163,y-1,34,2,'#252128');rect(169,y-1,22,1,'#302b33')}
-function sevenDraw(){const b=sevenBox();sevenStage(b);g.save();g.translate(180,b.u-5);g.translate(-180,-110);if(mode==='strike'&&swings<6)blinkDodge(1.45-flash);else sevenFigure();if(mode==='strike')slash(1.45-flash,swings<6);g.restore();rect(b.l-2,b.u-2,b.r-b.l+4,b.d-b.u+4,'#cbbfd2');rect(b.l,b.u,b.r-b.l,b.d-b.u,'#111015');for(const xx of [b.l,b.r-5])for(const yy of [b.u,b.d-1])rect(xx,yy,5,1,'#55495d');g.save();g.beginPath();g.rect(b.l,b.u,b.r-b.l,b.d-b.u);g.clip();gateWarning();slamEffects(b);for(const s of shots){g.save();g.translate(s.x,s.y);if(s.horiz)g.transform(0,1,1,0,0,0);drawVisitorBone(s);g.restore()}
+function sevenDraw(){const b=sevenBox();sevenStage(b);g.save();g.translate(180,b.u-5);g.translate(-180,-110);if(mode==='strike'&&swings<6)blinkDodge(1.45-flash);else sevenFigure();if(mode==='strike'){if(swings===6)g.translate(0,10);slash(1.45-flash,swings<6)}g.restore();rect(b.l-2,b.u-2,b.r-b.l+4,b.d-b.u+4,'#cbbfd2');rect(b.l,b.u,b.r-b.l,b.d-b.u,'#111015');for(const xx of [b.l,b.r-5])for(const yy of [b.u,b.d-1])rect(xx,yy,5,1,'#55495d');g.save();g.beginPath();g.rect(b.l,b.u,b.r-b.l,b.d-b.u);g.clip();gateWarning();slamEffects(b);for(const s of shots){g.save();g.translate(s.x,s.y);if(s.horiz)g.transform(0,1,1,0,0,0);drawVisitorBone(s);g.restore()}
  const w=wallPull;if(w&&!w.fired)drawSlamAlert(b,w);if(mode==='dying')brokenSoul();else if(hp&&(inv<=0||Math.floor(t*12)%2)){if(w&&w.age<=.92){g.save();const flatten=pulse(w.age,.54,.80);g.translate(Math.round(x),Math.round(y));g.scale(1+flatten*(w.nx?-.26:.20),1+flatten*(w.ny?-.26:.20));g.translate(-x,-y);soulRows.forEach((r,j)=>[...r].forEach((v,i)=>{if(v==='r')rect(x+i-3,y+j-3,1,1,j===0||soulRows[j][i-1]!=='r'||soulRows[j][i+1]!=='r'?'#b99acb':'#09060d')}));g.restore()}else tinySoul(x,y)}g.restore()}
 
 // Effects are timed from the same impact clock as the hand and collision.
