@@ -108,34 +108,35 @@ function furnitureBody(x,y,w,h,depth,top){
  return [tw,th];
 }
 function studyShelf(x,y,w,h,seed){
- const [tw,th]=furnitureBody(x,y,w,h,4,'#94785e');
+ const east=x>180;
  let tile=shelfTiles.get(seed);
- if(!tile){tile=document.createElement('canvas');tile.width=tw;tile.height=th;
-  const c=tile.getContext('2d'),ink=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(x,y,w,h)};
-  let state=317+seed;const roll=n=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return Math.floor(state/4294967296*n)};
+ if(!tile){tile=document.createElement('canvas');tile.width=w;tile.height=h;
+  const c=tile.getContext('2d'),tw=w-3,th=h-6;
+  // Work in cabinet coordinates. Mirror only the plan: every upright projects
+  // three pixels right and six down, regardless of which wall it stands against.
+  const plank=(u,v,ww,hh,z,col)=>{c.fillStyle=col;c.fillRect((east?tw-u-ww:u)+Math.ceil(z/2),v+z,ww,hh)};
+  const timber=(u,v,ww,hh,deep)=>{for(let z=deep;z>0;z--){plank(u,v,ww,hh,z,'#645041');plank(u,v+hh-1,ww,1,z,'#796553')}
+   plank(u,v,ww,hh,0,'#94785e');plank(u,v,ww,1,0,'#b39a7b');};
+  let state=317+seed;const roll=n=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return (state>>>8)%n};
   const cloth=['#805759','#516e72','#71755a','#9a7652','#746577','#776149','#596878'];
-  const w=tw,h=th;
-  ink(0,0,w,h,'#423831');ink(1,1,w-2,h-2,'#77614d');ink(3,2,2,h-4,'#534438');
-  for(let i=0;i<10;i++)ink(2+roll(w-5),2+roll(h-9),1,3+roll(5),'#6a5544');
-  for(let bay=0;bay<(h>30?2:1);bay++){
-   const start=3+bay*16,end=h>30?start+14:h-3;let p=start;
-   // A few oversize atlases are stored flat: stepped covers and offset leaves.
-   if((seed+bay)%5===1){const depth=12,ax=5;ink(ax+1,p+1,depth,8,'#514741');ink(ax,p,depth,8,'#765552');ink(ax+1,p+1,depth-1,6,'#c1b59d');ink(ax-1,p,depth,6,'#536c6d');ink(ax,p,1,6,'#87938b');ink(ax+3,p+2,5,1,'#b8aa85');p+=9}
-   while(p<end){const thick=Math.min(end-p,2+roll(4)),front=w-4-roll(3),back=4+roll(4),cover=cloth[roll(cloth.length)],lean=thick>=3&&end-p>thick&&roll(4)===0;
-    for(let u=back;u<=front;u++){const yy=p+(lean&&u>=front-5?1:0);ink(u,yy,1,thick,cover);
-     if(thick>2&&u>back&&u<front-1)ink(u,yy+1,1,thick-2,u<back+3?'#a49a86':'#c8bda5');
-     if(u===front&&thick>2)ink(u,yy+1,1,thick-2,'#453d38');}
-    if(thick>=4)ink(front-1,p+1+(lean?1:0),1,1,'#bcaa82');p+=thick+(lean?1:0);
+  timber(0,0,tw,th,6);plank(2,2,tw-3,th-4,2,'#403733');
+  const bays=h>30?2:1;
+  for(let bay=0;bay<bays;bay++){
+   const start=2+Math.floor(bay*(th-3)/bays),end=1+Math.floor((bay+1)*(th-3)/bays);
+   for(let p=start;p<end;){const thick=Math.min(end-p,2+roll(4)),back=4+roll(3),front=tw-3-roll(3),cover=cloth[roll(cloth.length)];
+    // Recessed paper block above a deeper, cloth-bound spine facing the aisle.
+    for(let z=4;z>=1;z--)plank(back,p,front-back,thick,z,z===4?'#463c35':cover);
+    plank(back,p,front-back,thick,0,cover);if(thick>2)plank(back+1,p+1,front-back-2,thick-2,0,'#c8bda5');
+    if(thick>=3)plank(front-1,p+1,1,1,2,'#bcaa82');p+=thick+roll(2);
    }
-   if(end<h-2){ink(2,end,w-4,2,'#93785f');ink(3,end,w-6,1,'#b29879')}
+   if(bay<bays-1)timber(1,end,tw-1,2,4);
   }
-  for(const yy of [0,h-2]){ink(0,yy,w-1,2,'#94785e');ink(2,yy,w-6,1,'#b39a7b');ink(w-4,yy,1,1,'#5d4c3e')}
-  ink(w-2,2,1,h-4,'#ae9170');ink(w-1,2,1,h-4,'#645041');shelfTiles.set(seed,tile);
+  // Broad wood crown, interrupted grain and solid end cheeks frame the bays.
+  timber(0,0,6,th,3);plank(2,3,1,Math.floor(th*.42),0,'#aa9178');plank(4,th-8,1,5,0,'#806950');
+  timber(0,0,tw,2,4);timber(0,th-2,tw,2,6);plank(3,th-1,tw-7,1,0,'#a68b70');
+  shelfTiles.set(seed,tile);
  }
- g.save();g.translate(x+(x>180?tw:0),y);if(x>180)g.scale(-1,1);
- g.drawImage(tile,0,0);g.restore();
- // The rear cap is horizontal wood, with a recessed shadow over the page tops.
- const rail=x+(x>180?tw-4:0);rect(rail,y+1,4,th-2,'#94785e');rect(rail,y+1,1,th-2,'#b39a7b');rect(rail+(x>180?-1:4),y+2,1,th-4,'#55483e');
+ g.save();g.globalAlpha=.12;rect(x+2,y+2,w,h,'#262322');g.globalAlpha=.22;rect(x+2,y+2,w-1,h-1,'#262322');g.globalAlpha=1;g.drawImage(tile,x,y);g.restore();
 }
 // Faded prints stay in the north wall band, clear of the playable floor.
 function familyPhotos(){
