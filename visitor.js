@@ -103,14 +103,18 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  if(glow){const age=mode==='sevenHold'?endingAge+.93:mode==='strike'&&swings===6?.93-flash:-1;
  if(age>=-.28)visitorWound(age+.52);
  visitorInk.save();visitorInk.globalAlpha=1-ease((age-6.5)/1.9);visitorGaze(hy+17);visitorInk.restore();
- if(age>9.1){const light=ease((age-9.1)/.72);visitorInk.save();visitorInk.globalAlpha=light;
- // Centered on the overlapping hollow pixels of skull rows 7–9. No detached glints.
- // The slit ignites first; the crossbar opens under the brow, then settles to ice-blue tips.
- const flare=ease((age-9.22)/.18)*(1-ease((age-9.48)/.55)),arm=Math.round(2*ease((age-9.22)/.26));
- stampInk(184,hy+15,5,4,'#14202c');stampInk(186,hy+14,1,6,'#b6dbeb');
- stampInk(186-arm,hy+16,1+2*arm,1,flare>.45?'#fff':'#c7e9fa');stampInk(186,hy+15,1,4,'#fff');
- if(flare>.25)stampInk(185,hy+17,3,1,'#d6eef7');visitorInk.restore()}}}
+ if(age>9.1)whiteCross(hy,age-9.1)}}
  visitorInk.restore();g.save();g.imageSmoothingEnabled=false;g.drawImage(visitorSheet,130,32);g.restore();}
+// Illuminate the same ten connected pixels every frame, never swap eye silhouettes.
+function whiteCross(hy,seconds){
+ const reveal=ease(seconds/1.15),sweep=-4+10*((seconds+.5)%3.8)/3.8;
+ visitorInk.save();visitorInk.globalAlpha=reveal;
+ stampInk(186,hy+14,1,6,'#b1ccd8');stampInk(184,hy+16,5,1,'#c5dae2');stampInk(186,hy+16,1,1,'#f5fcff');
+ // A soft band of reflected white travels diagonally across the fixed icy base.
+ for(let j=-2;j<=3;j++)for(let i=-2;i<=2;i++){if(i&&j)continue;
+  const d=(i+j*.66-sweep)/1.05;visitorInk.globalAlpha=reveal*.94*Math.exp(-d*d);stampInk(186+i,hy+16+j,1,1,'#ffffff')}
+ visitorInk.restore();
+}
 // The final sweep is the original blade arc, lowered ten pixels onto the coat.
 function cutHeight(x){const f=(x-154)/51;return 108-40*f-5*Math.sin(Math.PI*f)}
 // Precompute shades so aging never allocates colors in the pixel loop.
@@ -198,7 +202,7 @@ function wallSequence(dt,b){if(!wallPull&&slamCount>=3)return false;if(!wallPull
  if(w.age>=1.76&&!w.fired){w.fired=true;for(let off=6;off<112;off+=10)sevenBone(w.nx?0:b.l+off,w.ny?0:b.u+off,4,0,0,!!w.nx,'corrupt boke')}
  if(w.fired){const depth=Math.round(SLAM_REACH*ease((w.age-1.76)/.17)*(1-ease((w.age-2.65)/.27)));for(const s of shots){s.h=Math.max(4,depth);if(w.nx)s.x=w.nx<0?b.l:b.r-s.h;else s.y=w.ny<0?b.u:b.d-s.h}if(w.age>=2.92)shots=[]}if(w.age>=3.55)wallPull=null;return false}
 let endingAge=0;
-function sevenTick(dt){if(mode==='sevenHold'){endingAge=Math.min(22,endingAge+dt);if(encounter===7&&endingAge>=12){encounter=8;boss=100;ui()}return}if(mode==='strike'){const before=1.45-flash;flash-=dt;const age=1.45-flash;if(swings<6){if(before<.18&&age>=.18)sfx('phaseOut');if(before<1.06&&age>=1.06)sfx('phaseIn')}else if(before<.52&&age>=.52)sfx('impact');if(flash<=0){if(swings===6){endingAge=0;mode='sevenHold';msg('…');ui()}else{round++;sevenWave(round===4)}}return}if(mode!=='dodge')return;
+function sevenTick(dt){if(mode==='sevenHold'){endingAge+=dt;if(encounter===7&&endingAge>=12){encounter=8;boss=100;ui()}return}if(mode==='strike'){const before=1.45-flash;flash-=dt;const age=1.45-flash;if(swings<6){if(before<.18&&age>=.18)sfx('phaseOut');if(before<1.06&&age>=1.06)sfx('phaseIn')}else if(before<.52&&age>=.52)sfx('impact');if(flash<=0){if(swings===6){endingAge=0;mode='sevenHold';msg('…');ui()}else{round++;sevenWave(round===4)}}return}if(mode!=='dodge')return;
  if(roomShift){const m=roomShift;m.age=Math.min(SHIFT_TIME,m.age+dt);const p=ease(m.age/SHIFT_TIME);x=m.sx+(180-m.sx)*p;y=m.sy+(160-m.sy)*p;if(m.age>=SHIFT_TIME)roomShift=null;return}
  const b=sevenBox(),ox=x,oy=y;elapsed+=dt;inv-=dt;
  const held=round===6&&wallSequence(dt,b);if(held&&drag&&target){target=null}if(!held){let dx=+ (keys.has('d')||keys.has('arrowright'))- +(keys.has('a')||keys.has('arrowleft')),dy=+(keys.has('s')||keys.has('arrowdown'))- +(keys.has('w')||keys.has('arrowup'));if(drag&&target){dx=target[0]-x;dy=target[1]-y}const q=Math.hypot(dx,dy)||1,step=drag&&target?Math.min(q,dt*95):dt*95;x=Math.max(b.l+5,Math.min(b.r-5,x+step*dx/q));y=Math.max(b.u+5,Math.min(b.d-5,y+step*dy/q))}if(round<6&&(spawn-=dt)<=0)sevenGate();const moving=Math.hypot(x-ox,y-oy)>.001;
