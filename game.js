@@ -246,7 +246,7 @@ const testPanel=$('#test-panel');let testGod=false;
 function openTest(){keys.clear();drag=false;target=null;$('#tester').hidden=false;testPanel.showModal();$('#test-input').focus()}
 function testCommand(raw){
  const cmd=raw.trim().toLowerCase().replace(/\s+/g,' ');
- if(cmd==='last slash'){enterHeart();purple=true;cracks=4;boss=20;heartAction('fight')}else if(cmd==='hallway'){enterHall()}else if(cmd==='enc 6'){enterHeart()}else if(/^enc [1-5]$/.test(cmd)||cmd==='reset'){
+ if(cmd==='purple last stage'||cmd==='last slash'){enterHeart();purple=true;cracks=4;boss=20;if(cmd==='last slash')heartAction('fight');else msg('Four fractures. One slash left.')}else if(cmd==='hallway'){enterHall()}else if(cmd==='enc 6'){enterHeart()}else if(/^enc [1-5]$/.test(cmd)||cmd==='reset'){
   if(cmd!=='reset')encounter=Number(cmd.slice(-1));resetBattle();
   if(encounter===5)say('THIS TIME I WONT GIVE UP!');else if(encounter===4)say('you know what no more mercy');else if(encounter===3)say('Ah you again im taking it serius');else msg('Encounter ready. Choose an action.');
  }else if(/^wave [1-3]$/.test(cmd)){round=Number(cmd.slice(-1));if(hp<=0)hp=20;inv=0;startWave(.55)}

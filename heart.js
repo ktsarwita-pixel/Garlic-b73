@@ -141,15 +141,23 @@ function threshold(age){
  const beat=Math.floor(t*4.5),phase=t*4.5-beat,near=1-ease((hallY-38)/95);
  rect(150,12,60,24,'#36383a');rect(152,14,56,21,'#15171a');
  // Keep the hallway camera fixed. The sliding leaves occlude this patch naturally.
- if(open>0)g.drawImage(roomFloor(),57,283,56,21,152,14,56,21);
+ if(open>0){
+  // Compress the last few courses into the recess; the threshold stays fixed
+  // while only the fractured leaves slip. Nearest-neighbour keeps the grout crisp.
+  g.save();g.imageSmoothingEnabled=false;g.drawImage(roomFloor(),43,260,84,44,152,14,56,21);
+  for(let k=0;k<4;k++){g.globalAlpha=.09*(4-k);rect(152,14+k,56,1,'#202429')}
+  g.globalAlpha=1;rect(152,33,56,1,'#a2a6a2');rect(152,34,56,1,'#626665');g.restore();
+ }
  for(let row=0;row<21;row++){
   const band=row>>2,slips=band===(beat*3)%5;
   const tear=slips?(beat%2?-1:1)*(phase<.32?3+Math.round(near*3):phase<.56?1:0):0;
   const tooth=[0,0,-2,-2,1,1][Math.floor(row/2)%6];
   for(const side of [-1,1]){
-   const dx=tear+side*Math.round(open*19),left=side<0?153:180+tooth,right=side<0?180+tooth:207;
+   const dx=tear+side*Math.round(open*23),left=side<0?153:180+tooth,right=side<0?180+tooth:207;
    g.save();g.beginPath();g.rect(152,14+row,56,1);g.clip();
    rect(left+dx,14+row,right-left,1,row===0?'#ebece6':row%8===7?'#656967':'#a4a7a3');
+   // Contact shadow hugs the room-facing edge, never the hallway floor.
+   if(open>0){const lip=(side<0?right:left)+dx;g.globalAlpha=.4*open;rect(side<0?lip:lip-2,14+row,2,1,'#24272a');g.globalAlpha=.17*open;rect(side<0?lip+2:lip-4,14+row,2,1,'#24272a');g.globalAlpha=1}
    // Mortar seams move with the displaced strip; the adjoining blocks stay put.
    const joint=side<0?159+((row>>3)%2)*10:193+((row>>3)%2)*8;
    rect(joint+dx,14+row,1,1,'#777b78');rect(joint+1+dx,14+row,1,1,'#b9bcb6');
