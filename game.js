@@ -300,11 +300,26 @@ let revealClock=0,wallPull=null;
 function startSeven(){encounter=7;resetBattle();wallPull=null;sevenWave()}
 function sevenBox(){return round<4?{l:94,r:266,u:118,d:173}:{l:122,r:238,u:58,d:174}}
 function sevenWave(){startWave(.55);wallPull=null;const b=sevenBox();x=(b.l+b.r)/2;y=(b.u+b.d)/2;msg(['White: dodge. Blue: stop. Red: move.','Watch the fractured bones change near you.','Keep moving through red. Watch the fractures.','Look up. The ceiling is no longer safe.','The gates are closing faster.','Watch his hands. Get away from the marked wall.'][round-1]);ui()}
-function sevenHands(cx,cy,side,dx=0,dy=0){const xx=cx+side*20+dx,yy=cy+dy;rect(cx+side*18-3,cy-4,7,8,'#335575');rect(xx-3,yy,7,4,'#a9a5a5');rect(xx-3,yy-1,6,4,'#eae6d7');for(let i=0;i<3;i++)rect(xx-3+i*3,yy+3,2,3-(i%2),'#eae6d7')}
+// Raster the linked sleeve, wrist and finger joints without antialiasing.
+function jointLine(x0,y0,x1,y1,width,color){const n=Math.max(1,Math.ceil(Math.max(Math.abs(x1-x0),Math.abs(y1-y0))));for(let i=0;i<=n;i++)rect(Math.round(x0+(x1-x0)*i/n-width/2),Math.round(y0+(y1-y0)*i/n-width/2),width,width,color)}
+function revenantArm(side,w){const a=w?w.age:0,lead=w&&(w.nx===side||!w.nx),reach=lead?1:.48;
+ const gather=ease(a/.22)*(1-ease((a-.22)/.24)),snap=ease((a-.22)/.32)*(1-ease((a-.77)/.52)),cast=ease((a-1.44)/.32)*(1-ease((a-2.64)/.42));
+ const vx=w?w.nx:0,vy=w?w.ny:0,force=(snap+cast*.72)*reach;
+ const sx=180+side*16,sy=78,ex=sx+side*(5+3*gather)+vx*4*force,ey=sy+9-5*gather+vy*4*force;
+ const px=180+side*(22-5*gather)+vx*(15*force-4*gather),py=92-13*gather+vy*(15*force-4*gather)-3*cast;
+ jointLine(sx,sy,ex,ey,7,'#262631');jointLine(sx,sy,ex,ey,5,'#414657');jointLine(ex,ey,px,py,5,'#30313d');jointLine(ex,ey,px,py,3,'#666473');
+ const angle=Math.atan2(1-force+vy*force,side*.16*(1-force)+vx*force),ux=Math.cos(angle),uy=Math.sin(angle),tx=-uy,ty=ux;
+ function at(out,across){return [px+ux*out+tx*across,py+uy*out+ty*across]}
+ jointLine(...at(0,0),...at(3,0),5,'#a29c9b');jointLine(...at(1,-1),...at(3,-1),3,'#d5cdc1');
+ for(let i=-1;i<=1;i++){const spread=2+cast*1.4,base=at(3,i*2),knuckle=at(5-gather,i*spread),tip=at(7+force*2-Math.abs(i)-3*gather,i*spread+side*gather);jointLine(...base,...knuckle,2,'#aca2a0');jointLine(...knuckle,...tip,1,'#efe1d1')}
+ jointLine(...at(1,side*2),...at(4,side*(4+cast)),2,'#beb5ae');}
 const revenantPaint={...lastPaint,w:'#c3bfba',W:'#ddd8d0',s:'#918b91',b:'#48566c',B:'#778291',d:'#343342',R:'#763443',r:'#452733',e:ink};
-function sevenFigure(glow=true){const p=revenantPaint;mask(boot,p,159,98);mask(boot,p,181,98);mask(shorts,p,164,89);mask(lastCoat,p,158,70);mask(lastFace,p,160,47);let dx=0,dy=0;if(round===6&&wallPull&&wallPull.age<1.5){const gesture=ease(wallPull.age/.22);dx=wallPull.nx*7*gesture;dy=wallPull.ny*8*gesture}sevenHands(180,88,-1,dx,dy);sevenHands(180,88,1,dx,dy);if(glow){rect(184,61,6,3,'#512d68');rect(185,61,4,2,'#b675ec');rect(186,61,2,2,'#f8ddff')}}
-function drawVisitor(){const a=revealClock,vx=hallX-180,vy=hallY-217,len=Math.hypot(vx,vy)||1,px=Math.round(hallX+vx/len*30),py=Math.round(hallY+vy/len*30),focus=ease((a-.7)/2.3),zoom=1+1.1*focus;
- g.save();g.translate(HALL_WIDTH/2,HALL_HEIGHT/2);g.scale(zoom,zoom);g.translate(-(180+(px-180)*focus),-(HALL_HEIGHT/2+(py-18-HALL_HEIGHT/2)*focus));chamber();
+function sevenFigure(glow=true){const p=revenantPaint;mask(boot,p,159,98);mask(boot,p,181,98);mask(shorts,p,164,89);mask(lastCoat,p,158,70);mask(lastFace,p,159,49);
+ // A split brow, sunken left socket and loose jaw over the old fatal cut.
+ for(const [dx,dy] of [[0,0],[1,1],[1,2],[2,3],[2,4],[1,5],[2,6]])rect(174+dx,51+dy,1,1,'#56505a');rect(166,62,8,4,'#181721');rect(168,66,5,1,'#79727b');rect(177,73,9,1,'#39333c');rect(183,74,3,1,'#655357');rect(172,88,2,5,'#46313b');
+ const handCue=mode==='dodge'&&round===6?wallPull:null;revenantArm(-1,handCue);revenantArm(1,handCue);if(glow){rect(183,63,6,3,'#512d68');rect(184,63,4,2,'#b675ec');rect(185,63,2,2,'#f8ddff')}}
+function drawVisitor(){const a=revealClock,px=180,py=372,focus=ease((a-.42)/2.42),zoom=1+1.85*focus;
+ g.save();g.translate(HALL_WIDTH/2,HALL_HEIGHT/2);g.scale(zoom,zoom);g.translate(-180,-Math.min(HALL_HEIGHT-HALL_HEIGHT/(2*zoom),HALL_HEIGHT/2+(py-18-HALL_HEIGHT/2)*focus));chamber();
  const alpha=ease((a-1.05)/.85);g.globalAlpha=alpha;rect(px-10,py+1,21,2,'#47434a');g.translate(px,py);g.scale(.58,.58);g.translate(-180,-110);sevenFigure(a>=2.65);g.restore();}
 function blinkDodge(age){const side=round%2?1:-1,away=age>=.18&&age<1.06,dx=away?side*56:0;g.save();g.translate(dx,0);sevenFigure();g.restore();for(const start of [.18,1.06]){const f=(age-start)/.22;if(f<0||f>=1)continue;g.save();g.globalAlpha=(1-f)*.65;const old=start===.18?180:180+side*56;for(let k=0;k<9;k++)rect(old-15+(k*13)%28+side*f*9,53+k*6,8-k%4,1,'#bf8ae0');g.restore()}}
 function sevenBone(px,py,h,vx,vy,horiz,kind){shots.push({x:px,y:py,h,vx,vy,horiz,blue:kind==='blue',red:kind==='red',glitch:kind==='glitch'})}
