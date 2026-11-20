@@ -57,21 +57,24 @@ const burialCoat=[
  ' kddk     kdk kddk  ',
  ' kdk      kk   kdk  ',
  ' kk             kk  '];
-function sevenFigure(glow=true,wake=1,step=0){if(!visitorSheet){visitorSheet=document.createElement('canvas');visitorSheet.width=100;visitorSheet.height=84;visitorInk=visitorSheet.getContext('2d')}visitorInk.clearRect(0,0,100,84);const p=revenantPaint;stampMask(boot,p,159,98-step);stampMask(boot,p,181,98);stampMask(shorts,p,165,90);stampMask(burialCoat,p,160,69);
+const rearCranium=['      kkkkkkk','    kkswwwWWwkk','   kswwwWWWWwwwk','  kswwwWWwwwwwwsk',' kswwwwwwswwwwwssk',' kswwwwwsswwwwwwsk',' ksswwwwwskwwwwssk','  ksswwwwsswwwssk','   ksswwsswwwssk','    ksswwwwwssk','     ksssssssk','       ksssk'];
+const rearCoat=['     kkkkkkkkk','   kkdBBBBBBBdkk','  kdbbbBBbbbbbddk',' kdbdbbbbbbbdbdddk',' kddbbddddddbddbdk','  kdbbkkkkkkdbbdk','  kdbbbbbbbbbbdkk','  kddbbbdbbbbbdk','  kddbbbkbbdbbdk',' kdbdbbbkbbdbdddk',' kdbdbbbrbbdbdddk',' kddkbbRrbbdbdddk',' kdk kbrkbbkdkkdk',' kk  kdk kk k  kk'];
+function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visitorSheet=document.createElement('canvas');visitorSheet.width=100;visitorSheet.height=84;visitorInk=visitorSheet.getContext('2d')}visitorInk.clearRect(0,0,100,84);const p=revenantPaint;stampMask(boot,p,159,98-step);stampMask(boot,p,181,98);stampMask(shorts,p,165,90);stampMask(rear?rearCoat:burialCoat,p,160,69);
  const handCue=mode==='dodge'&&round===6?wallPull:null;revenantArm(-1,handCue);revenantArm(1,handCue);
  // Integer row shifts lift the chin out of the collar without rotating blurry pixels.
  const droop=Math.round(4*(1-wake)),hx=159,hy=46+droop;
+ if(rear){stampMask(rearCranium,p,160,hy+3);stampInk(177,hy+24,3,2,p.s);if(glow){stampInk(193,hy+15,1,3,'#c48aff');stampInk(191,73,3,1,'#9562b7')}}else{
  for(let j=0;j<hollowSkull.length;j++){const cant=Math.round((j/16)*(2+droop/2));stampMask([hollowSkull[j]],p,hx+cant,hy+j*2)}
  // Single-pixel bevels on the broken orbital rim, teeth, seam and rib ends.
  stampInk(174,hy+5,4,1,'#eee1cf');stampInk(177,hy+7,1,3,'#625c64');stampInk(168,hy+19,3,1,'#867e84');stampInk(171,hy+20,2,1,'#ada6a3');stampInk(181,hy+25,2,2,'#cbc1b6');stampInk(184,hy+26,1,2,'#afa29a');stampInk(175,83,4,1,'#b2abac');stampInk(173,86,4,1,'#a79fa3');stampInk(181,85,2,1,'#95505a');
- if(glow){const yy=hy+17;stampInk(184,yy,5,2,'#653771');stampInk(185,yy,3,2,'#c48bef');stampInk(186,yy,1,2,'#fff1ff')}
+ if(glow){const yy=hy+17;stampInk(182,yy,8,3,'#7935bf');stampInk(184,yy-1,4,5,'#a646f1');stampInk(183,yy,6,2,'#dd77ff');stampInk(185,yy,3,2,'#fff4ff');stampInk(186,yy,1,2,'#fff')}}
  g.save();g.imageSmoothingEnabled=false;g.drawImage(visitorSheet,130,32);g.restore();}
 function drawVisitor(){const a=revealClock,pan=ease((a-.4)/2.65),zoom=1+1.63*pan;
  // He crosses the lip of the seal, not the centre of the door texture.
  const step=ease((a-1.28)/.68),settle=ease((a-1.98)/.6),px=175+Math.round(step*2),py=375-Math.round(6*step+4*settle),wake=ease((a-2.07)/.64);
  const cx=180+(176-180)*pan,cy=HALL_HEIGHT/2+(355-HALL_HEIGHT/2)*pan;
  g.save();g.translate(HALL_WIDTH/2,HALL_HEIGHT/2);g.scale(zoom,zoom);g.translate(-cx,-Math.min(HALL_HEIGHT-HALL_HEIGHT/(2*zoom),cy));chamber();
- const alpha=ease((a-.83)/.62);g.globalAlpha=alpha;rect(px-9,py,20,2,'#3b373c');rect(px-6,py+2,13,1,'#514b50');g.translate(px,py);g.scale(.61,.61);g.translate(-180,-110);sevenFigure(a>=2.65,wake,Math.round(3*Math.sin(Math.PI*step)));if(a>=2.65){const bloom=1-ease((a-2.65)/.38);g.globalAlpha=.33*bloom;rect(179,63,14,1,'#d39bea')}g.restore();}
+ const alpha=ease((a-.83)/.62);g.globalAlpha=alpha;rect(px-9,py,20,2,'#3b373c');rect(px-6,py+2,13,1,'#514b50');g.translate(px,py);g.scale(.61,.61);g.translate(-180,-110);sevenFigure(a>=2.65,wake,Math.round(3*Math.sin(Math.PI*step)),true);g.restore();}
 function blinkDodge(age){const side=round%2?1:-1,away=age>=.18&&age<1.06,dx=away?side*56:0;
  for(const start of [.18,1.06]){const f=(age-start)/.23;if(f<0||f>=1)continue;const departure=start===.18?0:side*56;
   // One frame of the old silhouette unthreads into offset scanlines.
