@@ -208,14 +208,16 @@ const eightScore=[
 let cannons=[],sent=0,nextBeam=0;
 function startEight(retry=false){encounter=8;if(retry)resetBattle();endingAge=Math.max(12,endingAge);round=1;swings=0;boss=100;wallPull=null;keys.clear();eightWave()}
 function eightWave(){startWave(.7);roomShift=round===4?{age:0,sx:x,sy:y}:null;const b=sevenBox();if(!roomShift){x=180;y=(b.u+b.d)/2}cannons=[];sent=0;nextBeam=.65;msg(['Watch the skulls. Step out of their sights.','Fractured bones. Blue: stop. Red: move.','Heavy blasters. Watch the wide lanes.','Crossfire. Keep clear of the white gates.','Blasters only. Keep moving.'][round-1]);ui()}
+const THROAT_X=12;
+function blastRadius(width,d){return Math.min(Math.floor(width/2),1+Math.floor(Math.max(0,d)/2))}
 function blasterPose(c){const a=c.age-c.charge,fade=1-ease((a-.27)/.2),scale=c.big?1.4:1;
  const offset=-Math.round(7*(1-ease(c.age/.18))+5*(1-fade)+(a<0?0:3*(1-ease(a/.19))));
- return {fade,scale,offset,muzzle:offset-2+Math.round(24*scale)}}
+ return {fade,scale,offset,muzzle:offset-2+Math.round(THROAT_X*scale)}}
 function tickBeams(dt,b){const score=eightScore[round-1];if(sent<score.count&&elapsed>=nextBeam){const vertical=sent%2===0,big=round===3||round===5&&sent>=20;
  cannons.push({vertical,reverse:sent%4>=2,pos:Math.round(vertical?x:y),big,age:0,charge:big?.92:round<4?.77:.58,width:big?21:9});sent++;nextBeam+=big?Math.max(1.25,score.beat):score.beat}
  for(const c of cannons){const prev=c.age;c.age+=dt;if(prev<c.charge&&c.age>=c.charge)sfx('impact',c.big?.75:.43);
- const along=c.vertical?(c.reverse?b.d-y:y-b.u):(c.reverse?b.r-x:x-b.l);
- if(along+2>=blasterPose(c).muzzle&&c.age>=c.charge&&c.age<c.charge+.27&&!testGod&&inv<=0&&Math.abs((c.vertical?x:y)-c.pos)<c.width/2+2){hp=Math.max(0,hp-(c.big?6:4));inv=.85;sfx('hurt');if(!hp){mode='dying';deathAge=0;shots=[];cannons=[];msg('Your soul begins to crack.')}ui();if(!hp)return}}
+ const along=c.vertical?(c.reverse?b.d-y:y-b.u):(c.reverse?b.r-x:x-b.l),distance=along-blasterPose(c).muzzle;
+ if(distance>=-2&&c.age>=c.charge&&c.age<c.charge+.27&&!testGod&&inv<=0&&Math.abs((c.vertical?x:y)-c.pos)<blastRadius(c.width,distance)+2){hp=Math.max(0,hp-(c.big?6:4));inv=.85;sfx('hurt');if(!hp){mode='dying';deathAge=0;shots=[];cannons=[];msg('Your soul begins to crack.')}ui();if(!hp)return}}
  cannons=cannons.filter(c=>c.age<c.charge+.47)}
 // Side-profile skull, mandible on a separate pivot. Bake the opening arc at native resolution.
 const blasterFrames=new Map();
@@ -228,18 +230,25 @@ function blasterSkull(open){const key=open;if(blasterFrames.has(key))return blas
  const jaw=['    kkk','  kkmbbkkkk     kk',' kmbbbbbbbbkkkkkhk','  ksmmmbbbbbbbbbbsk','   kkkkssmmmbbbmsk','       kkkkkkkkkk'];
  // Shear around the rear hinge in whole columns to keep the teeth joined at every opening.
  jaw.forEach((row,y)=>[...row].forEach((c,x)=>{if(c!==' ')pixel(4+x,13+y+Math.max(0,x-3)*open/15,c)}));
+ // The cheek pivot overlaps both bones even in the widest open pose.
+ const hinge=[' skk ','sbbmk','mhbsk',' mbsk','  msk'];hinge.forEach((r,j)=>[...r].forEach((v,i)=>{if(v!==' ')pixel(4+i,12+j,v)}));
+ for(const [x,y,v] of [[13,6,'s'],[14,7,'m'],[15,7,'s'],[16,8,'m'],[18,9,'h'],[19,9,'h'],[3,4,'b']])pixel(x,y,v);
  blasterFrames.set(key,tile);return tile}
 function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.pos:c.reverse?b.r:b.l,c.vertical?(c.reverse?b.d:b.u):c.pos);if(c.vertical)g.rotate(c.reverse?-Math.PI/2:Math.PI/2);else if(c.reverse)g.scale(-1,1);
  const span=c.vertical?b.d-b.u:b.r-b.l,w=c.width,a=c.age-c.charge,q=c.age/c.charge,{fade,scale,offset,muzzle}=blasterPose(c),length=span-muzzle;
  // Clip in firing coordinates so warning, beam and traveling highlights cannot leak behind the jaw.
  g.save();g.beginPath();g.rect(muzzle,-w,length,w*2);g.clip();g.translate(muzzle,0);
  if(a<0){g.globalAlpha=.32+.48*ease(q);for(let k=Math.floor(c.age*24)%6;k<length;k+=6)rect(k,-1,3,1,'#dec0e6')}
- else{const half=Math.floor(w/2);g.globalAlpha=fade;rect(0,-half,length,w,'#ad82c2');rect(0,1-half,length,w-2,'#dfc3e8');const core=Math.max(1,Math.round((w-4)*(.84+.16*Math.cos(a*52))*fade));rect(0,-Math.floor(core/2),length,core,'#fffaf3');
- for(let k=Math.floor(a*185)%21;k<length;k+=21)rect(k,-half,8,1,'#f7dff2')}
+ else{const half=Math.floor(w/2),flow=Math.floor(a*210);g.globalAlpha=fade;
+  // Contiguous pixel bands flare out from inside the mouth, behind the foreground teeth.
+  for(let d=0;d<length;){const r=blastRadius(w,d),n=r===half?length-d:Math.min(2,length-d);
+   rect(d,-r,n,2*r+1,'#9875af');rect(d,1-r,n,2*r-1,'#ddc5ea');const core=Math.max(0,Math.round((r-2)*(.86+.14*Math.cos(a*44))*fade));rect(d,-core,n,core*2+1,'#fffaf3');d+=n}
+  for(let k=w+flow%23;k<length;k+=23){rect(k,-half,6,1,'#f4ddff');rect(k+7,half-1,4,1,'#c59ed7')}
+ }
  g.restore();g.globalAlpha=ease(c.age/.12)*fade;g.translate(offset-2,-Math.round(14*scale));g.scale(scale,scale);g.imageSmoothingEnabled=false;
  const opening=Math.round(6*(a<0?ease((q-.18)/.78):fade));g.drawImage(blasterSkull(opening),0,0);
  crossEye(g,9,10,t,1);
- if(a<0&&q>.35){const k=ease((q-.35)/.65),r=Math.round(4*(1-k))+1;g.globalAlpha*=k;rect(24-r,14,r*2+1,1,'#e4c8ee');rect(24,14-r,1,2*r+1,'#fff8ff')}
+ if(a<0&&q>.35){const k=ease((q-.35)/.65),r=Math.round(4*(1-k))+1;g.globalAlpha*=k;rect(THROAT_X,14,r*2+1,1,'#e4c8ee');rect(THROAT_X+r,14-r,1,2*r+1,'#fff8ff')}
  g.restore()}}
 function nextGate(){const score=encounter===8?eightScore[round-1].gates:gateScores[round-1],entry=score[patternStep%score.length],b=sevenBox(),vertical=entry[0]==='T',span=vertical?b.r-b.l:b.d-b.u;
  const gap=encounter===8?eightScore[round-1].gap:[21,20,19,30,25][round-1],cut=6+Math.round((span-gap-12)*Number(entry[1])/3);return {b,vertical,reverse:entry[0]==='R',cut,gap,span,kind:{w:'white',b:'blue',r:'red',g:'glitch'}[entry[2]]}}
