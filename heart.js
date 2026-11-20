@@ -148,11 +148,18 @@ function studyPatina(){
  const dot=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),w,h)};
  const line=(x,y,X,Y,col)=>{const n=Math.max(1,Math.abs(X-x),Math.abs(Y-y));for(let i=0;i<=n;i++)dot(x+(X-x)*i/n,y+(Y-y)*i/n,1,1,col)};
  const crack=(x,y,points)=>{for(const [dx,dy] of points){line(x,y+1,x+dx,y+dy+1,'#93938a');line(x,y,x+dx,y+dy,'#484c49');x+=dx;y+=dy}};
+ // Dress the existing wall footprint with staggered ashlar and chipped capstones.
+ for(let course=0;course<2;course++){const y=50+course*8;for(let a=87-course*9,k=0;a<273;a+=19,k++){
+  const x=Math.max(a,87),w=Math.min(a+18,273)-x;if(w<1)continue;
+  dot(x,y,w,7,['#797c7a','#747875','#818380'][(k+course)%3]);dot(x+1,y,w-1,1,'#9a9b95');dot(x,y+6,w,1,'#626663');if(w>8&&k%3===0)dot(x+3,y,3,1,'#656963');}}
+ for(const side of [0,1])for(let j=0;j<19;j++){const x=side?266:88,y=68+j*16;dot(x,y,6,15,j%3?'#767a76':'#80837d');dot(x+(side?4:1),y+1,1,13,'#9b9e95');dot(x,y+14,6,1,'#585e59');if(j%4===0)dot(x+2,y+2,2,2,'#676c64')}
+ const mouth=(x,y,d)=>{crack(x,y,[[-2*d,-2],[d,-2],[-3*d,-1]]);crack(x,y,[[3*d,-2],[3*d,0],[d,-2]]);dot(x-2,y-1,5,2,'#343a35');dot(x-1,y+1,3,1,'#9a9c90')};
+ mouth(96,67,1);mouth(263,227,-1);
  for(const [x,y,d] of [[102,102,1],[248,137,-1],[134,267,1],[234,323,-1],[101,57,1],[258,56,-1]]){
  crack(x,y,[[4*d,3],[3*d,-1],[2*d,4],[5*d,2],[2*d,3]]);crack(x+7*d,y+2,[[1*d,-3],[4*d,-1]])}
  // Woody runners taper into fine rootlets. Leaf pairs alternate along the ivy.
  for(const [x,y,d,len] of [[93,64,1,58],[117,54,1,36],[265,61,-1,64],[265,151,-1,43],[94,250,1,48],[263,264,-1,37],[97,354,1,17],[230,55,-1,30]]){
- let a=x,b=y;for(let j=0;j<len;j++){const turn=(j+(x%9))%17;if(turn<5)a+=d;else if(turn===11)a-=d;
+ mouth(x,y,d);let a=x,b=y;for(let j=0;j<len;j++){const turn=(j+(x%9))%17;if(turn<5)a+=d;else if(turn===11)a-=d;
  dot(a+1,b+1,2,1,'#54594f');dot(a,b,j<len/2?2:1,1,j<len/2?'#675e4a':'#716b54');
  if(j%11===5){const side=(j%22<11?1:-1)*d;line(a,b,a+6*side,b+4,'#5b614c');line(a+6*side,b+4,a+8*side,b+9,'#656751');
  for(let k=0;k<3;k++){const lx=a+side*(2+k*2),ly=b+k;dot(lx,ly,3,3,'#4c604d');dot(lx,ly,2,2,'#7c8967');dot(lx+side,ly-1,2,1,'#909773')}}b++}
@@ -160,9 +167,12 @@ function studyPatina(){
  // Fern rosettes sprout at damp joints, not in the central path.
  for(const [x,y,n] of [[103,130,9],[253,98,12],[102,282,11],[249,289,10],[236,76,7]]){
  for(const dir of [-1,1])for(let k=0;k<n;k++){const px=x+dir*k,py=y-Math.round(k*.8+3*Math.sin(k/n*Math.PI));dot(px,py,1,2,'#536852');if(k%2===0){dot(px,py-2,2,3,'#738568');dot(px,py+1,2,2,'#62795d')}}}
- // Tarnished wall clock and a curling field sketch pinned beside the cabinets.
- dot(124,52,9,12,'#534e45');dot(125,53,7,9,'#a79a7c');dot(126,54,5,6,'#d1c6a8');line(128,57,128,54,'#57584d');line(128,57,130,58,'#57584d');dot(127,62,3,2,'#897958');
- dot(239,53,11,11,'#68685d');dot(238,52,11,11,'#b4a88c');line(240,59,244,55,'#817d68');line(244,55,246,59,'#817d68');dot(242,53,1,1,'#645b4b');dot(246,61,3,2,'#d2c5a7');
+ // The stopped brass clock: stepped bezel, four indices and a fork across the glass.
+ const cx=249,cy=58;for(let v=-8;v<=8;v++)for(let u=-8;u<=8;u++){const r=u*u+v*v;if(r>65)continue;
+ dot(cx+u,cy+v,1,1,r>53?'#49463f':r>39?(u+v<0?'#b69e75':'#837050'):(u+v<0?'#d7ceb3':'#c1b69b'))}
+ for(const [u,v] of [[0,-5],[5,0],[0,5],[-5,0]])dot(cx+u,cy+v,1,1,'#716953');line(cx,cy,cx-2,cy-2,'#474941');line(cx,cy,cx+1,cy-4,'#474941');
+ line(255,54,252,56,'#65675d');line(252,56,253,59,'#74756a');line(253,59,250,62,'#696b61');line(253,58,255,60,'#86887a');dot(252,59,1,1,'#e6ddc4');
+ c.save();c.translate(-113,0);dot(239,53,11,11,'#68685d');dot(238,52,11,11,'#b4a88c');line(240,59,244,55,'#817d68');line(244,55,246,59,'#817d68');dot(242,53,1,1,'#645b4b');dot(246,61,3,2,'#d2c5a7');c.restore();
  }
  g.drawImage(patina,72,48);
 }
@@ -186,7 +196,7 @@ function chamber(){
  g.drawImage(roomFloor(),95,68);rect(94,68,1,304,'#414345');rect(265,68,1,304,'#414345');rect(95,66,170,2,'#414345');rect(88,372,184,4,'#848887');rect(88,376,184,5,'#515657');
  for(const x of [91,269])for(const y of [59,369])stoneStamp('plinth',x,y);
  g.save();g.translate(0,405);g.scale(1,-1);threshold(-1);g.restore();
- studyRoots();studyPatina();studyDecor();
+ studyPatina();studyRoots();studyDecor();
  rect(hallX-3,hallY+3,7,2,'#494c4d');tinySoul(hallX,hallY-1,exploreInk);
 }
 function hallway(){
