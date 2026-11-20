@@ -119,35 +119,30 @@ function studyShelf(x,y,w,h,seed){
    plank(u,v,ww,hh,0,'#94785e');plank(u,v,ww,1,0,'#b39a7b');};
   let state=317+seed;const roll=n=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return (state>>>8)%n};
   const cloth=['#805759','#516e72','#71755a','#9a7652','#746577','#776149','#596878'];
-  timber(0,0,tw,th,6);plank(2,2,tw-3,th-4,2,'#403733');
-  const bays=h>30?2:1;
+  // One continuous carcass: cut wells into the top rather than drawing four
+  // overlapping extruded beams (which used to leave doubled corner seams).
+  timber(0,0,tw,th,6);
+  const bays=h>30?2:1,back=4,opening=tw-back-1;
+  plank(1,3,1,th-6,0,'#a38d74');plank(2,th-8,1,4,0,'#806950');
   for(let bay=0;bay<bays;bay++){
-   const start=2+Math.floor(bay*(th-3)/bays),end=1+Math.floor((bay+1)*(th-3)/bays);
-   // Arrange volumes in groups: bound sets flush to the lip, loose journals
-   // slightly inset, and occasional folios stored flat with their covers visible.
-   const layout=(Math.floor(seed/3)+bay)%4,setColor=roll(cloth.length);
-   let p=start+1;
-   if(layout===1||layout===3){
-    const u=7,v=p,span=layout===1?9:7;
-    plank(u,v,span,7,3,'#493e3a');plank(u,v,span,7,2,cloth[(setColor+2)%7]);
-    plank(u,v,span-1,6,1,'#c3b49b');plank(u-1,v,span,6,0,cloth[setColor]);
-    plank(u,v,1,6,0,'#51494a');plank(u+2,v+2,span-5,1,0,'#cbb38c');plank(u+3,v+4,2,1,0,'#aa9476');p+=8;
+   const start=2+Math.floor(bay*(th-2)/bays),end=Math.floor((bay+1)*(th-2)/bays);
+   plank(back,start,opening,end-start,0,'#4c403a');
+   plank(back,start,opening,1,0,'#403733');
+   if(bay)plank(back,start-2,opening,1,0,'#b39a7b');
+   // Reserve a pixel of clearance on both ends, including the book's lower edge.
+   const layout=(Math.floor(seed/3)+bay)%3,set=roll(cloth.length);let p=start+1;
+   if(layout===1){const u=back+2,width=9;
+    plank(u,p+1,width,6,0,'#453c38');plank(u,p,width,6,0,'#c3b49b');
+    plank(u,p,width,5,0,cloth[set]);plank(u,p,1,5,0,'#51494a');plank(u+3,p+2,4,1,0,'#bcaa82');p+=8;
    }
-   for(let j=0;p+1<end;j++){
-    const thick=Math.min(end-p,layout===0&&j<3?3:2+roll(4)),front=layout===0?tw-2:tw-2-roll(3),back=5+roll(3),cover=cloth[(layout===0&&j<3)?setColor:roll(7)];
-    const tilted=layout===2&&j===0&&thick+1<end-p;
-    for(let z=3;z>=0;z--)for(let u=back;u<front;u++){
-     const v=p+(tilted&&u>=front-4?1:0);plank(u,v,1,thick,z,z===3?'#4b403b':cover);
-     if(!z&&u>back&&u<front-2&&thick>2)plank(u,v+1,1,thick-2,0,u===back+1?'#a99980':'#d1c4ab');
-    }
-    if(thick>=3)plank(front-1,p+1+(tilted?1:0),1,1,1,'#c8ac82');
-    p+=thick+(tilted||layout===2&&j===1?1:0);
+   for(let j=0;p+3<=end-1;j++){
+    const size=Math.min(end-1-p,layout===0?3:3+roll(2)),u=back+1+roll(2),front=tw-2-(layout===0?0:roll(2)),span=front-u+1;
+    const color=cloth[layout===0?set:(set+j*2)%cloth.length];
+    // A single intact cover wraps the inset pages; the binding faces the aisle.
+    plank(u,p,span,size,0,color);plank(u+1,p+1,span-4,size-2,0,'#c8bba2');
+    plank(front,p,1,size,0,'#574949');p+=size+(layout===2&&j===0?1:0);
    }
-   if(bay<bays-1)timber(1,end,tw-1,2,4);
   }
-  // Broad wood crown, interrupted grain and solid end cheeks frame the bays.
-  timber(0,0,6,th,3);plank(2,3,1,Math.floor(th*.42),0,'#aa9178');plank(4,th-8,1,5,0,'#806950');
-  timber(0,0,tw,2,4);timber(0,th-2,tw,2,6);plank(3,th-1,tw-7,1,0,'#a68b70');
   shelfTiles.set(seed,tile);
  }
  g.save();g.globalAlpha=.12;rect(x+2,y+2,w,h,'#262322');g.globalAlpha=.22;rect(x+2,y+2,w-1,h-1,'#262322');g.globalAlpha=1;g.drawImage(tile,x,y);g.restore();
