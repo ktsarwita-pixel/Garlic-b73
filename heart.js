@@ -157,16 +157,18 @@ function studyPatina(){
  mouth(96,67,1);mouth(263,227,-1);
  for(const [x,y,d] of [[102,102,1],[248,137,-1],[134,267,1],[234,323,-1],[101,57,1],[258,56,-1]]){
  crack(x,y,[[4*d,3],[3*d,-1],[2*d,4],[5*d,2],[2*d,3]]);crack(x+7*d,y+2,[[1*d,-3],[4*d,-1]])}
- // Woody runners taper into fine rootlets. Leaf pairs alternate along the ivy.
- for(const [x,y,d,len] of [[93,64,1,58],[117,54,1,36],[265,61,-1,64],[265,151,-1,43],[94,250,1,48],[263,264,-1,37],[97,354,1,17],[230,55,-1,30]]){
- mouth(x,y,d);let a=x,b=y;for(let j=0;j<len;j++){const turn=(j+(x%9))%17;if(turn<5)a+=d;else if(turn===11)a-=d;
- dot(a+1,b+1,2,1,'#54594f');dot(a,b,j<len/2?2:1,1,j<len/2?'#675e4a':'#716b54');
- if(j%11===5){const side=(j%22<11?1:-1)*d;line(a,b,a+6*side,b+4,'#5b614c');line(a+6*side,b+4,a+8*side,b+9,'#656751');
- for(let k=0;k<3;k++){const lx=a+side*(2+k*2),ly=b+k;dot(lx,ly,3,3,'#4c604d');dot(lx,ly,2,2,'#7c8967');dot(lx+side,ly-1,2,1,'#909773')}}b++}
- }
- // Fern rosettes sprout at damp joints, not in the central path.
- for(const [x,y,n] of [[103,130,9],[253,98,12],[102,282,11],[249,289,10],[236,76,7]]){
- for(const dir of [-1,1])for(let k=0;k<n;k++){const px=x+dir*k,py=y-Math.round(k*.8+3*Math.sin(k/n*Math.PI));dot(px,py,1,2,'#536852');if(k%2===0){dot(px,py-2,2,3,'#738568');dot(px,py+1,2,2,'#62795d')}}}
+ // Each runner follows its own floor seams. Branches fork across the direction
+ // of travel instead of hanging vertically like vines seen from the side.
+ const trails=[[[93,64],[101,78],[109,82],[116,92],[129,97]],[[117,54],[119,65],[132,73],[139,86]],[[265,61],[258,77],[246,83],[238,94],[221,97]],[[265,151],[249,155],[238,163],[224,166],[210,177],[194,179]],[[94,250],[113,248],[126,238],[139,234],[151,222]],[[263,264],[245,261],[232,251],[218,248],[205,239]],[[97,354],[109,343],[118,323],[132,312],[138,297]],[[230,55],[228,68],[217,76],[214,86]]];
+ for(const pts of trails){const [sx,sy]=pts[0];mouth(sx,sy,Math.sign(180-sx));for(let j=1;j<pts.length;j++){
+  const [a,b]=pts[j-1],[x,y]=pts[j],dx=Math.sign(x-a),dy=Math.sign(y-b),thick=j<pts.length-1;
+  line(a+1,b+1,x+1,y+1,'#50534a');line(a,b,x,y,'#594e40');if(thick)line(a,b-1,x,y-1,'#98856b');
+  if(j%2){const turn=j===1?1:-1,bx=x+dx*5-dy*turn*4,by=y+dy*4+dx*turn*6;line(x,y,bx,by,'#615a48');line(bx,by,bx+dx*5,by+dx*turn*3,'#6b6754');
+   for(const [lx,ly] of [[bx,by],[x+dx*2,y+dy*2]]){dot(lx-1,ly,4,2,'#435748');dot(lx,ly-1,3,2,'#758469');dot(lx+1,ly-1,2,1,'#92a080')}}
+ }}
+ // Radial fronds viewed from above: short shaded leaflets, a common crown.
+ for(const [x,y,n] of [[103,130,9],[253,98,10],[102,282,10],[249,289,9],[236,76,7]]){
+ for(let j=0;j<7;j++){const angle=j*.898+x*.1,len=n-(j%3),dx=Math.cos(angle),dy=Math.sin(angle);for(let k=0;k<len;k++){const px=x+dx*k,py=y+dy*k;dot(px,py,1,1,'#465c49');if(k%2===1){dot(px-dy,py+dx,2,1,'#899579');dot(px+dy,py-dx,1,2,'#677b61')}}}dot(x-1,y-1,3,2,'#52674f')}
  // The stopped brass clock: stepped bezel, four indices and a fork across the glass.
  const cx=249,cy=58;for(let v=-8;v<=8;v++)for(let u=-8;u<=8;u++){const r=u*u+v*v;if(r>65)continue;
  dot(cx+u,cy+v,1,1,r>53?'#49463f':r>39?(u+v<0?'#b69e75':'#837050'):(u+v<0?'#d7ceb3':'#c1b69b'))}
@@ -181,12 +183,12 @@ function studyDecor(){
  // Woven runner under the writing desk; the fringe stays walkable.
  rect(153,197,54,40,'#686064');rect(155,199,50,36,'#898084');rect(157,201,46,32,'#726c74');
  for(let i=155;i<206;i+=3){rect(i,195,1,2,'#a29790');rect(i,237,1,2,'#a29790')}
- const [x,y,w,h]=roomFurniture[roomFurniture.length-1];rect(x+2,y+4,w,h-2,'#515250');rect(x+2,y+15,4,11,'#554941');rect(x+w-6,y+15,4,11,'#554941');rect(x,y,w,20,'#51463f');rect(x+1,y+1,w-2,15,'#988673');rect(x+2,y+1,w-4,1,'#b5a48d');rect(x+2,y+17,w-4,1,'#796857');
+ const [x,y,w,h]=roomFurniture[roomFurniture.length-1];rect(x+2,y+2,w,h,'#54524e');rect(x,y,w,h,'#564a40');rect(x+1,y+1,w-2,h-4,'#95816c');rect(x+2,y+1,w-4,1,'#b4a18a');rect(x+1,y+h-4,w-2,2,'#796553');rect(x+3,y+17,10,1,'#8b7866');rect(x+21,y+20,14,1,'#a18a72');
  // Uneven page edges, fine ink lines, folded ribbon at the gutter.
  rect(171,207,17,10,'#675653');rect(172,207,7,8,'#e2d8c0');rect(180,206,7,9,'#d2c8af');rect(179,207,1,9,'#a0937e');rect(180,214,1,4,'#92605c');for(const p of [173,181])for(let j=0;j<2;j++)rect(p,209+j*2,4-j,1,'#a69e90');
  familyPhotos();
  // Brass desk light and ink pot sit on the tabletop, separate from the open book.
- rect(188,213,6,2,'#665346');rect(190,208,2,5,'#b49769');rect(188,205,5,1,'#ae9067');rect(187,206,7,3,'#c9ad78');rect(188,209,5,1,'#ead5a2');rect(164,212,4,3,'#494954');rect(165,211,2,1,'#ada59a');
+ rect(188,213,6,2,'#665346');rect(190,208,2,5,'#b49769');rect(188,205,5,5,'#927951');rect(187,206,7,3,'#bda273');rect(189,206,3,2,'#e3c999');rect(189,209,3,1,'#aa8c5f');rect(164,212,4,3,'#494954');rect(165,211,2,1,'#ada59a');
 
 }
 function chamber(){
