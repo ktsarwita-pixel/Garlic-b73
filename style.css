@@ -71,3 +71,6 @@
 
 .actions button.night-lock::after{background-image:url(assets/visitor-bone.svg)}
 .actions button.night-lock.bound::after{background-size:auto 100%}
+
+/* ITEM needs the same local positioning context as ACT and MERCY. */
+.actions button.night-lock{position:relative;overflow:hidden;isolation:isolate}
