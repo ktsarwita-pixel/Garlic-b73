@@ -69,10 +69,10 @@ function entryGait(progress){const beat=Math.min(11,Math.floor(progress*12)),f=p
 function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visitorSheet=document.createElement('canvas');visitorSheet.width=100;visitorSheet.height=88;visitorInk=visitorSheet.getContext('2d')}visitorInk.clearRect(0,0,100,88);const p=revenantPaint,gait=rear?entryGait(step):null,swing=gait?gait.arm:0;
  if(rear){
   // Animate the two halves of Sans's own shorts. Waist fixed under the jacket;
-  // the folded cuff, ankle and slipper share one attachment in every pose.
+  // each slipper overlaps the cuff so no bare leg shows in any pose.
   for(const side of [-1,1]){const foot=side<0?gait.left:gait.right,depth=Math.round(foot.dy*.5),hip=side<0?165:181,cuff=99+depth;
    for(let yy=90;yy<cuff;yy++){const row=shorts[Math.min(5,Math.floor((yy-90)*6/(cuff-90)))].slice(side<0?0:8,side<0?8:16);for(let i=0;i<row.length;i++)if(p[row[i]])stampInk(hip+2*i,yy,2,1,p[row[i]])}
-   stampInk(hip+5,cuff,5,3,p.s);stampInk(hip+6,cuff,2,2,p.w);stampMask(foot.lift?passingHeel:rearHeel,p,hip-2,cuff+2);
+   stampMask(foot.lift?passingHeel:rearHeel,p,hip-2,cuff-1);
   }
  }else{stampMask(boot,p,161,98);stampMask(boot,p,181,98);stampMask(shorts,p,165,90)}
  visitorInk.save();visitorInk.translate(gait?Math.round(gait.weight):0,0);stampMask(rear?rearCoat:burialCoat,p,160,69);
