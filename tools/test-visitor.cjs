@@ -23,7 +23,7 @@ for(let r=1;r<=6;r++){
   assert.equal(mode,'ready');swings++;flash=1.45;mode='strike';
   for(let i=0;i<75&&mode==='strike';i++)sevenTick(.02);
 }
-assert.equal(mode,'sevenHold');assert.equal(slamCount,3);for(let i=0;i<300;i++)sevenTick(.02);assert.equal(encounter,8);assert.equal(mode,'sevenHold');assert.equal(shots.length,0);
+assert.equal(mode,'sevenHold');assert.equal(slamCount,3);for(let i=0;i<500;i++)sevenTick(.02);assert.equal(encounter,7);for(let i=0;i<110;i++)sevenTick(.02);assert.equal(encounter,8);assert.equal(mode,'sevenHold');assert.equal(shots.length,0);
 for(const [nx,ny] of [[1,0],[-1,0],[0,1],[0,-1]]){
   startSeven(6);const b=sevenBox();x=nx>0?b.r-5:nx<0?b.l+5:180;y=ny>0?b.d-5:ny<0?b.u+5:(b.u+b.d)/2;
   for(let i=0;i<156;i++){wallSequence(.02,b);if(i<85)assert.equal(shots.length,0);
