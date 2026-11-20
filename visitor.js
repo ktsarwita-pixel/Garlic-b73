@@ -87,7 +87,7 @@ function blinkDodge(age){const side=round%2?1:-1,away=age>=.18&&age<1.06,dx=away
   g.save();g.translate(departure,0);g.globalAlpha=.38*(1-f);g.beginPath();for(let k=0;k<15;k++)g.rect(149,46+k*4,62,Math.max(1,3-Math.floor(f*3)));g.clip();sevenFigure(false);g.restore();
   g.save();g.globalAlpha=(1-f)*.65;for(let k=0;k<9;k++)rect(165+departure+(k*13)%28+side*f*9,53+k*6,8-k%4,1,'#bf8ae0');g.restore()}
  g.save();g.translate(dx,0);sevenFigure();g.restore();}
-function sevenBone(px,py,h,vx,vy,horiz,kind){shots.push({x:px,y:py,h,vx,vy,horiz,blue:kind==='blue',red:kind==='red',glitch:kind==='glitch'})}
+function sevenBone(px,py,h,vx,vy,horiz,kind){shots.push({x:px,y:py,h,vx,vy,horiz,blue:kind==='blue',red:kind==='red',glitch:kind==='glitch',phase:(patternStep*7+Math.round(px+py))%19})}
 // Each score entry sets the entrance, safe lane and material of a paired gate.
 // Repeated lanes give the player time to obey blue/red before crossing again.
 const gateScores=[
@@ -120,10 +120,29 @@ function sevenStage(b){
  for(const side of [-1,1]){const x=180+side*53;rect(x-3,y-76,7,76,'#211f24');rect(x-2,y-74,1,71,'#302c32');for(let k=0;k<4;k++)rect(x-3,y-k*18-2,7,2,'#161518');rect(x-5,y-2,11,2,'#353038')}
  rect(124,y-78,112,3,'#242127');rect(128,y-75,104,1,'#373039');for(let i=0;i<9;i++)rect(180+(i%4===2?1:0),y-72+i*8,1,8,'#282329');
  rect(163,y-1,34,2,'#252128');rect(169,y-1,22,1,'#302b33')}
-function sevenDraw(){const b=sevenBox();sevenStage(b);g.save();g.translate(180,b.u-5);g.translate(-180,-110);if(mode==='strike'&&swings<6)blinkDodge(1.45-flash);else sevenFigure();if(mode==='strike')slash(1.45-flash,swings<6);g.restore();rect(b.l-2,b.u-2,b.r-b.l+4,b.d-b.u+4,'#cbbfd2');rect(b.l,b.u,b.r-b.l,b.d-b.u,'#111015');for(const xx of [b.l,b.r-5])for(const yy of [b.u,b.d-1])rect(xx,yy,5,1,'#55495d');g.save();g.beginPath();g.rect(b.l,b.u,b.r-b.l,b.d-b.u);g.clip();gateWarning();slamEffects(b);for(const s of shots){g.save();g.translate(s.x,s.y);if(s.horiz)g.transform(0,1,1,0,0,0);boneSprite({...s,x:0,y:0});if(s.changed!==undefined&&t-s.changed<.14){rect(-2,1,7,1,'#eee1f5');rect(-2,s.h-2,7,1,'#eee1f5')}if(s.glitch){rect(-1,2,4,s.h-4,'#50395e');rect(1,2+Math.floor(t*20)%Math.max(1,s.h-5),4,2,'#cb91ec')}g.restore()}
- const w=wallPull;if(w&&w.age>=.56&&!w.fired){const xx=w.nx<0?b.l:w.nx>0?b.r-3:b.l,yy=w.ny<0?b.u:w.ny>0?b.d-3:b.u;rect(xx,yy,w.nx?3:b.r-b.l,w.ny?3:b.d-b.u,Math.floor(t*10)%2?'#c15cbc':'#82426e');g.fillStyle='#ffd4ee';g.font='bold 12px monospace';g.textAlign='center';g.fillText('!',w.nx?xx-w.nx*9:180,w.ny?yy-w.ny*12+3:(b.u+b.d)/2)}if(mode==='dying')brokenSoul();else if(hp&&(inv<=0||Math.floor(t*12)%2)){if(w&&w.age<=.92){soulRows.forEach((r,j)=>[...r].forEach((v,i)=>{if(v==='r')rect(x+i-3,y+j-3,1,1,j===0||soulRows[j][i-1]!=='r'||soulRows[j][i+1]!=='r'?'#b99acb':'#09060d')}))}else tinySoul(x,y)}g.restore()}
+function sevenDraw(){const b=sevenBox();sevenStage(b);g.save();g.translate(180,b.u-5);g.translate(-180,-110);if(mode==='strike'&&swings<6)blinkDodge(1.45-flash);else sevenFigure();if(mode==='strike')slash(1.45-flash,swings<6);g.restore();rect(b.l-2,b.u-2,b.r-b.l+4,b.d-b.u+4,'#cbbfd2');rect(b.l,b.u,b.r-b.l,b.d-b.u,'#111015');for(const xx of [b.l,b.r-5])for(const yy of [b.u,b.d-1])rect(xx,yy,5,1,'#55495d');g.save();g.beginPath();g.rect(b.l,b.u,b.r-b.l,b.d-b.u);g.clip();gateWarning();slamEffects(b);for(const s of shots){g.save();g.translate(s.x,s.y);if(s.horiz)g.transform(0,1,1,0,0,0);drawVisitorBone(s);g.restore()}
+ const w=wallPull;if(w&&!w.fired)drawSlamAlert(b,w);if(mode==='dying')brokenSoul();else if(hp&&(inv<=0||Math.floor(t*12)%2)){if(w&&w.age<=.92){soulRows.forEach((r,j)=>[...r].forEach((v,i)=>{if(v==='r')rect(x+i-3,y+j-3,1,1,j===0||soulRows[j][i-1]!=='r'||soulRows[j][i+1]!=='r'?'#b99acb':'#09060d')}))}else tinySoul(x,y)}g.restore()}
 
 // Effects are timed from the same impact clock as the hand and collision.
 function slamEffects(b){const w=wallPull;if(!w)return;const px=w.nx<0?b.l:w.nx>0?b.r-1:w.sx,py=w.ny<0?b.u:w.ny>0?b.d-1:w.sy;
  if(w.age>.22&&w.age<.56){for(let i=1;i<=3;i++){g.save();g.globalAlpha=.28/i;const d=i*3;rect(x-w.nx*d-2,y-w.ny*d-1,4,2,'#a57cbb');g.restore()}}
  const f=(w.age-.56)/.42;if(f<0||f>=1)return;g.save();g.globalAlpha=1-ease(f);for(let i=-3;i<=3;i++){const across=i*(1+f*4),back=(1-Math.abs(i)/5)*f*12;rect(px-w.nx*back-w.ny*across,py-w.ny*back+w.nx*across,2,1,i%2?'#b99bc9':'#87738e')}g.restore()}
+
+// Local wall coordinates: u runs along the stone, depth points into safety.
+function drawSlamAlert(b,w){const span=w.nx?b.d-b.u:b.r-b.l;
+ function mark(u,d,wide,deep,color){const xx=w.nx<0?b.l+d:w.nx>0?b.r-d-deep:b.l+u,yy=w.ny<0?b.u+d:w.ny>0?b.d-d-deep:b.u+u;rect(xx,yy,w.nx?deep:wide,w.ny?deep:wide,color)}
+ const released=w.age>=.92,charge=Math.max(0,Math.min(1,(w.age-.56)/1.2)),tone=released?'#ffbbb5':'#bd93d4';
+ if(w.age>=.56){g.save();g.globalAlpha=.12+.07*charge;mark(0,0,span,26,'#da728a');g.restore();
+  for(let u=2;u<span-1;u+=6)mark(u,25,3,1,'#895565');}
+ mark(0,0,span,1,tone);for(let u=6;u<span;u+=10){mark(u-2,1,5,1,'#74576e');mark(u,2,1,1+Math.round(3*charge),tone)}
+ // Counting segments terminate at the same clock edge as the spike eruption.
+ for(let i=0;i<6;i++)mark(span/2-17+i*6,8,4,2,i<Math.ceil(charge*6)?tone:'#514052');
+ for(const u of [span*.24,span*.76]){const d=released?14+Math.floor((w.age-.92)*12)%5:5;for(let i=0;i<4;i++){mark(u-3+i,d+i,1,2,tone);mark(u+3-i,d+i,1,2,tone)}}}
+function drawVisitorBone(s){if(!s.glitch){boneSprite({...s,x:0,y:0});const age=t-s.changed;if(age>=0&&age<.18){const k=Math.round((s.h-2)*age/.18);rect(-1,k,5,1,s.blue?'#c1fbff':'#ffdbbf')}return}
+ // Keep the bone readable: the two lobes stay fixed while a short fracture
+ // displaces only one band of the shaft. No frame-to-frame random flashing.
+ const h=Math.round(s.h),shaft=Math.max(0,h-4),frame=Math.floor(t*12)+s.phase,cut=2+frame%Math.max(1,shaft),slip=frame%6<3?1:-1;
+ rect(0,2,3,shaft,'#826989');rect(0,2,1,shaft,'#b8a7c3');rect(2,2,1,shaft,'#4e415a');
+ for(let j=5+s.phase%4;j<h-3;j+=7)rect(1,j,2,1,'#c6a6ce');
+ if(shaft>2){const band=Math.min(3,h-2-cut);rect(slip,cut,3,band,'#a177b7');rect(slip-1,cut,2,1,'#91c3d2');rect(slip+2,cut+band-1,2,1,'#ce8fac')}
+ for(const dir of [1,-1]){const tip=dir===1?0:h-1;rect(-2,tip+dir,7,1,'#8c7999');rect(-1,tip,2,1,'#dfcde4');rect(2,tip,2,1,'#bca3c7');rect(-1,tip+2*dir,5,1,'#584760')}}
