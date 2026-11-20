@@ -46,6 +46,8 @@
 .binding{padding:7px 8px 12px;border-radius:5px 6px 7px 5px;background:linear-gradient(90deg,#644d43 0%,#725447 47%,#382e29 50%,#715548 53%,#654b40);box-shadow:inset 0 0 0 2px #473630,inset 0 0 0 3px #9d8168,0 5px #302723,0 10px 18px #0006}
 #spread{height:clamp(160px,min(64dvh,65vw),425px);border-radius:3px 5px 4px 3px;box-shadow:0 1px #bfae91,0 2px #87755f,0 3px #cbbba0,0 4px #998771,0 5px #695845}
 .book-leaf{border-bottom-width:1px;overflow:hidden}.verso{border-radius:4px 35% 2px 3px / 3px 5px 2px 3px;background:linear-gradient(90deg,#daccb0,#efe4cc 8%,#eadfc7 78%,#e2d3b7 92%,#b8a384 100%)}.recto{border-radius:35% 4px 3px 2px / 5px 3px 3px 2px;background:linear-gradient(90deg,#b49e7c,#dbcaab 5%,#eadcc1 15%,#eee3ca 78%,#dccdb3)}
-.verso.ripped{clip-path:polygon(0 0,100% 0,100% 100%,20% 100%,17% 98%,16% 98.6%,14% 96%,12% 96%,10% 93%,8% 93.4%,7% 91%,5% 90.5%,4% 88%,2% 88.4%,0 86%)}.verso.ripped small{text-align:center}.verso.ripped:before{content:'';position:absolute;left:0;bottom:0;width:21%;height:15%;background:linear-gradient(35deg,#c2ad90 45%,transparent 48%);pointer-events:none}
 .book-flap{z-index:2;will-change:transform}.turn-shade{position:absolute;inset:0 -20%;background:linear-gradient(90deg,transparent 10%,#64523f55 38%,#453527 54%,#fff7dd88 67%,transparent 90%);pointer-events:none}.book-ribbon{z-index:3}
 @media(max-width:480px){#spread{height:clamp(200px,83vw,52dvh)}.book-leaf{padding-inline:10px}.book-copy{line-height:1.38}}
+
+/* The spread is a fixed sheet, not a scrolling text panel. */
+#letter,.book-copy{overflow:hidden;scrollbar-width:none}#letter::-webkit-scrollbar,.book-copy::-webkit-scrollbar{display:none}@media(max-width:480px){#spread{height:min(72dvh,118vw)}}@media(max-height:430px){#spread{height:calc(95dvh - 82px)}.book-leaf{padding:6px 10px}.book-copy{line-height:1.25}}
