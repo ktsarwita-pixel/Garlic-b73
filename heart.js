@@ -33,6 +33,14 @@ function flagstone(a,b,i,j){
  rect(a+1,b,29,1,'#818382');rect(a+2,b+14,28,1,'#696c6b');
  if(seed%4===0){const mark=stoneMarks[(seed>>2)%4];mark.forEach((row,y)=>[...row].forEach((v,x)=>{if(v!==' ')rect(a+4+seed%17+x,b+3+seed%5+y,1,1,v==='l'?'#8a8c88':'#626564')}))}
 }
+// Hand-pixelled architectural details, baked once so the moving soul stays cheap.
+const hallTones={k:'#36393a',d:'#535657',s:'#727577',m:'#959896',l:'#b8bbb6',h:'#dcdfd6',w:'#f0f1e8'};
+const hallArt={
+ lantern:['    kk    ','   kmlk   ','  kmlhlk  ',' kddmmddk ',' kshhhmdk ',' kslwwldk ',' kslwwldk ',' kslhhldk ',' kddmmddk ','  kmlldk  ','   kmdk   ','    dk    '],
+ plinth:['  llllllll  ',' llhhhhhhll ',' mmmmmmmmsd ','  smlmmlds  ','  smlmmlds  ','  smlmmlds  ','  smlmmlds  ',' smllllllms ',' llhhhhhhld ',' mmmmmmmmsd ','  dddddddd  '],
+ relief:['    sss    ','   smlms   ','  smlhlms  ',' smlmdmlms ','smlmdsdmlms','slhdshsdmls','smlmdsdmlms',' smlmdmlms ','  smlhlms  ','   smlms   ','    sss    ']};
+const hallStamps=new Map();
+function stoneStamp(name,cx,y){let img=hallStamps.get(name);if(!img){const rows=hallArt[name];img=document.createElement('canvas');img.width=rows[0].length;img.height=rows.length;const ctx=img.getContext('2d');rows.forEach((row,j)=>[...row].forEach((p,i)=>{if(hallTones[p]){ctx.fillStyle=hallTones[p];ctx.fillRect(i,j,1,1)}}));hallStamps.set(name,img)}g.drawImage(img,cx-(img.width>>1),y)}
 function hallway(){
  const port=mode==='portal';g.save();g.translate(-HALL_LEFT,0);
  rect(HALL_LEFT,0,HALL_WIDTH,HALL_HEIGHT,'#101112');
@@ -52,7 +60,10 @@ function hallway(){
  for(const py of [80,205,330])for(let j=-7;j<=7;j++){
   const w=7-Math.abs(j);rect(180-w,py+j,w*2+1,1,'#c7c8c4');if(w>1)rect(182-w,py+j,w*2-3,1,'#656768')}
  for(const py of [67,135,203,278,360])for(const side of [-1,1]){
-  const a=180+side*(hallWidth(py)+8);rect(a-6,py-7,12,15,'#313335');rect(a-5,py-7,10,11,'#aaacab');rect(a-3,py-5,6,7,'#777978');rect(a-2,py-4,4,4,'#ededdf');rect(a-3,py+5,6,2,'#525455')}
+  const a=180+side*(hallWidth(py)+7);
+  // Narrow bands of lamplight wash across the adjacent stone, never over the soul.
+  g.save();for(let k=0;k<4;k++){const span=16-k*3;g.globalAlpha=.025+k*.012;rect(side<0?a+7:a-7-span,py-7+k,span,15-2*k,'#edece2')}g.restore();
+  stoneStamp('lantern',a,py-6)}
  rect(106,HALL_SOUTH+5,148,7,'#aaacab');rect(106,15,148,18,'#929494');rect(106,15,148,2,'#d6d7d3');rect(106,32,148,3,'#454748');
  // Compass rose in the central landing; a stepped threshold at the entrance.
  for(let j=-16;j<=16;j++){
@@ -67,6 +78,16 @@ function hallway(){
   const ax=180+side*74;rect(ax-5,185,11,40,'#9da09c');rect(ax-4,186,9,37,'#454847');for(let k=0;k<8;k++)rect(ax-3,188+4*k,7,1,'#747976');
   for(const py of [103,307]){const ax=180+side*48;rect(ax,py,5,1,'#656968');rect(ax+3,py+1,1,3,'#656968');rect(ax+4,py+3,3,1,'#656968')}
  }
+ // Four capped piers frame the landing. The grilles read as recessed ironwork.
+ for(const side of [-1,1]){
+  for(const py of [151,247])stoneStamp('plinth',180+side*84,py);
+  const ax=180+side*74;rect(ax-3,187,1,35,'#777b79');rect(ax+2,187,1,35,'#656a68');
+  for(const py of [187,220]){rect(ax-4,py,2,2,'#b4b6b0');rect(ax+3,py,1,1,'#a8aba7')}
+  for(const py of [80,330])stoneStamp('relief',180+side*22,py-5);
+  stoneStamp('relief',180+side*49,18);
+ }
+ // Compass points continue outside the mosaic rather than crossing its face.
+ for(let k=0;k<5;k++){const n=5-k;rect(180-n,182+k,n,1,'#aeb1ab');rect(180,182+k,n,1,'#717572');rect(180-k,226+k,Math.max(1,k*2),1,'#898d88')}
  const age=port?sceneAge:-1;threshold(age);crossingSoul(age);g.restore();
 }
 // Carved twin leaves share one broken seal. Slice the artwork, not the frame.
