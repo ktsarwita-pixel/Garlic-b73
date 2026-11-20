@@ -272,7 +272,7 @@ And friend do you even have friend yet?.
 
 -peace by papyrus`,`Sorry Sans before your mom disappear we live such amazing lives but went mom dissapear our lives changed sorry for telling you about mom is just working outside this town.
 
--Peach by papyrus`,null];
+-peace by papyrus`,null];
 let spread=0,turn=null;
 function leaf(n){const el=document.createElement('article');el.className='book-leaf '+(n%2?'recto':'verso')+(n===3?' ripped':'');el.setAttribute('aria-label','Page '+(n+1)+(n===3?' — torn out':''));
  if(n<3){const copy=document.createElement('div');copy.className='book-copy';copy.textContent=pages[n];el.append(copy)}

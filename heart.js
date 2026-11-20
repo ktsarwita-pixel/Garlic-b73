@@ -232,10 +232,14 @@ function studyDecor(){
  rect(154,217,12,8,'#594c40');rect(154,216,12,7,'#c0af92');rect(153,215,13,7,'#536967');rect(154,215,1,7,'#394d4b');rect(157,217,6,1,'#ad9e80');
  rect(195,222,8,1,'#5e5047');rect(203,221,2,1,'#d9cdb4');rect(157,209,5,4,'#47434b');rect(158,209,2,1,'#272b32');
  rect(196,211,8,3,'#806e51');rect(197,211,6,2,'#b49a73');rect(199,206,2,5,'#b49769');rect(196,203,7,5,'#967e59');rect(195,204,9,3,'#c2a574');rect(198,204,3,2,'#ebd5a1');
- for(let i=0;i<26;i++){const d=Math.min(i,25-i),py=207-(d>=2&&d<10?1:0),xx=167+i;
- rect(xx,py+1,1,17,'#604c43');rect(xx,py,1,16,'#b7a588');rect(xx,py,1,14,i===12?'#a79780':i===13?'#c8b9a1':i<12?'#eadfc6':'#dccfb7')}
- for(const [xx,yy,n] of [[169,209,7],[170,212,6],[169,215,8],[170,218,4],[183,210,7],[182,213,6],[182,216,4]])rect(xx,yy,n,1,'#ab9e87');
- rect(180,219,1,6,'#995c57');rect(181,224,1,2,'#814b47');familyPhotos();
+ // Miniature of the reader: overhanging russet boards, layered leaves,
+ // a shaded sewn gutter and a notched ribbon at the foot of the spine.
+ rect(166,205,28,19,'#382e29');rect(166,205,28,18,'#725447');rect(167,206,26,16,'#9d8168');
+ for(let i=0;i<24;i++){const xx=168+i,d=Math.min(i,23-i),py=207-(d>=2&&d<=9?1:0);
+ rect(xx,py+2,1,14,'#998771');rect(xx,py+1,1,14,'#cbbba0');rect(xx,py,1,14,d===11?'#b8a384':d===10?'#dbcaab':d<2?'#daccb0':i<12?'#efe4cc':'#eadcc1')}
+ rect(170,208,2,3,'#78473e');rect(182,208,2,2,'#78473e');
+ for(const [xx,yy,n] of [[173,209,4],[170,212,7],[170,214,6],[171,217,4],[185,209,4],[182,212,7],[182,214,5],[183,217,4]])rect(xx,yy,n,1,'#a89980');
+ rect(179,220,2,5,'#8c4946');rect(179,225,1,1,'#784845');familyPhotos();
 }
 function chamber(){
  rect(72,0,216,438,'#101112');rect(84,48,192,336,'#35393a');rect(87,50,186,19,'#54595a');
