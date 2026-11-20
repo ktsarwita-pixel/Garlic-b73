@@ -62,7 +62,21 @@ const lastCoat=coat.map((row,j)=>[...row].map((p,i)=>{
 }).join(''));
 const lastPaint={...paint,R:'#af263c',r:'#722337'};
 const lastFace=fallenFace.map((r,j)=>j===12?r.slice(0,14)+'R'+r.slice(15):j===13?r.slice(0,14)+'r'+r.slice(15):r);
-const FALL_END=7.4;
+const SOUL_BREAK=7.85,SOUL_ASH=8.65,FALL_END=10.42;
+// Sans's inverted monster soul stays at the last kneeling chest position.
+const monsterSoul=['   h   ','  hww  ',' hwwws ','hwwwwss','wwwwsss',' ss ss '];
+function lastSoul(a,lean,drop){
+ if(a<5.48||a>=FALL_END)return;
+ const reveal=ease((a-5.48)/.48),split=ease((a-SOUL_BREAK)/.36);
+ g.save();monsterSoul.forEach((row,j)=>[...row].forEach((p,i)=>{
+  if(p===' ')return;const right=i>=[4,3,4,3,3,3][j],seed=((i*31+j*17)%47)/47;
+  const d=Math.max(0,a-SOUL_ASH-seed*.43),life=1-ease((d-.25)/.96);
+  if(!life)return;g.globalAlpha=reveal*life;
+  const px=158+lean+22+(i-3)*2+(right?1:-1)*split*3;
+  const py=68+drop+11+(j-2)*2+(right?2:0)*split;
+  rect(px+d*((seed-.4)*17)+d*d*6,py-d*(6+seed*13),d>.12?1:2,d>.12?1:2,p==='h'?'#fffefa':p==='w'?'#e8e8e3':'#bbbdbb');
+ }));g.restore();
+}
 const foldingLegs=['  kkkkkkkkkkk  ',' kgGGggggggGgk ','kgGGgggkkggGggk','kgggggk  kggggk',' kgggk    kgggk','  kkk      kkk '];
 // Front-view knees and slippers: centered toe caps, no side-facing heels.
 const bentKnee=['   kkkkkkkkkk   ','  kgGGggggGGgk  ',' kgggggkkgggggk ','kgGGgggkkggGGggk','kgggggk  kgggggk',' kkkkk    kkkkk '];
@@ -93,6 +107,7 @@ function fallenSans(){
   const wind=Math.sin(seed*27+age*3)*age*5+age*age*9;
   rect(px+wind,py-age*(8+seed*14),age<.16?2:1,age<.16?2:1,seed<.4?'#aaa8a4':'#e2dfd7');g.globalAlpha=1;
  }))}
+ lastSoul(a,lean,drop);
  g.save();layer(frontBoot,162,98);layer(fold>.55?tuckedBoot:frontBoot,182,98+(fold>.55?4:0));
  layer(fold>.68?bentKnee:fold>.12?foldingLegs:shorts,164+lean,89+Math.round(9*fold));
  layer(hit?lastCoat:coat,158+lean,68+drop);layer(hit?lastFace:angrySkull,159+lean,43+drop+bow);
@@ -217,7 +232,7 @@ function finish(){if(encounter<5)sampleCue('clear');mode='between';msg(encounter
 function startSansDeath(){boss=0;fallAge=0;shots=[];mode='fallen';msg('The fifth slash lands.');sampleCue('fatal');ui()}
 function act(a){if(paused||mode==='fallen'||mode==='dodge'||mode==='strike'||mode==='dying')return;if(mode==='between'){if(encounter===5){enterHall();return}encounter++;resetBattle();say(encounter===5?'THIS TIME I WONT GIVE UP!':encounter===4?'you know what no more mercy':encounter===3?'Ah you again im taking it serius':'new rule, kid. blue bones pass through if you hold still.');ui();return}
 if(mode==='end'){if(hp<=0)sampleCue('retry');if(hp<=0&&encounter===6){enterHeart();return}if(hp>0)encounter=1;resetBattle();say(encounter===5?'THIS TIME I WONT GIVE UP!':encounter===2?'round two again. remember: blue means hold still.':'back already? kept your spot warm.');ui();return}if(blocked(a))return;if(encounter===6){heartAction(a);return}if(a==='item'&&!food){sampleCue('empty');msg('Your pockets are empty. Choose another action.');return}if(a==='fight'){if(encounter!==5||swings!==4)sfx('slash')}else if(a==='item')sfx('heal');else beep(330);if(a==='fight'){if(encounter===5&&++swings===5){startSansDeath();return}mode='strike';flash=EVADE_DURATION;msg('You swing.');ui();return}if(encounter===4&&a==='act'){calm++;say(['you want me to listen? then listen back.', '...okay. one more thing to say?', 'alright. the bone’s gone. your call.'][Math.min(calm,3)-1])}if(encounter===3&&a==='act'){calm++;say(['red means keep moving, kid.', 'yeah. i hear you. blue still means stop.', 'enough. use mercy and we’re done.'][Math.min(calm,3)-1])}if(a==='act'&&encounter===1){calm++;say(['heh. a joke? now we’re talking.', 'okay. that one got a real laugh.', 'call it a draw? mercy’s right there.'][Math.min(calm,3)-1])}if(a==='item'){food--;hp=Math.min(20,hp+8);msg(`You eat a pie slice. ${food} left.`+(encounter===3?' Red: move. Blue: stop.':''))}if(a==='mercy')msg(encounter===3?'Not yet. Try ACT. Red: move. Blue: stop.':'Not yet. Maybe a few jokes would help.');if(!boss||(a==='mercy'&&calm>=3&&encounter!==2)){finish()}else{startWave(.1)}ui()}
-function update(dt){tickSpeech(dt);if(chapterTick(dt))return;if(mode==='fallen'){const before=fallAge;fallAge+=dt;if(before<5.7&&fallAge>=5.7)sfx('dust');if(before<1.48&&fallAge>=1.48)say('heh. guess you finally got me.');if(before<3.1&&fallAge>=3.1)say('give me a minute, kid.');if(fallAge>=FALL_END){finish();ui()}return}if(mode==='dying'){const prev=deathAge;deathAge+=dt;if(prev<.78&&deathAge>=.78)beep(85);if(prev<1.52&&deathAge>=1.52){beep(196);say('hey. take a breath, kid.')}if(deathAge>=3.43){mode='end';msg('Your soul shattered. Select an action to retry.');ui()}return}if(mode==='strike'){
+function update(dt){tickSpeech(dt);if(chapterTick(dt))return;if(mode==='fallen'){const before=fallAge;fallAge+=dt;if(before<SOUL_BREAK&&fallAge>=SOUL_BREAK)sfx('crack',.8);if(before<SOUL_ASH&&fallAge>=SOUL_ASH)sfx('dust',1.12);if(before<5.7&&fallAge>=5.7)sfx('dust');if(before<1.48&&fallAge>=1.48)say('heh. guess you finally got me.');if(before<3.1&&fallAge>=3.1)say('give me a minute, kid.');if(fallAge>=FALL_END){finish();ui()}return}if(mode==='dying'){const prev=deathAge;deathAge+=dt;if(prev<.78&&deathAge>=.78)beep(85);if(prev<1.52&&deathAge>=1.52){beep(196);say('hey. take a breath, kid.')}if(deathAge>=3.43){mode='end';msg('Your soul shattered. Select an action to retry.');ui()}return}if(mode==='strike'){
  const prev=flash;flash=Math.max(0,flash-dt);
  if(prev>EVADE_DURATION-1.1&&flash<=EVADE_DURATION-1.1){sfx('evade');say(['nice swing. wrong address.', 'pretty sure the air learned its lesson.', 'i was standing there. past tense.'][misses++%3]);ui()}
  if(!flash){if(!boss){finish()}else{if(encounter>=3)msg('Red: move. Blue: stop. White: dodge.');if(encounter===1)msg('Dodge the bones! Try ACT to win him over.');startWave(.55)}ui()}return;
