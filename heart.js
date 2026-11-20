@@ -211,8 +211,12 @@ function studyDecor(){
  rect(153,197,54,40,'#686064');rect(155,199,50,36,'#898084');rect(157,201,46,32,'#726c74');
  for(let i=155;i<206;i+=3){rect(i,195,1,2,'#a29790');rect(i,237,1,2,'#a29790')}
  const [x,y,w,h]=roomFurniture[roomFurniture.length-1];furnitureBody(x,y,w,h,2,'#95816c');rect(x+3,y+17,10,1,'#8b7866');rect(x+21,y+20,14,1,'#a18a72');
- // Uneven page edges, fine ink lines, folded ribbon at the gutter.
- rect(171,207,17,10,'#675653');rect(172,207,7,8,'#e2d8c0');rect(180,206,7,9,'#d2c8af');rect(179,207,1,9,'#a0937e');rect(180,214,1,4,'#92605c');for(const p of [173,181])for(let j=0;j<2;j++)rect(p,209+j*2,4-j,1,'#a69e90');
+ // Fitted writing inset, a leather-bound field journal and a two-page ink study.
+ rect(162,206,35,19,'#796653');rect(163,207,33,17,'#95816b');rect(163,224,33,1,'#b09a80');
+ rect(164,218,9,5,'#514a40');rect(164,217,9,5,'#b4a88e');rect(163,216,10,5,'#536967');rect(164,216,1,5,'#394d4b');rect(166,217,5,1,'#a99c7e');
+ for(let i=0;i<16;i++){const d=Math.min(i,15-i),py=210-(d>1&&d<6?1:0),xx=171+i;
+  rect(xx,py+1,1,10,'#675247');rect(xx,py,1,9,'#b7a588');rect(xx,py,1,8,i===7?'#ae9f87':i===8?'#c5b69e':i<8?'#e5dbc5':'#dacdb5')}
+ for(const [xx,yy,n] of [[173,211,4],[173,213,3],[174,215,3],[181,212,4],[181,214,3]])rect(xx,yy,n,1,'#a69b88');rect(179,217,1,4,'#915855');rect(180,220,1,2,'#784845');
  familyPhotos();
  // Brass desk light and ink pot sit on the tabletop, separate from the open book.
  rect(188,213,6,2,'#665346');rect(190,208,2,5,'#b49769');rect(188,205,5,5,'#927951');rect(187,206,7,3,'#bda273');rect(189,206,3,2,'#e3c999');rect(189,209,3,1,'#aa8c5f');rect(164,212,4,3,'#494954');rect(165,211,2,1,'#ada59a');
@@ -396,13 +400,21 @@ function heartOpponent(){
   const offset=(prev+(gap(n)-prev)*progress)*bind+burst*2.7;
   const angle=(dx<0?-1:1)*burst*(.36+.07*index);
   g.save();g.translate(Math.round(158+cx*3+dx*offset),Math.round(52+cy*3+dy*offset));g.rotate(angle);g.drawImage(shardSprite(id,Math.round(64*tint)),-cx*3,-cy*3);g.restore();
- }g.restore();if(hit)slash(sceneAge*1.6,false);
- if(purple&&cracks===5&&(hit||breaking)){const age=hit?sceneAge:sceneAge+1.05;
-  for(let i=0;i<52;i++){const f=i/51,u=age-.46-f*.22;if(u<0||u>1.18)continue;
-   const px=154+i+Math.sin(i*19)*u*7,py=98-40*f-5*Math.sin(f*Math.PI)-u*(5+i%8)+u*u*22;
-   g.save();g.globalAlpha=(1-ease((u-.46)/.72))*ease(u/.1);rect(px,py,2,2,'#535056');rect(px,py,2,1,'#111014');g.restore()}
- }
+ }g.restore();
+ if(purple&&cracks===5&&(hit||breaking))finalSlashAsh(sceneAge+(breaking?1.05:0));else if(hit)slash(sceneAge*1.6,false);
 }
+// The actual stroke breaks up: every flake starts on its original ink pixel.
+// Fixed seeds keep flight paths continuous across the hit/reconstruction handoff.
+const slashCinders=Array.from({length:52},(_,i)=>{const f=i/51,w=1+Math.round(3*Math.sin(f*Math.PI));return Array.from({length:w*2+1},(_,k)=>{
+ const n=(i*193+k*79+i*k*17)%251;return {i,k,w,x:154+i,y:Math.round(98-40*f-5*Math.sin(f*Math.PI))-w+k,
+ release:.48+f*.34+(n%9)*.009,life:.66+(n%31)*.013,vx:((n%27)-8)*.85,vy:7+n%16,phase:n*.37}})}).flat();
+function finalSlashAsh(age){if(age>=2.1)return;const u=Math.min(1,age/.45),reach=Math.ceil(52*u*u*(3-2*u));g.save();
+ for(const p of slashCinders){if(p.i>=reach)continue;const a=age-p.release;if(a>=p.life)continue;
+  if(a<0){const col=a>-.075?'#40393f':a>-.13?'#997e80':p.k===p.w?'#fffcea':p.k>0&&p.k<=p.w+1?'#ffdea0':'#cf765d';rect(p.x,p.y,1,1,col);continue}
+  const f=a/p.life,xx=p.x+p.vx*a+3*a*Math.sin(p.phase+a*7),yy=p.y-p.vy*a+30*a*a;
+  g.globalAlpha=1-ease((f-.53)/.47);rect(xx,yy,1,1,p.k%4===0?'#635963':p.k%3===0?'#332e35':'#141216');g.globalAlpha=1;
+ }g.restore();}
+
 function heartAction(a){if(mode!=='ready')return;if(a==='fight'){cracks++;boss=Math.max(0,100-100*cracks/(purple?5:4));mode='heartHit';sceneAge=0;sampleCue((purple?'violet':'white')+cracks);msg(`Fracture ${cracks} / ${purple?5:4}.`)}else{if(purple)return;if(a==='item'){if(!food){sampleCue('empty');msg('No pie left.');return}sfx('heal');food--;hp=Math.min(20,hp+8);msg(`Pie restores your soul. ${food} left.`)}else msg(a==='act'?'You call out. No answer.':'You offer mercy. Its pulse stays steady.');startWave(.55)}ui()}
 const seamPattern=['seam','seam-slip','seam','seam-freeze','seam-slip'];
 function seamBeat(dt,level){const beat=Math.floor(t*4.5);if(beat!==Math.floor((t-dt)*4.5))sampleCue(seamPattern[beat%seamPattern.length],1,level)}
