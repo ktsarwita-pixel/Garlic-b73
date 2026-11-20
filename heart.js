@@ -202,7 +202,7 @@ function crossingSoul(age){
  // Layer translucent shadow pixels over the actual stone and inlay beneath them.
  const w=4+Math.round(lift*.5);g.save();g.globalAlpha=.19*(1-pull);rect(px-w,ground+4,w*2+1,2,'#151619');rect(px-w+2,ground+3,w*2-3,4,'#151619');
  g.globalAlpha=.29*(1-pull);rect(px-2,ground+4,5,2,'#141416');g.restore();
- g.save();g.beginPath();g.rect(100,17,160,410);g.clip();g.globalAlpha=1-ease((age-2.12)/.36);tinySoul(px,ground-lift);g.restore();
+ g.save();if(age>=0){g.beginPath();g.rect(HALL_LEFT,17,HALL_WIDTH,HALL_HEIGHT-17);g.clip()}g.globalAlpha=1-ease((age-2.12)/.36);tinySoul(px,ground-lift);g.restore();
 }
 const watchers=[[19,43,9],[51,78,17],[85,29,12],[127,53,9],[95,105,8],[16,102,6],[142,95,6],[221,34,7],[239,94,10],[263,57,18],[305,29,10],[337,78,15],[301,106,7],[350,41,5],[33,22,6],[61,48,8],[108,73,6],[126,19,6],[153,38,5],[183,24,10],[209,104,6],[244,18,6],[287,82,8],[325,49,6],[354,106,5],[70,111,5]];
 function eyePresence(i){const lag=((i*11)%26)/25*.48;
