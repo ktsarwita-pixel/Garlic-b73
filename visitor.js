@@ -76,8 +76,8 @@ function visitorPose(){const w=mode==='dodge'?wallPull:null,age=mode==='strike'?
  const coil=w?pulse(w.age,0,.38):0,drive=w?pulse(w.age,.22,.86):0;
  const teleport=mode==='strike'&&swings<6,side=round%2?1:-1;
  const settle=teleport?(pulse(age,.18,.48)-pulse(age,1.06,1.38))*side:0;
- const hit=mode==='strike'&&swings===6?pulse(age,.34,1.12):0;
- return {lean:Math.round((w?w.nx*drive*2:0)-2*settle+2*hit),drop:Math.round(2*coil+Math.abs(settle)+hit),chin:Math.round(coil-drive+hit),hem:Math.round(settle*2+(w?w.nx*drive:0))};}
+
+ return {lean:Math.round((w?w.nx*drive*2:0)-2*settle),drop:Math.round(2*coil+Math.abs(settle)),chin:Math.round(coil-drive),hem:Math.round(settle*2+(w?w.nx*drive:0))};}
 function coatFinish(rear,hem){
  // Crisp broken seam, reflected sleeve edges and the underside of the hood.
  if(rear){jointLine(168,76,174,79,2,'#535f72');jointLine(174,79,183,80,2,'#363747');jointLine(183,80,190,76,2,'#677084');stampInk(180,82,1,6,'#515667');jointLine(179,89,176,94,1,'#784653')}
@@ -100,7 +100,11 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  for(let j=0;j<hollowSkull.length;j++){const cant=Math.round((j/16)*(2+droop/2));stampMask([hollowSkull[j]],p,hx+cant,hy+j*2)}
  // Single-pixel bevels on the broken orbital rim, teeth, seam and rib ends.
  stampInk(174,hy+5,4,1,'#eee1cf');stampInk(177,hy+7,1,3,'#625c64');stampInk(168,hy+19,3,1,'#867e84');stampInk(171,hy+20,2,1,'#ada6a3');stampInk(181,hy+25,2,2,'#cbc1b6');stampInk(184,hy+26,1,2,'#afa29a');stampInk(175,83,4,1,'#b2abac');stampInk(173,86,4,1,'#a79fa3');stampInk(181,85,2,1,'#95505a');
- if(glow)visitorGaze(hy+17)}
+ if(glow){const age=mode==='sevenHold'?endingAge+.93:mode==='strike'&&swings===6?.93-flash:-1;
+ if(age>=0){jointLine(185,78,174,87,3,'#50235f');jointLine(184,79,176,86,1,'#ca67de');stampInk(177,85,2,1+Math.round(7*ease(age)), '#853b99');stampInk(182,81,1,4,'#ae54b9');
+ if(age<.7)for(let i=0;i<7;i++){const vx=12+i*5,vy=-30+(i*13)%32;stampInk(181+vx*age,82+vy*age+65*age*age,1+i%2,2,i%2?'#b75dcc':'#723686')}}
+ visitorInk.save();visitorInk.globalAlpha=1-ease((age-1.3)/1.15);visitorGaze(hy+17);visitorInk.restore();
+ if(age>2.75){const length=1+Math.round(4*ease((age-2.75)/.28));stampInk(186,hy+16,1,length,'#ffffff');stampInk(185,hy+17,3,1,'#edfaff')}}}
  visitorInk.restore();g.save();g.imageSmoothingEnabled=false;g.drawImage(visitorSheet,130,32);g.restore();}
 // A low inner brow leaves a hooked aperture. The face stays still: only the
 // iris follows the soul, contracting into a needle as the wall pull begins.
@@ -153,7 +157,8 @@ function wallSequence(dt,b){if(!wallPull&&slamCount>=3)return false;if(!wallPull
  // Root every spike on the marked wall. Only its exposed length changes.
  if(w.age>=1.76&&!w.fired){w.fired=true;for(let off=6;off<112;off+=10)sevenBone(w.nx?0:b.l+off,w.ny?0:b.u+off,4,0,0,!!w.nx,'corrupt boke')}
  if(w.fired){const depth=Math.round(SLAM_REACH*ease((w.age-1.76)/.17)*(1-ease((w.age-2.65)/.27)));for(const s of shots){s.h=Math.max(4,depth);if(w.nx)s.x=w.nx<0?b.l:b.r-s.h;else s.y=w.ny<0?b.u:b.d-s.h}if(w.age>=2.92)shots=[]}if(w.age>=3.55)wallPull=null;return false}
-function sevenTick(dt){if(mode==='strike'){const before=1.45-flash;flash-=dt;const age=1.45-flash;if(swings<6){if(before<.18&&age>=.18)sfx('phaseOut');if(before<1.06&&age>=1.06)sfx('phaseIn')}else if(before<.52&&age>=.52)sfx('impact');if(flash<=0){if(swings===6){mode='sevenHold';msg('…');ui()}else{round++;sevenWave(round===4)}}return}if(mode!=='dodge')return;
+let endingAge=0;
+function sevenTick(dt){if(mode==='sevenHold'){if(encounter===7&&(endingAge+=dt)>=2.65){encounter=8;boss=100;ui()}return}if(mode==='strike'){const before=1.45-flash;flash-=dt;const age=1.45-flash;if(swings<6){if(before<.18&&age>=.18)sfx('phaseOut');if(before<1.06&&age>=1.06)sfx('phaseIn')}else if(before<.52&&age>=.52)sfx('impact');if(flash<=0){if(swings===6){endingAge=0;mode='sevenHold';msg('…');ui()}else{round++;sevenWave(round===4)}}return}if(mode!=='dodge')return;
  if(roomShift){const m=roomShift;m.age=Math.min(SHIFT_TIME,m.age+dt);const p=ease(m.age/SHIFT_TIME);x=m.sx+(180-m.sx)*p;y=m.sy+(160-m.sy)*p;if(m.age>=SHIFT_TIME)roomShift=null;return}
  const b=sevenBox(),ox=x,oy=y;elapsed+=dt;inv-=dt;
  const held=round===6&&wallSequence(dt,b);if(held&&drag&&target){target=null}if(!held){let dx=+ (keys.has('d')||keys.has('arrowright'))- +(keys.has('a')||keys.has('arrowleft')),dy=+(keys.has('s')||keys.has('arrowdown'))- +(keys.has('w')||keys.has('arrowup'));if(drag&&target){dx=target[0]-x;dy=target[1]-y}const q=Math.hypot(dx,dy)||1,step=drag&&target?Math.min(q,dt*95):dt*95;x=Math.max(b.l+5,Math.min(b.r-5,x+step*dx/q));y=Math.max(b.u+5,Math.min(b.d-5,y+step*dy/q))}if(round<6&&(spawn-=dt)<=0)sevenGate();const moving=Math.hypot(x-ox,y-oy)>.001;
