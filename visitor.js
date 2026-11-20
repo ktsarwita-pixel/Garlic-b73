@@ -60,14 +60,16 @@ const burialCoat=[
 const rearCranium=['      kkkkkkk','    kkswwwWWwkk','   kswwwWWWWwwwk','  kswwwWWwwwwwwsk',' kswwwwwwswwwwwssk',' kswwwwwsswwwwwwsk',' ksswwwwwskwwwwssk','  ksswwwwsswwwssk','   ksswwsswwwssk','    ksswwwwwssk','     ksssssssk','       ksssk'];
 const rearCoat=['     kkkkkkkkk','   kkdBBBBBBBdkk','  kdbbbBBbbbbbddk',' kdbdbbbbbbbdbdddk',' kddbbddddddbddbdk','  kdbbkkkkkkdbbdk','  kdbbbbbbbbbbdkk','  kddbbbdbbbbbdk','  kddbbbkbbdbbdk',' kdbdbbbkbbdbdddk',' kdbdbbbrbbdbdddk',' kddkbbRrbbdbdddk',' kdk kbrkbbkdkkdk',' kk  kdk kk k  kk'];
 const rearHeel=['  kkkkkk ',' kssssssk',' kppppppk',' kpPPpppk',' kssssssk','  kkkkkk '];
-// Short, even passing steps. Keep the shins under the shorts and show
-// the lifted heel with a foreshortened sole instead of stretching the leg.
+// Choreograph floor contacts, then derive the hips from the feet. The first
+// step starts with both heels together; the last brings the trailing heel in.
 const passingHeel=['  kkkkkk ',' kssssssk',' kppppppk',' kpPPpppk','  ksssssk'];
-function heelPose(distance,side){const weight=Math.min(1,distance/4,(72-distance)/4),p=side*Math.sin(distance*Math.PI/12)*weight;return {dy:Math.round(p*2.5),lift:p<-.42}}
-function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visitorSheet=document.createElement('canvas');visitorSheet.width=100;visitorSheet.height=88;visitorInk=visitorSheet.getContext('2d')}visitorInk.clearRect(0,0,100,88);const p=revenantPaint,weight=rear?Math.min(1,step/5,(72-step)/5):0,swing=weight*Math.sin(step*Math.PI/12),bob=0;
- for(const side of [-1,1]){const foot=rear?heelPose(step,side):{dy:0,lift:0},fx=side<0?161:181,fy=98+foot.dy;if(rear){stampInk(fx+6,95,4,Math.max(2,fy-94),p.s);stampInk(fx+6,fy+1,5,2,p.k)}stampMask(rear?(foot.lift?passingHeel:rearHeel):boot,p,fx,fy)}
- visitorInk.save();visitorInk.translate(Math.round(swing),-bob);stampMask(shorts,p,165,90);stampMask(rear?rearCoat:burialCoat,p,160,69);
- const handCue=mode==='dodge'&&round===6?wallPull:null;for(const side of [-1,1]){visitorInk.save();visitorInk.translate(0,Math.round(-side*swing));revenantArm(side,handCue);visitorInk.restore()}
+function entryGait(progress){const beat=Math.min(11,Math.floor(progress*12)),f=progress*12-beat,left=beat%2===0;
+ const plant=beat*6,from=Math.max(0,plant-6),to=Math.min(66,plant+6),arc=Math.sin(Math.PI*f),s=f*f*(3-2*f),swing=from+(to-from)*s,hips=(plant+swing)/2;
+ const pose=(z,moving)=>({dy:Math.round((hips-z)/.61-(moving?arc*1.6:0)),lift:moving&&arc>.64});return {hips,left:pose(left?swing:plant,left),right:pose(left?plant:swing,!left),weight:(left?1:-1)*arc,arm:(swing-plant)/6*(left?1:-1)};}
+function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visitorSheet=document.createElement('canvas');visitorSheet.width=100;visitorSheet.height=88;visitorInk=visitorSheet.getContext('2d')}visitorInk.clearRect(0,0,100,88);const p=revenantPaint,gait=rear?entryGait(step):null,swing=gait?gait.arm:0;
+ for(const side of [-1,1]){const foot=gait?(side<0?gait.left:gait.right):{dy:0,lift:0},fx=side<0?161:181,fy=98+foot.dy;if(rear){stampInk(fx+6,95,4,Math.max(2,fy-94),p.s);stampInk(fx+6,fy+1,5,2,p.k)}stampMask(rear?(foot.lift?passingHeel:rearHeel):boot,p,fx,fy)}
+ visitorInk.save();visitorInk.translate(gait?Math.round(gait.weight):0,0);stampMask(shorts,p,165,90);stampMask(rear?rearCoat:burialCoat,p,160,69);
+ const handCue=mode==='dodge'&&round===6?wallPull:null;for(const side of [-1,1]){visitorInk.save();visitorInk.translate(0,Math.round(-side*swing*2));revenantArm(side,handCue);visitorInk.restore()}
  // Integer row shifts lift the chin out of the collar without rotating blurry pixels.
  const droop=Math.round(4*(1-wake)),hx=159,hy=46+droop;
  if(rear){stampMask(rearCranium,p,160,hy+3);stampInk(177,hy+24,3,2,p.s);stampInk(174,hy+11,4,1,'#938a91');stampInk(177,hy+12,1,3,'#837b83');stampInk(178,hy+15,3,1,'#938a91');stampInk(171,77,5,1,'#718092');stampInk(176,79,7,1,'#474f60');stampInk(181,85,1,5,'#262532');stampInk(180,90,2,2,'#793f4b');if(glow){stampInk(193,hy+15,1,3,'#c48aff');stampInk(191,73,3,1,'#9562b7')}}else{
@@ -79,10 +81,8 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
 function drawVisitor(){const a=revealClock,pan=ease((a-.4)/2.65),zoom=1+1.63*pan;
  // The mirrored seal spans y=370..391. Wait for full clearance, then
  // walk from behind its far sill; both heels clear the near sill before closing.
- const u=Math.max(0,Math.min(1,(a-1.17)/2.65)),r=.12;
- const travel=(u<r?u*u/(2*r):u>1-r?1-r-(1-u)**2/(2*r):u-r/2)/(1-r),px=180,py=430-72*travel;
+ const stride=Math.max(0,Math.min(1,(a-1.17)/2.65)),px=180,py=425-entryGait(stride).hips;
  const gateAge=a<1.18?.48+.92*ease((a-.38)/.8):2.54+.66*ease((a-3.83)/.62);
- const stride=72*travel;
  const cx=180,cy=HALL_HEIGHT/2+(361-HALL_HEIGHT/2)*pan;
  g.save();g.translate(HALL_WIDTH/2,HALL_HEIGHT/2);g.scale(zoom,zoom);g.translate(-cx,-Math.min(HALL_HEIGHT-HALL_HEIGHT/(2*zoom),cy));chamber(gateAge);
  if(a>1.17){g.save();g.beginPath();g.rect(95,68,170,302);g.rect(162,370,36,21);g.clip();rect(px-8,Math.round(py),16,2,'#48434a');g.translate(px,Math.round(py));g.scale(.61,.61);g.translate(-180,-110);sevenFigure(a>=3.43,ease((a-3.04)/.52),stride,true);g.restore()}g.restore();}
@@ -140,7 +140,14 @@ function drawSlamAlert(b,w){const color='#ffc46b';
  rect(w.nx>0?b.r-2:b.l,w.ny>0?b.d-2:b.u,w.nx?2:b.r-b.l,w.ny?2:b.d-b.u,color);
  const cx=w.nx<0?b.l+8:w.nx>0?b.r-8:(b.l+b.r)/2,cy=w.ny<0?b.u+8:w.ny>0?b.d-8:(b.u+b.d)/2;
  rect(cx-1,cy-4,3,5,color);rect(cx-1,cy+3,3,2,color)}
-function drawVisitorBone(s){if(!s.glitch){boneSprite({...s,x:0,y:0});const age=t-s.changed;if(age>=0&&age<.18){const k=Math.round((s.h-2)*age/.18);rect(-1,k,5,1,s.blue?'#c1fbff':'#ffdbbf')}return}
+// Corrupt Boke is solid and lethal regardless of movement. A charge moves
+// through the fissure, never recoloring the body like a switching glitch bone.
+function drawCorruptBoke(s){const h=Math.round(s.h),shaft=Math.max(0,h-4),pulse=(t*.95+s.phase*.067)%1;
+ rect(0,2,3,shaft,'#654087');rect(0,2,1,shaft,'#b7b5be');rect(2,2,1,shaft,'#494551');
+ for(let j=3;j<h-2;j++){const vein=(j%9<3?0:1);rect(vein,j,1,1,'#a447d8')}
+ if(shaft>1){const at=2+Math.floor(pulse*shaft);rect(0,at,3,1,'#e2acff');if(at>3)rect(1,at-1,1,1,'#c172f5')}
+ for(const d of [1,-1]){const y=d===1?0:h-1;rect(-1,y,2,1,'#d6d4dc');rect(2,y,2,1,'#ada8ba');rect(-2,y+d,7,1,'#897496');if(h>4)rect(-1,y+2*d,5,1,'#704388')}}
+function drawVisitorBone(s){if(s.kind==='corrupt boke'){drawCorruptBoke(s);return}if(!s.glitch){boneSprite({...s,x:0,y:0});const age=t-s.changed;if(age>=0&&age<.18){const k=Math.round((s.h-2)*age/.18);rect(-1,k,5,1,s.blue?'#c1fbff':'#ffdbbf')}return}
  // Ash-gray cortex around a violet marrow line. A narrow ripple runs along
  // each bone at its own phase; its caps and collision silhouette stay steady.
  const h=Math.round(s.h),len=Math.max(0,h-4),cycle=(t*1.15+s.phase*.137)%1,cut=2+Math.floor(cycle*Math.max(1,len));
