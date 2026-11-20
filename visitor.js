@@ -107,20 +107,12 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  visitorInk.restore();g.save();g.imageSmoothingEnabled=false;g.drawImage(visitorSheet,130,32);g.restore();}
 // Illuminate the same ten connected pixels every frame, never swap eye silhouettes.
 function whiteCross(hy,seconds){
- const reveal=ease(seconds/1.15),sweep=-4+10*((seconds+.5)%3.8)/3.8;
- visitorInk.save();
- // A fixed, stepped halo follows the hollow under the brow. Move light, never pixels.
- const swell=.5-.5*Math.cos(seconds*1.65),catchLight=Math.exp(-((sweep-1)**2)/3);
- const halo=[[-2,3,5],[-1,1,8],[0,0,10],[1,0,10],[2,1,8],[3,2,6],[4,4,3]];
- for(const [dy,left,width] of halo){const lag=.5-.5*Math.cos(seconds*1.65-dy*.24);
-  visitorInk.globalAlpha=reveal*(.13+.19*lag);stampInk(181+left,hy+16+dy,width,1,'#86afca')}
- visitorInk.globalAlpha=reveal*(.21+.24*swell);stampInk(183,hy+16,7,2,'#a2cadd');
- visitorInk.globalAlpha=reveal*(.19+.35*catchLight);stampInk(188,hy+15,2,1,'#b7d2dc');stampInk(184,hy+19,3,1,'#a1c2cf');
- visitorInk.globalAlpha=reveal;
- stampInk(186,hy+14,1,6,'#b1ccd8');stampInk(184,hy+16,5,1,'#c5dae2');stampInk(186,hy+16,1,1,'#f5fcff');
- // A soft band of reflected white travels diagonally across the fixed icy base.
- for(let j=-2;j<=3;j++)for(let i=-2;i<=2;i++){if(i&&j)continue;
-  const d=(i+j*.66-sweep)/1.05;visitorInk.globalAlpha=reveal*.94*Math.exp(-d*d);stampInk(186+i,hy+16+j,1,1,'#ffffff')}
+ const reveal=ease(seconds/1.15),pulse=(1-Math.cos(seconds*1.8))/2;
+ visitorInk.save();visitorInk.globalAlpha=reveal*(.09+.09*pulse);
+ // One pixel of local spill; keep the cross as the only bright shape.
+ stampInk(185,hy+14,3,6,'#a2c3dc');stampInk(184,hy+15,5,1,'#a2c3dc');stampInk(184,hy+17,5,1,'#a2c3dc');
+ visitorInk.globalAlpha=reveal;stampInk(186,hy+14,1,6,'#e3eef4');stampInk(184,hy+16,5,1,'#e3eef4');
+ visitorInk.globalAlpha=reveal*(.45+.55*pulse);stampInk(186,hy+16,1,1,'#ffffff');
  visitorInk.restore();
 }
 // The final sweep is the original blade arc, lowered ten pixels onto the coat.
