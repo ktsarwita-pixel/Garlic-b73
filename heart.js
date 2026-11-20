@@ -140,6 +140,9 @@ function studyShelf(x,y,w,h,seed){
     plank(front,p,1,size,0,'#574949');if(size===3)plank(front-1,p+1,1,1,0,'#bcaa82');
    }
   }
+  // Pegged joints, worn sill and a little brass catalogue plate on each case.
+  for(const v of [1,th-2]){plank(1,v,1,1,0,'#564a40');plank(tw-3,v,1,1,0,'#67584a')}
+  plank(1,th/2|0,2,4,0,'#806b4e');plank(1,(th/2|0)+1,2,2,0,'#baa781');
   shelfTiles.set(seed,tile);
  }
  g.save();g.globalAlpha=.12;rect(x+2,y+2,w,h,'#262322');g.globalAlpha=.22;rect(x+2,y+2,w-1,h-1,'#262322');g.globalAlpha=1;g.drawImage(tile,x,y);g.restore();
@@ -147,7 +150,9 @@ function studyShelf(x,y,w,h,seed){
 // Faded prints stay in the north wall band, clear of the playable floor.
 function familyPhotos(){
  const frame=(x,y,w,h)=>{rect(x+1,y+1,w,h,'#484644');rect(x,y,w,h,'#655347');rect(x+1,y+1,w-2,h-2,'#b79e78');rect(x+2,y+2,w-4,h-4,'#d5c9ab');rect(x+3,y+3,w-6,h-6,'#777f7b')};
+ const gild=(x,y,w,h)=>{rect(x+1,y+1,w-3,1,'#ccba96');rect(x+w-2,y+2,1,h-3,'#907957');rect(x+2,y+h-2,3,1,'#978365')};
  frame(168,50,24,16);frame(147,52,15,13);frame(198,53,13,12);
+ gild(168,50,24,16);gild(147,52,15,13);gild(198,53,13,12);
  // Use a narrow mount so the face, not the frame, occupies the print.
  const ink={h:'#f3ead6',e:'#e4d7bc',s:'#b4a58e',q:'#3e4144',p:'#f1e4cd',d:'#70675e',c:'#c4beb0',j:'#607987',b:'#455f70',z:'#b8aa89',w:'#cccbbc',t:'#526459'};
  const print=(x,y,rows)=>rows.forEach((r,v)=>[...r].forEach((k,u)=>{if(ink[k])rect(x+u,y+v,1,1,ink[k])}));
@@ -156,7 +161,7 @@ function familyPhotos(){
  // Snow-day candid: winding snowbank, stepped evergreen and a raised mitten.
  rect(149,54,11,9,'#8d9999');rect(149,60,11,3,'#c4c7ba');print(149,55,[' t ','twt','ttt',' d ']);
  print(153,54,[' hhh ','heees','eqeqs',' sees',' jccj',' bjj ','  bs ',' b  b']);
- rect(204,56,1,7,'#5f6857');rect(201,57,3,2,'#829078');rect(205,56,3,2,'#97a187');rect(205,60,2,1,'#78846b');
+ rect(204,56,1,7,'#5f6857');rect(201,57,3,2,'#829078');rect(205,56,3,2,'#97a187');rect(205,60,2,1,'#78846b');rect(202,62,4,1,'#baaa8b');rect(206,56,1,1,'#abaf90');rect(169,52,1,3,'#d9c9aa');
 }
 function studyRoots(){
  // Step along mortar joints before branching over a stone; static, not obstacles.
@@ -194,14 +199,20 @@ function studyPatina(){
  // Radial fronds viewed from above: short shaded leaflets, a common crown.
  for(const [x,y,n] of [[103,130,9],[253,98,10],[102,282,10],[249,289,9],[236,76,7]]){
  for(let j=0;j<7;j++){const angle=j*.898+x*.1,len=n-(j%3),dx=Math.cos(angle),dy=Math.sin(angle);for(let k=0;k<len;k++){const px=x+dx*k,py=y+dy*k;dot(px,py,1,1,'#465c49');if(k%2===1){dot(px-dy,py+dx,2,1,'#899579');dot(px+dy,py-dx,1,2,'#677b61')}}}dot(x-1,y-1,3,2,'#52674f')}
+ // Damp mortar beneath the ferns: patches have a dark underside and a dry lip.
+ for(const [mx,my,d] of [[96,126,1],[260,95,-1],[99,278,1],[258,285,-1],[233,74,1]]){
+  for(let i=0;i<5;i++){const xx=mx+d*(i*2),yy=my+(i*i%3);dot(xx,yy,4,2,'#626c5c');dot(xx+1,yy-1,2,1,i%2?'#95977c':'#858a70')}
+ }
  // The stopped brass clock: stepped bezel, four indices and a fork across the glass.
  const cx=249,cy=58;for(let v=-6;v<=6;v++)for(let u=-6;u<=6;u++){const r=u*u+v*v;if(r>37)continue;
  dot(cx+u,cy+v,1,1,r>27?(u+v<0?'#b59d75':'#514a40'):(u+v<0?'#e0d7c0':'#cabea3'))}
  for(const [u,v] of [[0,-4],[4,0],[0,4],[-4,0]])dot(cx+u,cy+v,1,1,'#80755e');line(cx,cy,cx-2,cy-2,'#464742');line(cx,cy,cx-1,cy+2,'#464742');
+ // Recessed mounting lug and a glint on the bevel, separate from broken glass.
+ dot(cx-1,cy-7,3,1,'#766951');dot(cx-4,cy-4,2,1,'#d3bf95');dot(cx,cy,1,1,'#a08b66');
  // Single impact at the lower rim; split glass facets catch light on one edge.
  line(247,63,249,61,'#4d4940');line(249,61,251,61,'#575248');line(251,61,250,59,'#494840');line(250,59,253,57,'#57534b');
  dot(248,63,1,1,'#ede6cc');dot(251,60,1,1,'#f7eed7');line(250,61,252,62,'#756c5b');
- c.save();c.translate(-113,0);dot(239,53,11,11,'#68685d');dot(238,52,11,11,'#b4a88c');line(240,59,244,55,'#817d68');line(244,55,246,59,'#817d68');dot(242,53,1,1,'#645b4b');dot(246,61,3,2,'#d2c5a7');c.restore();
+ c.save();c.translate(-113,0);dot(239,53,11,11,'#68685d');dot(238,52,11,11,'#b4a88c');line(240,59,244,55,'#817d68');line(244,55,246,59,'#817d68');dot(242,53,1,1,'#645b4b');dot(246,61,3,2,'#d2c5a7');dot(239,61,4,1,'#99896e');dot(245,54,2,1,'#ccbb96');c.restore();
  }
  g.drawImage(patina,72,48);
 }
@@ -210,6 +221,9 @@ function studyDecor(){
  // Woven runner under the writing desk; the fringe stays walkable.
  rect(153,197,54,40,'#686064');rect(155,199,50,36,'#898084');rect(157,201,46,32,'#726c74');
  for(let i=155;i<206;i+=3){rect(i,195,1,2,'#a29790');rect(i,237,1,2,'#a29790')}
+ // Paired stepped lozenges woven into the exposed borders, not random noise.
+ for(const yy of [201,231])for(let xx=159;xx<204;xx+=7){rect(xx+1,yy-1,2,1,'#b2a393');rect(xx,yy,4,1,'#94808a');rect(xx+1,yy+1,2,1,'#ad9e90')}
+ for(const xx of [155,203])for(let yy=206;yy<230;yy+=5)rect(xx,yy,2,2,'#a0908d');
  const [x,y,w,h]=roomFurniture[roomFurniture.length-1];furnitureBody(x,y,w,h,2,'#95816c');rect(x+3,y+17,10,1,'#8b7866');rect(x+21,y+20,14,1,'#a18a72');
  // Fitted writing inset, a leather-bound field journal and a two-page ink study.
  rect(162,206,35,19,'#796653');rect(163,207,33,17,'#95816b');rect(163,224,33,1,'#b09a80');
@@ -220,6 +234,15 @@ function studyDecor(){
  familyPhotos();
  // Brass desk light and ink pot sit on the tabletop, separate from the open book.
  rect(188,213,6,2,'#665346');rect(190,208,2,5,'#b49769');rect(188,205,5,5,'#927951');rect(187,206,7,3,'#bda273');rect(189,206,3,2,'#e3c999');rect(189,209,3,1,'#aa8c5f');rect(164,212,4,3,'#494954');rect(165,211,2,1,'#ada59a');
+ // Rolled leather corners, drawer pull and stitching belong to the desk footprint.
+ rect(175,227,10,1,'#645243');rect(178,227,4,1,'#b7a079');
+ for(const xx of [163,194]){rect(xx,207,2,1,'#b69b75');rect(xx,223,2,1,'#b69b75')}
+ rect(170,219,2,1,'#b99866');rect(171,217,1,2,'#876f53');
+ // Botanical marginalia echoes the pressed sprig above the desk.
+ rect(183,215,1,2,'#829078');rect(182,215,1,1,'#71816c');rect(184,214,1,1,'#91a086');
+ rect(188,214,5,1,'#aa9169');rect(190,207,2,1,'#f0dba8');rect(165,212,2,1,'#292e36');rect(164,213,1,1,'#84878c');
+ // A pen laid beside the journal, with a single light pixel for its metal nib.
+ rect(187,221,6,1,'#5e5047');rect(193,220,2,1,'#b0a896');rect(194,220,1,1,'#ded5bb');
 
 }
 function chamber(){
