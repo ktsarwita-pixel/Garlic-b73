@@ -69,16 +69,17 @@ skip=1-.78*np.exp(-((t-.35)/.016)**2)-.57*np.exp(-((t-.41)/.012)**2)
 wave=slide*skip*(.34*bp(noise(d),190,920)+.19*sweep(132,66,d))
 u=np.maximum(t-.64,0);wave+=np.minimum(u/.002,1)*np.exp(-u*45)*(.93*np.sin(2*np.pi*(88*u+.23*(1-np.exp(-u*75))))+.26*bp(noise(d),390,1450))
 save('seal-close',wave)
-# Paired soul cues: a single brittle fault, then a fan of smaller resonances.
-reseed(802)
-for name,d,events in [('soul-split',.30,[(0,810,1),(.022,530,.72),(.061,1230,.27)]),
-                      ('soul-scatter',.64,[(0,630,.85),(.012,1380,.74),(.048,940,.64),(.092,1820,.46),(.151,1160,.36),(.226,1540,.27),(.325,860,.19)])]:
-    t=t_(d);wave=np.zeros_like(t)
-    for at,f,gain in events:
-        u=np.maximum(t-at,0);attack=np.minimum(u/.0018,1)
-        phase=2*np.pi*f*(u+.0014*(1-np.exp(-u*90)))
-        ring=(np.sin(phase)+.27*np.sin(phase*2.37))*np.exp(-u*(33 if name=='soul-split' else 24))
-        snap=bp(noise(d),650,4100)*np.exp(-u*175)
-        wave+=gain*attack*(.56*ring+.8*snap)
-    wave+=.5*sweep(205,66,d)*env_ad(d,.003,.044)
-    save(name,wave)
+# Dry shear, not a bell: three overlapping bands travel down through the crack.
+reseed(910)
+d=.28;t=t_(d);grain=noise(d);wave=np.zeros_like(t)
+for lo,hi,at,width,gain in [(2700,6200,.008,.009,.75),(1400,3800,.022,.018,1),(430,1800,.043,.023,.8)]:
+    wave+=gain*bp(grain,lo,hi)*np.exp(-((t-at)/width)**2)
+wave+=.62*sweep(330,92,d)*env_ad(d,.0015,.026)
+save('soul-split',np.tanh(1.5*wave)*np.minimum(t/.001,1))
+# One impact releases a cluster; individual chips grow quieter and further apart.
+d=.55;t=t_(d);wave=.72*sweep(240,68,d)*env_ad(d,.001,.036)
+for at,hz,gain,decay in [(0,740,1,65),(.006,1280,.8,63),(.014,510,.66,75),(.032,1630,.56,82),(.058,970,.44,75),(.096,1210,.35,85),(.157,750,.22,80),(.239,1460,.14,93),(.35,990,.08,100)]:
+    u=np.maximum(t-at,0);phase=2*np.pi*hz*(.78*u+.003*(1-np.exp(-u*74)))
+    chip=.55*np.sin(phase)+.27*np.sin(phase*1.83)+.8*bp(noise(d),900,5200)*np.exp(-u*72)
+    wave+=gain*np.minimum(u/.001,1)*np.exp(-u*decay)*chip
+save('soul-scatter',wave)
