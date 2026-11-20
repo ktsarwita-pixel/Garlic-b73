@@ -5,7 +5,9 @@ const walking=()=>mode==='hall'||mode==='portal';
 const heartBusy=()=>['heartHit','reform','destroy'].includes(mode);
 function enterHall(){encounter=6;resetBattle();glideDistance=0;hallX=180;hallY=398;sceneAge=0;keys.clear();purple=false;cracks=0;mode='hall';msg('Follow the stone inlay north. Move with arrows / WASD, or hold and drag.');ui()}
 function enterHeart(){encounter=6;resetBattle();cracks=0;purple=false;sceneAge=0;msg('A white heart beats on the other side.');ui()}
-function tinySoul(cx,cy){[' rr rr ','rrrrrrr','rrrrrrr',' rrrrr ','  rrr  ','   r   '].forEach((row,j)=>[...row].forEach((v,i)=>{if(v==='r')rect(cx+i-3,cy+j-3,1,1,'#ff626a')}))}
+const soulInk=[' pr rr ','phrrrbr','rrrrrbd',' rrrbd ','  rbd  ','   d   '];
+const soulColor={p:'#ff99a4',h:'#fff1da',r:'#ff465c',b:'#d82f51',d:'#a12245'};
+function tinySoul(cx,cy){soulInk.forEach((row,j)=>[...row].forEach((v,i)=>{if(soulColor[v])rect(cx+i-3,cy+j-3,1,1,soulColor[v])}))}
 // World coordinates are in floor pixels; the camera never scales or rotates.
 const HALL_NORTH=38,HALL_SOUTH=410;
 const hallClamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -100,14 +102,13 @@ function crossingSoul(age){
  g.globalAlpha=.29*(1-pull);rect(px-2,ground+4,5,2,'#141416');g.restore();
  g.save();g.beginPath();g.rect(100,17,160,410);g.clip();g.globalAlpha=1-ease((age-2.12)/.36);tinySoul(px,ground-lift);g.restore();
 }
-const watchers=[[19,43,9],[51,78,17],[85,29,12],[127,53,9],[95,105,8],[16,102,6],[142,95,6],[221,34,7],[239,94,10],[263,57,18],[305,29,10],[337,78,15],[301,106,7],[350,41,5]];
+const watchers=[[19,43,9],[51,78,17],[85,29,12],[127,53,9],[95,105,8],[16,102,6],[142,95,6],[221,34,7],[239,94,10],[263,57,18],[305,29,10],[337,78,15],[301,106,7],[350,41,5],[33,22,6],[61,48,8],[108,73,6],[126,19,6],[153,38,5],[183,24,10],[209,104,6],[244,18,6],[287,82,8],[325,49,6],[354,106,5],[70,111,5]];
 function watchingEyes(){watchers.forEach(([cx,cy,r],i)=>{
  const phase=(t+i*.71)%(3.3+i*.09),lid=Math.min(1,Math.abs(phase-.23)*5), gaze=Math.round(Math.max(-1,Math.min(1,(x-cx)/80))*r*.31);
  for(let u=-r;u<=r;u++){
  const h=Math.round((1-(Math.abs(u)/r)**1.6)*r*.43*lid),v=Math.round(u*(i%2?.12:-.12));
- rect(cx+u,cy+v-h-1,1,1,'#81578c');rect(cx+u,cy+v-h,1,h*2+1,'#4e365a');if(h<2)continue;
- for(let k=1-h;k<h;k++){const d=(u-gaze)**2+(k-1)**2;if(d<(r*.34)**2)rect(cx+u,cy+v+k,1,1,Math.abs(u-gaze)<2?'#190f23':'#ae82be')}
- if(u===gaze-2&&h>3)rect(cx+u,cy+v-2,2,1,'#e6cdef');
+ const roof=cy+v-h,base=cy+v+h;rect(cx+u,roof-2,1,1,'#392940');rect(cx+u,roof-1,1,1,'#91699e');rect(cx+u,roof,1,2*h+1,'#71557a');rect(cx+u,base+1,1,1,'#49354f');if(h<2)continue;
+ for(let k=1-h;k<h;k++){const du=u-gaze,d=du*du+(k-1)**2,rad=r*.32;let color=k<2-h?'#58425f':'#927a99';if(d<rad*rad)color=d>(rad-1)**2?'#46304f':k<0?'#9462ad':'#bf8bd0';if(Math.abs(du)<=Math.max(0,1-Math.abs(k)*.18)&&d<rad*rad)color='#29182e';if(du===-1&&k===-1)color='#ead9ed';rect(cx+u,cy+v+k,1,1,color)}
  }
 })}
 // Each letter is a fitted shard. Separating actual pieces exposes the void between them.
@@ -116,6 +117,18 @@ const drift={A:[-7,-6],B:[6,-8],C:[0,-1],D:[-9,4],E:[8,5],F:[1,10]};
 // Cache a ramp for each value band so the lighting stays consistent as color returns.
 const heartRamp=Array.from({length:65},(_,k)=>[[255,254,250,246,223,255],[227,224,217,203,145,243],[197,193,187,161,101,200],[156,153,150,113,62,147]].map(c=>'rgb('+[0,1,2].map(i=>Math.round(c[i]+(c[i+3]-c[i])*k/64)).join(',')+')'));
 const pivots={A:[3,2],B:[11,2],C:[7,5],D:[4,5],E:[11,5],F:[7,9]};
+// Rasterize each solid shard before rotation: adjacent texels share one transform.
+const shardCache=new Map();
+function shardSprite(id,tone){const key=id+tone;if(shardCache.has(key))return shardCache.get(key);
+ const tile=document.createElement('canvas');tile.width=45;tile.height=33;const ctx=tile.getContext('2d'),pal=heartRamp[tone];
+ const solid=(i,j)=>!!shell[j]?.[i]?.trim();
+ shell.forEach((row,j)=>[...row].forEach((cell,i)=>{if(cell!==id)return;
+  const rim=!solid(i+1,j)||!solid(i,j+1),ridge=!solid(i-1,j)||!solid(i,j-1);
+  const shade=rim?3:ridge?1:j>6||i>11?2:1;
+  ctx.fillStyle=pal[shade];ctx.fillRect(3*i,3*j,3,3);
+  if((i===2&&j===2)||(i===3&&j===1)||(i===10&&j===1)){ctx.fillStyle=pal[0];ctx.fillRect(3*i,3*j,3,2)}
+  if(!rim&&shell[j-1]?.[i]!==id&&j>3){ctx.fillStyle=pal[2];ctx.fillRect(3*i,3*j,3,1)}
+ }));shardCache.set(key,tile);return tile}
 function heartOpponent(){
  if(mode==='end'&&boss===0)return;
  const forming=mode==='reform',breaking=mode==='destroy',hit=mode==='heartHit';
@@ -124,18 +137,16 @@ function heartOpponent(){
  const order=purple?'BAFEDC':'ADEBFC',total=purple?5:4,n=cracks===total?6:cracks;
  const progress=hit?ease((sceneAge-.20)/.32):1;
  g.save();if(breaking)g.globalAlpha=1-ease((sceneAge-.8)/.95);
- shell.forEach((row,j)=>[...row].forEach((id,i)=>{if(id===' ')return;
-  const index=order.indexOf(id),[dx,dy]=drift[id],[cx,cy]=pivots[id];
+ g.imageSmoothingEnabled=false;
+ for(const id of order){const index=order.indexOf(id),[dx,dy]=drift[id],[cx,cy]=pivots[id];
   const gap=count=>index<count?.24+.13*(count-index):0;
   const prev=hit?gap(Math.max(0,cracks-1)):gap(n);
   const bind=forming?1-ease((sceneAge-.91-index*.055)/.84):1;
   const burst=breaking?ease(sceneAge/1.45):forming?ease(sceneAge/.69)*bind:0;
   const offset=(prev+(gap(n)-prev)*progress)*bind+burst*2.7;
-  const angle=(dx<0?-1:1)*burst*(.36+.07*index),cos=Math.cos(angle),sin=Math.sin(angle),lx=(i-cx)*3,ly=(j-cy)*3;
-  const px=158+cx*3+lx*cos-ly*sin+dx*offset,py=52+cy*3+lx*sin+ly*cos+dy*offset+Math.sin(t*2)*1.5;
-  const palette=heartRamp[Math.round(64*tint)],shade=j<3&&i<6?0:j>7||i>12?3:i+j>13?2:1;
-  rect(px,py,3,3,palette[shade]);if(offset>.12&&shell[j-1]?.[i]!==id)rect(px,py,3,1,palette[0]);
- }));g.restore();if(hit)slash(sceneAge*1.6,false);
+  const angle=(dx<0?-1:1)*burst*(.36+.07*index);
+  g.save();g.translate(Math.round(158+cx*3+dx*offset),Math.round(52+cy*3+dy*offset+Math.sin(t*2)*1.5));g.rotate(angle);g.drawImage(shardSprite(id,Math.round(64*tint)),-cx*3,-cy*3);g.restore();
+ }g.restore();if(hit)slash(sceneAge*1.6,false);
 }
 function heartAction(a){if(mode!=='ready')return;if(a==='fight'){cracks++;boss=Math.max(0,100-100*cracks/(purple?5:4));mode='heartHit';sceneAge=0;sampleCue((purple?'violet':'white')+cracks);msg(`Fracture ${cracks} / ${purple?5:4}.`)}else{if(purple)return;if(a==='item'){if(!food){sampleCue('empty');msg('No pie left.');return}sfx('heal');food--;hp=Math.min(20,hp+8);msg(`Pie restores your soul. ${food} left.`)}else msg(a==='act'?'You call out. No answer.':'You offer mercy. Its pulse stays steady.');startWave(.55)}ui()}
 const seamPattern=['seam','seam-slip','seam','seam-freeze','seam-slip'];
