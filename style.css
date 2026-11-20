@@ -67,4 +67,4 @@
 .book-flap.forward{grid-column:2/3;left:0;width:100%}.book-flap.backward{grid-column:1/2;left:0;width:100%}#spread{grid-template-columns:repeat(2,minmax(0,1fr))}.book-copy{overflow-wrap:break-word}
 
 /* Same first-line metrics as page three; only the ink crosses the paper edge. */
-#letter .recto.ripped{padding-inline-start:0}#letter .ripped .book-copy{text-indent:-.24em}#letter .ripped .book-copy::first-letter{color:#9a2925}
+#letter .recto.ripped{padding-inline-start:0}#letter .ripped .book-copy{text-indent:.35em}#letter .ripped .book-copy::first-letter{color:#9a2925}
