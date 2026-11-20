@@ -28,8 +28,11 @@ for(const [nx,ny] of [[1,0],[-1,0],[0,1],[0,-1]]){
   startSeven(6);const b=sevenBox();x=nx>0?b.r-5:nx<0?b.l+5:180;y=ny>0?b.d-5:ny<0?b.u+5:(b.u+b.d)/2;
   for(let i=0;i<156;i++){wallSequence(.02,b);if(i<85)assert.equal(shots.length,0);
     if(i===99)assert(shots.length>0);
-    for(const s of shots){assert.equal(s.vx,0);assert.equal(s.vy,0);
+    for(const s of shots){assert.equal(s.kind,'corrupt boke');assert.equal(s.damage,10);assert(!s.glitch&&!s.red&&!s.blue);assert.equal(s.vx,0);assert.equal(s.vy,0);
       assert(nx<0?s.x===b.l:nx>0?s.x+s.h===b.r:ny<0?s.y===b.u:s.y+s.h===b.d);}
   }assert.equal(shots.length,0);
-}`,context);
+}
+for(const moving of [false,true]){startSeven(6);testGod=false;hp=20;inv=0;if(moving)keys.add('arrowdown');
+ for(let i=0;i<120&&hp===20;i++)sevenTick(.02);assert.equal(hp,10);keys.clear();}
+`,context);
 console.log('Visitor: gate geometry, six waves, final hold and all four anchored spike racks passed.');
