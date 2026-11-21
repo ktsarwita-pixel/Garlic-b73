@@ -8,4 +8,7 @@ checks['all poses: connected bone mass'] = poses.every(t=>{
 checks['all poses: high-key bone against ink'] = poses.every(t=>[...t.pixels.values()].filter(c=>parseInt(c.slice(1,3),16)>=225).length/t.pixels.size>.25);
 checks['all poses: articulated enamel reaches inside both rails'] = poses.every(t=>[-1,1].every(s=>[16,20].every(x=>{const edge=xx=>Array.from({length:14},(_,i)=>i+1).find(d=>at(t,xx,14+s*d));return edge(x)<edge(x-1)&&edge(x)<edge(x+1)})));
 checks['all poses: tapered hooked noses'] = poses.every(t=>[-1,1].every(s=>{const ds=x=>Array.from({length:14},(_,i)=>i+1).filter(d=>at(t,x,14+s*d));return ds(25).length>0&&ds(25).length<ds(22).length&&Math.min(...ds(25))<Math.min(...ds(22))}));
+const rim=(o,b)=>{const d=[];for(let i=1;i<16;i++)if(at(tile(o,b),21,14+i))d.push(i);return d};
+checks['second jaw separates from muzzle at full gape']=[false,true].every(b=>rim(6,b).some((v,i,a)=>i&&v-a[i-1]>1));
+checks['lower hinge holds then swings past upper fang']=[false,true].every(b=>{const edge=o=>Math.max(...rim(o,b));return edge(0)===edge(1)&&edge(6)-edge(1)>=6});
 console.table(checks);const n=Object.values(checks).filter(Boolean).length;console.log(n+'/'+Object.keys(checks).length);process.exitCode=Number(!Object.values(checks).every(Boolean));

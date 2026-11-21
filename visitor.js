@@ -243,6 +243,13 @@ function blasterSkull(open,big=false){const key=open+(big?16:0);if(blasterFrames
    for(let x=1;x<14;x++){const outer=12-Math.floor((x-1)*.34);for(let j=0;j<4;j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s'][j])}
    for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h');
   }
+  // Lower mandible behind the bright maxilla. Its shorter chin tucks under the
+  // snout at rest, then pivots wide a beat later, exposing a dark inter-jaw gap.
+  const swing=[0,0,1,3,5,7,8][open];
+  for(let i=0;i<13;i++){const x=10+i,arc=6+Math.round(i*swing/13),width=Math.min(15-arc,(i<3?4:i<11?3:2)+(big?1:0));
+   for(let j=0;j<width;j++)dot(x,14+side*(arc+j),j===0?'s':j===1?'m':'b');
+   if(i===8||i===12)dot(x,14+side*(arc-1),'b');
+  }
   // Cheek sweeps into a hooked canine, with separate inward-pointing teeth.
   // Pivot the whole muzzle about the temple so teeth track their roots.
   const inner=[2,2,2,2,3,3,3,3,3,3,3,4,3,1,1];
