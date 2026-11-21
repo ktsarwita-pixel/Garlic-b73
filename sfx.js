@@ -35,7 +35,7 @@ let grain;
 // Two moving resonances driven by a granular pulse train. Generate the jaw,
 // hollow howl and quiet held ring as one continuous gesture (no sample playback).
 function renderIntake(samples,rate,duration,heavy,ring){
- const tau=2*Math.PI,scale=heavy?.84:1;let phase=.7,jitter=0,seed=1729,air=0,lip=0,lipOld=0,throat=0,throatOld=0;
+ const tau=2*Math.PI,scale=heavy?.84:1;let carrier=0,phase=.7,jitter=0,seed=1729,air=0,lip=0,lipOld=0,throat=0,throatOld=0;
  for(let i=0;i<samples.length;i++){
   const t=i/rate,u=Math.min(1,t/(ring?.94:duration)),open=u*u*(3-2*u);
   seed=(Math.imul(seed,1664525)+1013904223)>>>0;const noise=seed/2147483648-1;
@@ -47,13 +47,28 @@ function renderIntake(samples,rate,duration,heavy,ring){
   const edge=2*.945*Math.cos(tau*lipHz/rate)*lip-.945**2*lipOld+.14*drive;
   throatOld=throat;throat=body;lipOld=lip;lip=edge;
   const attack=1-Math.exp(-t/.014),release=Math.min(1,(duration-t)/(ring?.74:.075));
-  samples[i]=Math.tanh((.95-.82*open)*body+(.30+2.1*open)*edge+.16*drive+open**2*(noise-air)*.38)*attack*release*(ring?.15:.20)*(ring?.76:1-.86*open**2);
+  carrier+=tau*scale*(420+4400*open**2.5)/rate;
+  samples[i]=Math.tanh((.68-.62*open)*body+.30*(1-open)**2*Math.sin(tau*phase)*(1+.65*Math.cos(tau*phase))+(.26+1.5*open)*edge+.68*Math.sin(carrier+1.4*Math.sin(tau*phase))*open**2+.16*drive+open**2*(noise-air)*.38)*attack*release*(ring?.15:.20)*(ring?.76:1-.93*open**1.5);
+ }}
+// Heavy fire is a cluster of beating resonances, not a slowed regular shot.
+function renderHeavyFire(out,rate,duration){let seed=8129,rumble=0,mid=0,high=0,p=0,a=0,b=0,h=0;
+ const tau=2*Math.PI;for(let i=0;i<out.length;i++){const t=i/rate,u=t/duration;
+  seed=(Math.imul(seed,1664525)+1013904223)>>>0;const noise=seed/2147483648-1;
+  rumble+=.056*(noise-rumble);mid+=.28*(noise-mid);high+=.72*(noise-high);
+  p+=tau*(76+32*Math.exp(-t/.12)+9*Math.sin(t*9))/rate;
+  a+=tau*(677+92*Math.exp(-t/.34)+24*Math.sin(t*17))/rate;
+  b+=tau*(905+120*Math.exp(-t/.14)+64*Math.cos(t*12))/rate;
+  h+=tau*(1810+700*Math.exp(-t/.23))/rate;
+  const roar=.48*Math.sin(a+1.8*Math.sin(p))+.38*Math.sin(b+1.4*Math.sin(p*.7))+.27*Math.sin(h+2.3*Math.sin(b));
+  const crack=.58*(high-mid)*(.3+.7*Math.exp(-t/.6)),bass=(.22+.43*Math.exp(-t/.10))*Math.sin(p);
+  const env=(1-Math.exp(-t/.007))*Math.exp(-3.1*u*u-1.6*u)*Math.min(1,(duration-t)/.09);
+  out[i]=.24*env*Math.tanh(roar+bass+crack+.33*(mid-rumble));
  }}
 const blasterSounds=new Map();
 function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')return;
  const fire=name==='beamFire',ring=name==='ringCharge',heavy=ring||length>.85,duration=fire?(heavy?2.4:1.9):length,key=[name,length].join(':');let buffer=blasterSounds.get(key);
  if(!buffer){const rate=16000;buffer=audio.createBuffer(1,Math.ceil(rate*duration),rate);const samples=buffer.getChannelData(0);// Broad loudness contours measured in tenths of the reference clips; no sampled audio.
- if(!fire)renderIntake(samples,rate,duration,heavy,ring);else {
+ if(!fire)renderIntake(samples,rate,duration,heavy,ring);else if(heavy)renderHeavyFire(samples,rate,duration);else {
  const contour=fire?(heavy?[1,.92,.79,.50,.33,.17,.125,.083,.042,.042]:[1,.92,.79,.67,.58,.50,.42,.33,.25,.042]):[.85,1,.85,1,.74,.52,.41,.26,.15,.037];
  // A separate resonant voice lets the upper scream rise without pitching up the jaw growl.
  const knots=[0,.08,.27,.48,.70,.86,1],resonance=fire?[1320,1000,690,690,680,860,520]:[92,100,120,950,2980,510,340];
@@ -66,14 +81,14 @@ function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')retur
  const pos=Math.max(0,Math.min(9,u*10-.5)),index=Math.floor(pos),shape=contour[index]+(contour[Math.min(index+1,9)]-contour[index])*(pos-index);
  const env=Math.min(1,t/(fire?.009:.011))*(ring?.8:shape)*Math.min(1,(duration-t)/(ring?.72:fire?.10:.055));
  const air=fire?(heavy?1.5:2.1-1.2*u):.2+1.2*u*u;const whistle=Math.sin(2*Math.PI*phase*4);// Sweep filtered breath down through the beam tail, up into the charge whistle.
- const hz=fire?(heavy?1360:640+1450*Math.exp(-4*u)):700+3200*u*u*u;
+ const hz=fire?(heavy?1360:640+2102*Math.exp(-4*u)):700+3200*u*u*u;
  const coeff=Math.min(1.2,2*Math.sin(Math.PI*hz/rate));base+=coeff*band;band+=coeff*(noise-base-.85*band);
  if(u>knots[knot+1]&&knot<knots.length-2)knot++;const blend=(u-knots[knot])/(knots[knot+1]-knots[knot]);
  const center=resonance[knot]*(resonance[knot+1]/resonance[knot])**(blend*blend*(3-2*blend));formPhase+=center/rate;formPhase-=Math.floor(formPhase);
  const cry=Math.sin(2*Math.PI*formPhase+.38*Math.sin(2*Math.PI*phase*2))*(.84+.16*Math.cos(t*84));
  const sing=fire?(heavy?.96:.025):.34+.68*Math.min(1,u/.4);
  const bite=fire&&!heavy?.69*Math.exp(-t/.072)*Math.sin(2*Math.PI*(124*t+9*(1-Math.exp(-t/.05)))):0;
- const tone=Math.tanh(bite+.38*buzz+.44*vowel+.32*air*grit+(fire?.64:.15+.33*u)*band+(fire?.06:.13*u)*whistle+sing*cry);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}}blasterSounds.set(key,buffer)}
+ const tone=Math.tanh(bite+.38*buzz+.44*vowel+.32*air*grit+(fire?.64:.15+.33*u)*band+(fire?.06:.13*u)*whistle+sing*cry);warm+=(fire?.55:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}}blasterSounds.set(key,buffer)}
  const src=audio.createBufferSource();src.buffer=buffer;src.connect(bus);src.onended=()=>src.disconnect();src.start()}
 function sfx(name,pitch){if(name==='beamCharge'||name==='beamFire'||name==='ringCharge')return playBlaster(name,pitch);playNotes(cues[name],pitch);if(!sound||!bus||audio.state!=='running'||!textures[name])return;
  if(!grain){grain=audio.createBuffer(1,audio.sampleRate,audio.sampleRate);const data=grain.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1}
