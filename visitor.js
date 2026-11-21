@@ -10,7 +10,7 @@ function stampInk(x,y,w,h,color){visitorInk.fillStyle=color;visitorInk.fillRect(
 function stampMask(rows,palette,x,y){rows.forEach((row,j)=>{for(let i=0;i<row.length;i++)if(palette[row[i]])stampInk(x+2*i,y+2*j,2,2,palette[row[i]])})}
 function jointLine(x0,y0,x1,y1,width,color){const n=Math.max(1,Math.ceil(Math.max(Math.abs(x1-x0),Math.abs(y1-y0))));for(let i=0;i<=n;i++)stampInk(x0+(x1-x0)*i/n-width/2,y0+(y1-y0)*i/n-width/2,width,width,color)}
 // Forward kinematics: animate angles, never endpoints or bone lengths.
-function armRig(side,w){const a=w?w.age:0,lead=w&&(!w.nx||w.nx===side),lift=ease(a/.22)*(1-ease((a-.22)/.34)),whip=ease((a-.22)/.34)*(1-ease((a-.78)/.54)),cast=ease((a-1.44)/.32)*(1-ease((a-2.64)/.42));
+function armRig(side,w){const a=w?w.age:0,lead=w&&(!w.nx||w.nx===side),lift=ease(a/.22)*(1-ease((a-.22)/.34)),whip=ease((a-.22)/.34)*(1-ease((a-.78)/.54)),cast=ease((a-(w?spikeAt(w):1.76)+.29)/.29)*(1-ease((a-2.64)/.42));
  const power=(whip+.80*cast)*(lead?1:.32),aim=w&&w.ny?w.ny*1.45:0;
  // The elbow leads; the wrist trails on the throw and checks back on impact.
  const lag=ease((a-.27)/.29)*(1-ease((a-.82)/.48)),check=ease((a-.56)/.08)*(1-ease((a-.64)/.18));
@@ -165,7 +165,7 @@ function visitorWound(clock){
 // A low inner brow leaves a hooked aperture. The face stays still: only the
 // iris follows the soul, contracting into a needle as the wall pull begins.
 function visitorGaze(y0){const track=x<166?-1:x>194?1:0,iris=186+track,box=sevenBox(),low=y>(box.u+box.d)/2?1:0;
- const lock=mode==='dodge'&&wallPull&&wallPull.age<1.76;
+ const lock=mode==='dodge'&&wallPull&&wallPull.age<spikeAt(wallPull);
  stampInk(181,y0-2,9,5,'#211528');stampInk(182,y0+2,6,2,'#36203f');
  stampInk(181,y0-2,3,2,'#716674');stampInk(183,y0-1,3,1,'#504452');
  stampInk(188,y0-2,3,2,'#794396');stampInk(185,y0,5,2,'#ac49de');stampInk(182,y0+1,4,2,'#863db5');
@@ -284,13 +284,15 @@ function sevenGate(){const {b,vertical,reverse,cut,gap,span,kind}=nextGate(),spe
  for(const [offset,size] of [[0,cut],[cut+gap,span-cut-gap]]){if(vertical)sevenBone(b.l+offset,b.u,size,0,speed,true,kind);else sevenBone(reverse?b.r-3:b.l,b.u+offset,size,reverse?-speed:speed,0,false,kind)}patternStep++;spawn=encounter===8?eightScore[round-1].pace:[.82,.79,.74,.82,.65][round-1]}
 function gateWarning(){if(round>=6||encounter===8&&round===5||mode!=='dodge'||spawn>.32)return;const {b,vertical,reverse,cut,gap,span,kind}=nextGate(),edge=reverse?b.r-2:b.l,color={white:'#cebea6',blue:'#539ab4',red:'#b6686f',glitch:'#a385b9'}[kind];g.save();g.globalAlpha=.3+.55*ease(1-spawn/.32);
  for(const [start,end] of [[0,cut],[cut+gap,span]])for(let k=start;k<end;k+=4){if(vertical)rect(b.l+k,b.u,2,2,color);else rect(edge,b.u+k,2,2,color)}g.restore()}
+// Keep escape time in real seconds: tempo accelerates the throw, not player speed.
+function spikeAt(w){const speed=w.tempo||1;return .92+.31*speed-.06*(speed-1)}
 function wallSequence(dt,b){if(!wallPull&&slamCount>=SLAM_COUNT)return false;if(!wallPull){slamCount++;const nearest=[[x-b.l,-1,0],[b.r-x,1,0],[y-b.u,0,-1],[b.d-y,0,1]].filter(v=>lastSlamAxis===null||Boolean(v[1])!==lastSlamAxis).sort((a,b)=>a[0]-b[0])[0];lastSlamAxis=Boolean(nearest[1]);wallPull={tempo:1+.105*(slamCount-1),age:0,nx:nearest[1],ny:nearest[2],sx:x,sy:y,fired:false};shots=[];sampleCue('rattle')}
  const w=wallPull,prev=w.age;w.age+=dt*w.tempo;
- if(prev<.56&&w.age>=.56)sfx('impact',.82);if(prev<1.76&&w.age>=1.76)sfx('crack',.78);
+ if(prev<.56&&w.age>=.56)sfx('impact',.82);if(prev<spikeAt(w)&&w.age>=spikeAt(w))sfx('crack',.78);
  if(w.age<=.92){const p=ease((w.age-.22)/.34);x=w.sx+((w.nx<0?b.l+5:w.nx>0?b.r-5:w.sx)-w.sx)*p;y=w.sy+((w.ny<0?b.u+5:w.ny>0?b.d-5:w.sy)-w.sy)*p;return true}
  // Root every spike on the marked wall. Only its exposed length changes.
- if(w.age>=1.76&&!w.fired){w.fired=true;for(let off=6;off<112;off+=10)sevenBone(w.nx?0:b.l+off,w.ny?0:b.u+off,4,0,0,!!w.nx,'corrupt boke')}
- if(w.fired){const depth=Math.round(SLAM_REACH*ease((w.age-1.76)/.17)*(1-ease((w.age-2.65)/.27)));for(const s of shots){s.h=Math.max(4,depth);if(w.nx)s.x=w.nx<0?b.l:b.r-s.h;else s.y=w.ny<0?b.u:b.d-s.h}if(w.age>=2.92)shots=[]}if(w.age>=3.55)wallPull=null;return false}
+ if(w.age>=spikeAt(w)&&!w.fired){w.fired=true;for(let off=6;off<112;off+=10)sevenBone(w.nx?0:b.l+off,w.ny?0:b.u+off,4,0,0,!!w.nx,'corrupt boke')}
+ if(w.fired){const depth=Math.round(SLAM_REACH*ease((w.age-spikeAt(w))/(.105*w.tempo))*(1-ease((w.age-2.65)/.27)));for(const s of shots){s.h=Math.max(4,depth);if(w.nx)s.x=w.nx<0?b.l:b.r-s.h;else s.y=w.ny<0?b.u:b.d-s.h}if(w.age>=2.92)shots=[]}if(w.age>=3.55)wallPull=null;return false}
 // The last volley is a bluff: these skulls are scenery, never damaging cannons.
 let farewellAge=0,ring=[];
 function beginFarewell(){x=180;y=160;mode='farewell';farewellAge=0;const offset=Math.random()*.16-.08;ring=Array.from({length:15},(_,i)=>({angle:offset+i*Math.PI*2/15+(Math.random()-.5)*.028,r:(i%3===1?62:54)+Math.random()*2,big:i%3===1,seed:Math.random()*9}));inv=0;msg('The broken blaster falls.');ui()}

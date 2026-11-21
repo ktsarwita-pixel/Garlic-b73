@@ -33,12 +33,13 @@ for(const dt of [1/30,1/60]){startEight();round=4;eightWave();testGod=false;hp=2
   t+=dt;sevenTick(dt);assert.equal(hp,20);}
  assert.equal(mode,'ready');assert.equal(sent,10);keys.clear();}
 // Six accelerating, alternating slams must remain escapable with normal directional input.
-for(const dt of [1/30,1/60]){startSeven(6);testGod=false;hp=20;inv=0;let count=0,axis=null;
- for(let k=0;k<25/dt&&mode==='dodge';k++){keys.clear();const w=wallPull;if(w){if(count!==slamCount){assert.notEqual(axis,!!w.nx);axis=!!w.nx;count=slamCount}if(w.age>1.05)keys.add(w.nx<0?'d':w.nx>0?'a':w.ny<0?'s':'w')}sevenTick(dt);assert.equal(hp,20)}assert.equal(mode,'ready');assert.equal(count,6);keys.clear()}
+for(const dt of [1/30,1/60,1/120]){startSeven(6);testGod=false;hp=20;inv=0;let count=0,axis=null;
+ for(let k=0;k<25/dt&&mode==='dodge';k++){keys.clear();const w=wallPull;if(w){if(count!==slamCount){assert.notEqual(axis,!!w.nx);axis=!!w.nx;count=slamCount}if(w.age>.92+.025*w.tempo)keys.add(w.nx<0?'d':w.nx>0?'a':w.ny<0?'s':'w')}sevenTick(dt);assert.equal(hp,20)}assert.equal(mode,'ready');assert.equal(count,6);keys.clear();console.log('Escape bot: six no-hit slams at '+Math.round(1/dt)+' FPS');
+ startSeven(6);testGod=false;inv=0;hp=20;for(let k=0;k<5/dt&&hp===20;k++){keys.clear();const w=wallPull;if(w&&w.age>.92+.18*w.tempo)keys.add(w.nx<0?'d':w.nx>0?'a':w.ny<0?'s':'w');sevenTick(dt)}assert.equal(hp,10);keys.clear()}
 testGod=true;
 for(const [nx,ny] of [[1,0],[-1,0],[0,1],[0,-1]]){
   startSeven(6);const b=sevenBox();x=nx>0?b.r-5:nx<0?b.l+5:180;y=ny>0?b.d-5:ny<0?b.u+5:(b.u+b.d)/2;
-  for(let i=0;i<156;i++){wallSequence(.02,b);if(i<85)assert.equal(shots.length,0);
+  for(let i=0;i<156;i++){wallSequence(.02,b);if((i+1)*.02<spikeAt(wallPull)-.00001)assert.equal(shots.length,0);
     if(i===99)assert(shots.length>0);
     for(const s of shots){assert.equal(s.kind,'corrupt boke');assert.equal(s.damage,10);assert(!s.glitch&&!s.red&&!s.blue);assert.equal(s.vx,0);assert.equal(s.vy,0);
       assert(nx<0?s.x===b.l:nx>0?s.x+s.h===b.r:ny<0?s.y===b.u:s.y+s.h===b.d);}
