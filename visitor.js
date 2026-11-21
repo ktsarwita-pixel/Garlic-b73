@@ -243,6 +243,10 @@ function blasterSkull(open,big=false){const key=open+(big?16:0);if(blasterFrames
   // Reinforced jaw rail follows the mandible rather than sliding over it.
   for(let x=9;x<20;x++){const y=17+Math.round((x-7)*open/15);pixel(x,y,x<13?'s':'m');if(x%4!==0)pixel(x,y-1,'b')}
  }
+ // Raised zygomatic ridge and broken enamel catch the light coming from the throat.
+ for(const [x,y,v] of [[3,9,'m'],[4,8,'b'],[5,7,'h'],[10,13,'m'],[11,12,'b'],[12,12,'h'],[15,11,'m'],[17,11,'b'],[20,11,'h']])pixel(x,y,v);
+ for(const x of [11,16,20]){const seat=15+Math.round((x-7)*open/15);pixel(x,seat,'h');pixel(x+1,seat,'s');if(big)pixel(x,seat+1,'m')}
+ if(open>1){ctx.fillStyle=open>4?'#e8daed':'#96889f';ctx.fillRect(10,14,3,1);ctx.fillStyle='#70617c';ctx.fillRect(9,15,2,1)}
  blasterFrames.set(key,tile);return tile}
 function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.pos:c.reverse?b.r:b.l,c.vertical?(c.reverse?b.d:b.u):c.pos);if(c.vertical)g.rotate(c.reverse?-Math.PI/2:Math.PI/2);else if(c.reverse)g.scale(-1,1);
  const span=c.vertical?b.d-b.u:b.r-b.l,w=c.width,a=c.age-c.charge,q=c.age/c.charge,{fade,scale,offset,muzzle}=blasterPose(c),length=span-muzzle;
@@ -253,17 +257,22 @@ function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.
   // Contiguous pixel bands flare out from inside the mouth, behind the foreground teeth.
   for(let d=0;d<length;){const r=blastRadius(w,d),n=r===half?length-d:Math.min(2,length-d);
    rect(d,-r,n,2*r+1,'#9875af');rect(d,1-r,n,2*r-1,'#ddc5ea');const core=Math.max(0,Math.round((r-2)*(.86+.14*Math.cos(a*44))*fade));rect(d,-core,n,core*2+1,'#fffaf3');d+=n}
+  // Thin anodic streams run along the core, always inside the damaging silhouette.
+  for(let k=w+flow%31;k<length;k+=31){const sign=k%2?1:-1;rect(k,sign*Math.max(1,half-2),9,1,'#f3e3f8');rect(k+9,sign*Math.max(1,half-3),4,1,'#fff9fb')}
   for(let k=w+flow%23;k<length;k+=23){rect(k,-half,6,1,'#f4ddff');rect(k+7,half-1,4,1,'#c59ed7')}
  }
  g.restore();g.globalAlpha=ease(c.age/.12)*fade;g.translate(offset-2,-Math.round(14*scale));g.scale(scale,scale);g.imageSmoothingEnabled=false;
  const opening=Math.round(6*(a<0?ease((q-.18)/.78):fade));g.drawImage(blasterSkull(opening,c.big),0,0);
  crossEye(g,9,10,t,1);
  if(a<0)drawBlasterCharge(q,c.big);
+ else{g.save();g.globalAlpha*=Math.max(0,1-a/.21);rect(12,12,6,1,'#fff8fb');rect(10,15,4,1,'#e3cde8');rect(15,18,5,1,'#e0c5e8');g.restore()}
  g.restore()}}
 function drawBlasterCharge(q,big,opacity=1){g.save();const alpha=g.globalAlpha*opacity;const build=ease((q-.12)/.72),lock=ease((q-.78)/.18),count=big?5:3;
   // Strands converge around a fixed throat, then vanish into a held white core before recoil.
   for(let i=0;i<count;i++){const phase=(q*(1.5+q)+i/count)%1,dist=(1-phase)*(big?14:10),dy=Math.sin(i*2.4+q*5)*dist*.34;
    g.globalAlpha=alpha*build*(1-lock)*Math.sin(Math.PI*phase);rect(THROAT_X+Math.round(dist),14+Math.round(dy),1+Math.round(phase),1,'#d1b3df')}
+  // Reflected charge climbs the jaw rail before locking at the emitter.
+  g.globalAlpha=alpha*.72*build;const lip=16+Math.round(3*build);rect(14,lip,5,1,'#c2a3d2');rect(19,lip+1,2,1,'#ead8ef');
   g.globalAlpha=alpha*build;const radius=Math.round((big?3:2)*build);rect(THROAT_X,14-radius,3,radius*2+1,'#b08cbd');rect(THROAT_X-1,13,5,3,'#e0cbeb');
   g.globalAlpha=alpha*build*(.45+.55*lock);rect(THROAT_X,14,2+Math.round(lock*3),1,'#fffaf4');g.restore()}
 function nextGate(){const score=encounter===8?eightScore[round-1].gates:gateScores[round-1],entry=score[patternStep%score.length],b=sevenBox(),vertical=entry[0]==='T',span=vertical?b.r-b.l:b.d-b.u;

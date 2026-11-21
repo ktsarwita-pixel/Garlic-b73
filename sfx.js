@@ -41,13 +41,13 @@ function renderIntake(samples,rate,duration,heavy,ring){
   seed=(Math.imul(seed,1664525)+1013904223)>>>0;const noise=seed/2147483648-1;
   phase+=(103+82*Math.exp(-t/.04)+43*open+3*Math.sin(t*32)+jitter)*scale/rate;
   if(phase>=1){phase--;jitter=noise*6}air+=(noise-air)*.35;
-  const breath=(.24-.13*open)*air,drive=breath+(Math.exp(-phase*15)-1/15)*(.85-.4*open);
-  const throatHz=scale*(390-165*Math.sin(Math.PI*u)+510*open),lipHz=scale*(850+1840*open-360*open**4);
+  const breath=(.17+.26*open)*air,drive=breath+(Math.exp(-phase*15)-1/15)*(.90-.75*open);
+  const throatHz=scale*(390-165*Math.sin(Math.PI*u)+510*open),lipHz=scale*(740+2850*open**1.6-480*open**5);
   const body=2*.967*Math.cos(tau*throatHz/rate)*throat-.967**2*throatOld+.07*drive;
   const edge=2*.945*Math.cos(tau*lipHz/rate)*lip-.945**2*lipOld+.14*drive;
   throatOld=throat;throat=body;lipOld=lip;lip=edge;
   const attack=1-Math.exp(-t/.014),release=Math.min(1,(duration-t)/(ring?.74:.075));
-  samples[i]=Math.tanh(.95*body+(.35+.8*open)*edge+.16*drive)*attack*release*(ring?.15:.20)*(.92-.32*open);
+  samples[i]=Math.tanh((.95-.82*open)*body+(.30+2.1*open)*edge+.16*drive+open**2*(noise-air)*.38)*attack*release*(ring?.15:.20)*(ring?.76:1-.86*open**2);
  }}
 const blasterSounds=new Map();
 function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')return;
