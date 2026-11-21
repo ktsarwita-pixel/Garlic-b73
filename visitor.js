@@ -232,28 +232,45 @@ function tickBeams(dt,b){const score=eightScore[round-1];if(sent<score.count&&el
 // beam axis (y=14); local +x always points toward the target.
 const blasterFrames=new Map();
 // Nine cached light levels keep charge colour independent of jaw angle.
-function blasterSkull(open,big=false,charge=0){const glow=Math.round(Math.max(0,Math.min(1,charge))*8),key=open+(big?16:0)+32*glow;if(blasterFrames.has(key))return blasterFrames.get(key);
+function blasterSkull(open,big=false,charge=0,front=false){const glow=Math.round(Math.max(0,Math.min(1,charge))*8),key=open+(big?16:0)+32*glow+(front?512:0);if(blasterFrames.has(key))return blasterFrames.get(key);
  const tile=document.createElement('canvas');tile.width=30;tile.height=32;const ctx=tile.getContext('2d');
  const palette={k:'#282530',s:'#48454e',m:'#a6a4ad',b:'#e4e3df',h:'#fffdf5',u:'#e4e3df',l:'#fffdf5'};
  if(glow){const mix=(a,b)=>'#'+a.map((v,i)=>Math.round(v+(b[i]-v)*glow/8).toString(16).padStart(2,'0')).join('');palette.u=mix([228,227,223],[152,117,175]);palette.l=mix([255,253,245],[221,197,234])}
- const dot=(x,y,t)=>{ctx.fillStyle=palette[t];ctx.fillRect(x,y,1,1)};
+ // Both views consume the same bone samples. In front view anatomical depth
+ // determines height: horns sweep upward, the crown overhangs the muzzle,
+ // and the short lower jaw sits below the dark throat rather than beside it.
+ // Front-only surfaces hidden in plan view: throat interior, socket walls
+ // and the underside joining both mandibular branches at the chin.
+ if(front){const section=['       kssss','     kssmmssk','    kmbhhbbmskk','   kbbskkkkbmsk','   kbskkkkkkbmk','   kmbkkkkkmbhk','    kbhmsmbbhsk','     kssbhhbskk','      kmbmskkkk','      kbmskkkkk','       bskkkkkk','       mskkkkkk','        skkkkkk','        skkkkkk','         skkkkk','         mskkkk','          bmssk','          khbmb','           kmbh','            kss'];
+ section.forEach((r,j)=>[...r].forEach((v,i)=>{if(v!==' '){ctx.fillStyle=palette[v];ctx.fillRect(i,j+8,1,1);ctx.fillRect(29-i,j+8,1,1)}}))}
+ let part='crown';
+ const dot=(x,y,t)=>{ctx.fillStyle=palette[t];if(!front){ctx.fillRect(x,y,1,1);return}
+  const d=y-14,sign=Math.sign(d),f=Math.max(0,(x-11)/14);
+  let u=14.5+d,v=3+x,h=2;
+  if(part==='crown'){u+=sign*Math.min(2,x*.16);v=4+x*.86-Math.max(0,Math.abs(d)-7)*.65;h=4}
+  if(part==='jaw'){u+=sign*(1+f);v=16+(x-10)*.85;u-=sign*Math.max(0,x-17)*.6;h=3}
+  if(part==='fang'){u+=sign*(.5+f);v=13+(x-11)*.78+(t==='h'||t==='b'?1:0);h=3}
+  if(part==='crown'&&x>=7&&x<=11&&Math.abs(d)>=3&&Math.abs(d)<=6){ctx.fillStyle=palette.k;h=4}ctx.fillRect(Math.floor(u),Math.round(v),2,h)};
  // A vaulted crown, hooked occipital spurs and two orbital trenches. Read each
  // row from the back of the skull toward its snout. Reflect shape, not lighting.
  const cap=['   kmbbhbbbk','  kmbhhbbhhbk','  kbhhhmbhhbbk','  kbhmsksbbhhbk','   kbbskkkkkbhbk','   khbskkkkkmbbk','   khhhbkkksbhbk','  ksbhhhbbbhhbkk','  kbhhbkkmbbsk',' kbhhsk  kbbk',' kbbsk    kk','kbsk'];
- for(const side of [-1,1]){cap.forEach((row,d)=>[...row].forEach((v,x)=>{if(v!==' ')dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
+ for(const side of [-1,1]){part='crown';cap.forEach((row,d)=>[...row].forEach((v,x)=>{if(v!==' ')dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
   if(big){ // Two swept armor fans broaden the heavy skull, not just its scale.
    for(let x=1;x<14;x++){const outer=12-Math.floor((x-1)*.34);for(let j=0;j<4;j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s'][j])}
    for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h');
   }
+  // Cut a frontal orbital plane into the crown after drawing its raised rim.
+  // The overhanging brow and nasal bridge obscure the rear edge of the socket.
+  if(front){const orbit=['    kmbbbms','   kbhhhbbms','  kbhmskkbhms','  khskkkkkmbh','  kbskkkkkkbh','  kmbkkkkksbh','   kbhmsmsbhm','    kmbhhbbms'];orbit.forEach((row,j)=>[...row].forEach((v,i)=>{if(v!==' '){ctx.fillStyle=palette[v];ctx.fillRect(side<0?i:29-i,7+j,1,1)}}))}
   // Foreshorten the mandibular arch under the maxilla. Only its shaded
   // underside and lip show between the fangs; the firing axis stays clear.
-  const lift=[0,0,.4,.8,1.2,1.8,2][open];
+  part='jaw';const lift=[0,0,.4,.8,1.2,1.8,2][open];
   for(let x=10;x<=21;x++){const f=(x-10)/11,d=1+Math.round(f*lift);
    dot(x,14+side*d,'u');dot(x,14+side*(d+1),'l');
   }
   // Cheek sweeps into a hooked canine, with separate inward-pointing teeth.
   // Pivot the whole muzzle about the temple so teeth track their roots.
-  const inner=[2,2,2,2,3,3,3,3,3,3,3,4,3,1,1];
+  part='fang';const inner=[2,2,2,2,3,3,3,3,3,3,3,4,3,1,1];
   const depth=[4,5,5,5,5,4,4,4,4,4,4,4,3,3,1];
   for(let i=0;i<inner.length;i++){const x=11+i,spread=inner[i]+Math.round(Math.min(i,11)*open/15),w=depth[i]+(big&&i<10?1:0);
    for(let j=0;j<w;j++)dot(x,14+side*(spread+j),j===0&&w>2?'s':j===w-1&&w>2?'m':side<0?'h':'b');
@@ -322,12 +339,8 @@ function splitSkull(tile,split){g.imageSmoothingEnabled=false;if(!split){g.drawI
  let frames=fractureFrames.get(tile);if(!frames){frames=[];fractureFrames.set(tile,frames)}
  if(!frames[split]){const f=document.createElement('canvas');f.width=40;f.height=42;const ctx=f.getContext('2d');for(let i=0;i<tile.width;i++){const cut=guardCut(i);ctx.drawImage(tile,i,0,1,cut,i+5-split,5-split,1,cut);ctx.drawImage(tile,i,cut,1,32-cut,i+5+split,5+cut+split,1,32-cut);if(i>=7&&i<=18&&i%3!==0){ctx.fillStyle=i%2?'#cebfcb':'#918295';ctx.fillRect(i+5+split,5+cut+split,1,1)}}frames[split]=f}g.drawImage(frames[split],-18,-18)}
 // A dedicated front view: paired crown prongs, recessed orbits and a central muzzle.
-let guardFace;
-function frontalGuard(){if(guardFace)return guardFace;const tile=document.createElement('canvas');tile.width=30;tile.height=32;const ctx=tile.getContext('2d'),palette={k:'#282530',s:'#48454e',m:'#a6a4ad',b:'#e4e3df',h:'#fffdf5'};
- // The flared temples taper into a long nasal bridge above a hollow cannon bore.
- const half=[' k',' khk',' kbhk','  kbhk     k','  kmbhk   khk','   kmbhkkkhbbkk','   kshhhhbmbhhb','  kmhhbbmmmhhbm',' kbhbbskkmbhbms',' khbskkkksmbbms',' kmbkkkkkksbhbm','  kskkkkkksmhbk','  kmbskkkkmbhbk','  kbhhbmmsbhbsk','   kmbhhbhbbskk','    kshbhbmskks','    kmbkmbhssmb','    kbhkkbhbbhh','    kbhksmbkkks','     mbkshkkkkk','     khkhbkkkks','     khksmkkkkk','      hbkskkkkk','      mbkhkkksm','       bhmsksbh','       kmhbskmb','        kmbhhhb','         ksmbbm','          kksss'];
- half.forEach((row,y)=>[...row].forEach((v,x)=>{if(palette[v]){ctx.fillStyle=palette[v];ctx.fillRect(x,y,1,1);ctx.fillRect(29-x,y,1,1)}}));return guardFace=tile}
-function blockShield(age){if(age<.06||age>=2.9)return;const arrive=ease((age-.06)/.26),impact=Math.max(0,age-.42),kick=Math.sin(Math.min(1,impact/.25)*Math.PI),drop=ease((age-.58)/1.17),dust=ease((age-1.75)/1.15);g.save();g.translate(180+(1-arrive)*17+drop*7,82-(1-arrive)*13+kick*3+drop*19);g.rotate((1-arrive)*.22-drop*.34);g.scale(1.55+arrive*.18+kick*.12,1.66-kick*.16);g.globalAlpha=arrive;const tile=frontalGuard(),split=Math.round(4*drop);if(dust>0&&fractureFrames.get(tile)?.[4])erodeSkull(fractureFrames.get(tile)[4],dust,.7,18);else splitSkull(tile,split);crossEye(g,-5-split,-3-split,t,1-drop);g.restore()}
+function frontalGuard(){return blasterSkull(5,true,0,true)}
+function blockShield(age){if(age<.06||age>=2.9)return;const arrive=ease((age-.06)/.26),impact=Math.max(0,age-.42),kick=Math.sin(Math.min(1,impact/.25)*Math.PI),drop=ease((age-.58)/1.17),dust=ease((age-1.75)/1.15);g.save();g.translate(180+(1-arrive)*17+drop*7,82-(1-arrive)*13+kick*3+drop*19);g.rotate((1-arrive)*.22-drop*.34);g.scale(1.55+arrive*.18+kick*.12,1.66-kick*.16);g.globalAlpha=arrive;const tile=frontalGuard(),split=Math.round(4*drop);if(dust>0&&fractureFrames.get(tile)?.[4])erodeSkull(fractureFrames.get(tile)[4],dust,.7,18);else splitSkull(tile,split);crossEye(g,-5-split,-2-split,t,1-drop);g.restore()}
 function ringPoint(c,r){const dy=Math.sin(c.angle);return [Math.round(x+Math.cos(c.angle)*r),Math.round(y+dy*r*(dy>0?.49:.72))]}
 function farewellRing(){const a=farewellAge;if(a<1.5||a>9.1)return;const enter=ease((a-1.5)/.8),charge=ease((a-2.3)/2.7),eye=1-ease((a-6.08)/.68);
  for(const c of ring){const dust=ease((a-6.82-c.seed*.025)/1.94),r=c.r+18*(1-enter),[mx,my]=ringPoint(c,r);g.save();g.translate(mx,my);g.rotate(Math.atan2(y-my,x-mx));const size=c.big?1.48:1.08;g.scale(size,size);g.translate(13-THROAT_X,13-14);g.globalAlpha=enter;const tile=blasterSkull(Math.round(6*charge),c.big,charge*(1-ease((a-5.32)/.76)));if(dust>0)erodeSkull(tile,dust,c.seed,13);else splitSkull(tile,0);crossEye(g,-4,-3,t,eye);if(a<6.08){const f=ease((a-5.32)/.76);g.translate(-13,-13);drawBlasterCharge(charge,c.big,1-f*f*(3-2*f))}g.restore()}}
