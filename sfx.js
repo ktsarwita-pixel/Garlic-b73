@@ -37,8 +37,10 @@ function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')retur
  const fire=name==='beamFire',ring=name==='ringCharge',heavy=ring||length>.85,duration=fire?(heavy?2.4:1.9):length,key=[name,length].join(':');let buffer=blasterSounds.get(key);
  if(!buffer){const rate=16000;buffer=audio.createBuffer(1,Math.ceil(rate*duration),rate);const samples=buffer.getChannelData(0);// Broad loudness contours measured in tenths of the reference clips; no sampled audio.
  const contour=fire?(heavy?[1,.92,.79,.50,.33,.17,.125,.083,.042,.042]:[1,.92,.79,.67,.58,.50,.42,.33,.25,.042]):[.85,1,.85,1,.74,.52,.41,.26,.15,.037];
- let phase=0,low=0,last=0,warm=0,seed=19,band=0,base=0;
- for(let i=0;i<samples.length;i++){const t=i/rate,u=t/duration,f0=(heavy?.78:1)*(fire?92+210*Math.exp(-t*9):110+720*Math.pow(Math.min(1,u),2.5));phase+=f0/rate;phase-=Math.floor(phase);
+ // A separate resonant voice lets the upper scream rise without pitching up the jaw growl.
+ const knots=[0,.08,.27,.48,.70,.86,1],resonance=fire?[1320,1000,690,690,680,860,520]:[92,100,120,950,2980,510,340];
+ let formPhase=0,knot=0,phase=0,low=0,last=0,warm=0,seed=19,band=0,base=0;
+ for(let i=0;i<samples.length;i++){const t=i/rate,u=t/duration,f0=(heavy?.78:1)*(fire?45+72*Math.min(1,t/.29)*Math.min(1,(1-u)/.24):95+62*u);phase+=f0/rate;phase-=Math.floor(phase);
  // Resonances sweep apart as the jaw opens; the blast has a noisy attack and a low tail.
  const vowel=Math.sin(phase*Math.PI*2*(fire?5-2*u:2.2+2*u))*Math.exp(-3.6*phase),buzz=(.82*Math.sin(phase*2*Math.PI)+.18*Math.sin(phase*4*Math.PI))*(.85+.15*Math.sin(2*Math.PI*t*(fire?34:18+12*u)));
  seed=(Math.imul(seed,1664525)+1013904223)>>>0;const noise=seed/2147483648-1;low+=(noise-low)*.28;const grit=low-last;last+=.12*grit;
@@ -47,7 +49,10 @@ function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')retur
  const air=fire?(heavy?1.5:2.1-1.2*u):.2+1.2*u*u;const whistle=Math.sin(2*Math.PI*phase*4);// Sweep filtered breath down through the beam tail, up into the charge whistle.
  const hz=fire?(heavy?1360:640+1450*Math.exp(-4*u)):700+3200*u*u*u;
  const coeff=Math.min(1.2,2*Math.sin(Math.PI*hz/rate));base+=coeff*band;band+=coeff*(noise-base-.85*band);
- const tone=Math.tanh(.46*buzz+.68*vowel+.37*air*grit+(fire?.85:.15+.38*u)*band+(fire?.06:.26*u)*whistle);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}blasterSounds.set(key,buffer)}
+ if(u>knots[knot+1]&&knot<knots.length-2)knot++;const blend=(u-knots[knot])/(knots[knot+1]-knots[knot]);
+ const center=resonance[knot]*(resonance[knot+1]/resonance[knot])**(blend*blend*(3-2*blend));formPhase+=center/rate;formPhase-=Math.floor(formPhase);
+ const cry=Math.sin(2*Math.PI*formPhase+.38*Math.sin(2*Math.PI*phase*2))*(.84+.16*Math.cos(t*84));
+ const tone=Math.tanh(.38*buzz+.44*vowel+.32*air*grit+(fire?.64:.15+.33*u)*band+(fire?.06:.13*u)*whistle+(fire?(heavy?.96:.025):.89)*cry);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}blasterSounds.set(key,buffer)}
  const src=audio.createBufferSource();src.buffer=buffer;src.connect(bus);src.onended=()=>src.disconnect();src.start()}
 function sfx(name,pitch){if(name==='beamCharge'||name==='beamFire'||name==='ringCharge')return playBlaster(name,pitch);playNotes(cues[name],pitch);if(!sound||!bus||audio.state!=='running'||!textures[name])return;
  if(!grain){grain=audio.createBuffer(1,audio.sampleRate,audio.sampleRate);const data=grain.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1}
