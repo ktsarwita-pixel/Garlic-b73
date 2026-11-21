@@ -284,7 +284,7 @@ function blasterSkull(open,big=false,charge=0,front=false){const glow=Math.round
   }
   // The chin turns inward at the tip, as in the frontal U. Foreshorten
   // each half separately, leaving the central firing line unobstructed.
-  if(!front&&lift>1.5){dot(21,14+side*2,'m');dot(21,14+side,'s')}
+  if(!front&&lift>1.5){dot(21,14+side*2,'m');dot(21,14+side,'k')}
   // Cheek sweeps into a hooked canine, with separate inward-pointing teeth.
   // Pivot the whole muzzle about the temple so teeth track their roots.
   part='fang';const inner=[2,2,2,2,3,3,3,3,3,3,3,4,3,1,1];
