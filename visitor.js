@@ -231,26 +231,32 @@ function tickBeams(dt,b){const score=eightScore[round-1];if(sent<score.count&&el
 // Dorsal view. Both temples, horns and jaw rails are projected around the
 // beam axis (y=14); local +x always points toward the target.
 const blasterFrames=new Map();
-// Nine cached light levels keep charge colour independent of jaw angle.
-function blasterSkull(open,big=false,charge=0,front=false){const glow=Math.round(Math.max(0,Math.min(1,charge))*8),key=open+(big?16:0)+32*glow+(front?512:0);if(blasterFrames.has(key))return blasterFrames.get(key);
+// Tint actual enamel in the source cut, never the rectangular strip or dark throat.
+const litJaws=new Map();
+function jawSource(level){const base=frontalGuard();if(!level)return base;if(litJaws.has(level))return litJaws.get(level);
+ const src=document.createElement('canvas');src.width=base.width;src.height=base.height;const ctx=src.getContext('2d');ctx.drawImage(base,0,0);
+ const img=ctx.getImageData(0,19,30,10),d=img.data;for(let i=0;i<d.length;i+=4){if(!d[i+3]||d[i]<120)continue;
+  const target=d[i]>245?[255,250,243]:d[i]>200?[221,197,234]:[152,117,175];for(let j=0;j<3;j++)d[i+j]+=(target[j]-d[i+j])*level/32}
+ ctx.putImageData(img,0,19);litJaws.set(level,src);return src}
+
+function blasterSkull(open,big=false,charge=0,front=false){open=Math.round(open*4)/4;const glow=Math.round(Math.max(0,Math.min(1,charge))*32),key=open*4+(big?32:0)+64*glow+(front?4096:0);if(blasterFrames.has(key))return blasterFrames.get(key);
  const tile=document.createElement('canvas');tile.width=30;tile.height=32;const ctx=tile.getContext('2d');
  const palette={k:'#282530',s:'#48454e',m:'#a6a4ad',b:'#e4e3df',h:'#fffdf5',u:'#e4e3df',l:'#fffdf5'};
- if(glow){const mix=(a,b)=>'#'+a.map((v,i)=>Math.round(v+(b[i]-v)*glow/8).toString(16).padStart(2,'0')).join('');palette.u=mix([228,227,223],[152,117,175]);palette.l=mix([255,253,245],[221,197,234])}
  if(!front){
   // Cut the finished blocker, including its temple highlights. Local source Y
   // becomes firing X. Keep the crown cut rigid; animate only the bite below it.
-  const src=frontalGuard();ctx.imageSmoothingEnabled=false;ctx.translate(0,29);ctx.rotate(-Math.PI/2);
-  const strip=(sy,dy,width,gap=0,tint=false)=>{const left=Math.floor((29-width)/2),half=width>>1;
+  const src=jawSource(glow);ctx.imageSmoothingEnabled=false;ctx.translate(0,29);ctx.rotate(-Math.PI/2);
+  const strip=(sy,dy,width,gap=0)=>{const left=Math.floor((29-width)/2),half=width>>1;
    for(let side=0;side<2;side++){const dx=left+side*half+(side?gap:-gap);
     ctx.drawImage(src,side*15,sy,15,1,dx,dy,half,1);
-    if(tint&&glow){ctx.save();ctx.globalCompositeOperation='source-atop';ctx.globalAlpha=glow/8*.85;ctx.fillStyle=sy<27?'#9875af':'#ddc5ea';ctx.fillRect(dx,dy,half,1);ctx.restore()}}
+   }
   };
   const upper=[0,1,2,3,4,5,6,7,8,9,11,12,13,14,15,16,17,18];
   upper.forEach((sy,j)=>strip(sy,j,(sy<7?26:28)-(big?0:4),sy>15?Math.round(open*(sy-15)/9):0));
   // Closed, only the front edge of the chin shows. Opening exposes the
   // cheek hinges one scanline at a time, without scaling the eye sockets.
-  const jaw=[19,20,21,22,23,24].slice(6-open).concat([24,26,27,28]);
-  jaw.forEach((sy,j)=>strip(sy,upper.length+j,Math.max(20,26-Math.floor(j/2)*2)-(big?0:2),Math.round(open*(1+j/jaw.length)*.4),sy>=24));
+  const jaw=[19,20,21,22,23,24].slice(6-Math.round(open)).concat([24,26,27,28]);
+  jaw.forEach((sy,j)=>strip(sy,upper.length+j,Math.max(20,26-Math.floor(j/2)*2)-(big?0:2),Math.round(open*(1+j/jaw.length)*.4)));
   blasterFrames.set(key,tile);return tile}
  // Both views consume the same bone samples. In front view anatomical depth
  // determines height: horns sweep upward, the crown overhangs the muzzle,
@@ -292,7 +298,7 @@ function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.
   for(let k=w+flow%23;k<length;k+=23){rect(k,-half,6,1,'#f4ddff');rect(k+7,half-1,4,1,'#c59ed7')}
  }
  g.restore();g.globalAlpha=ease(c.age/.12)*fade;g.translate(offset-2,-Math.round(14*scale));g.scale(scale,scale);g.imageSmoothingEnabled=false;
- const opening=Math.round(6*(a<0?ease((q-.18)/.78):fade));g.drawImage(blasterSkull(opening,c.big,a<0?ease((q-.12)/.72):fade),0,0);
+ const opening=6*(a<0?ease((q-.18)/.78):fade);g.drawImage(blasterSkull(opening,c.big,a<0?ease((q-.12)/.72):fade),0,0);
  crossEye(g,9,c.big?8:9,t,1);
  if(a<0)drawBlasterCharge(q,c.big);
  else{g.save();g.globalAlpha*=Math.max(0,1-a/.21);for(const side of [-1,1]){rect(12,14+side*3,3,1,'#fff8fb');rect(16,14+side*5,2,1,'#e0c5e8')};g.restore()}
@@ -301,10 +307,8 @@ function drawBlasterCharge(q,big,opacity=1){g.save();const alpha=g.globalAlpha*o
   // Strands converge around a fixed throat, then vanish into a held white core before recoil.
   for(let i=0;i<count;i++){const phase=(q*(1.5+q)+i/count)%1,dist=(1-phase)*(big?14:10),dy=Math.sin(i*2.4+q*5)*dist*.34;
    g.globalAlpha=alpha*build*(1-lock)*Math.sin(Math.PI*phase);rect(THROAT_X+Math.round(dist),14+Math.round(dy),1+Math.round(phase),1,'#d1b3df')}
-  // Reflected charge climbs the jaw rail before locking at the emitter.
-  g.globalAlpha=alpha*.72*build;for(const side of [-1,1]){const lip=14+side*(2+Math.round(2*build));rect(14,lip,3,1,'#c2a3d2');rect(19,lip+side*Math.round(2*build),2,1,'#ead8ef')}
-  g.globalAlpha=alpha*build;const radius=Math.round((big?3:2)*build);rect(THROAT_X,14-radius,3,radius*2+1,'#b08cbd');rect(THROAT_X-1,13,5,3,'#e0cbeb');
-  g.globalAlpha=alpha*build*(.45+.55*lock);rect(THROAT_X,14,2+Math.round(lock*3),1,'#fffaf4');g.restore()}
+  // A pinprick at the emitter; the jaw itself now carries the charge cue.
+  g.globalAlpha=alpha*build*(.4+.6*lock);rect(THROAT_X,14,1,1,'#fffaf3');g.restore()}
 function nextGate(){const score=encounter===8?eightScore[round-1].gates:gateScores[round-1],entry=score[patternStep%score.length],b=sevenBox(),vertical=entry[0]==='T',span=vertical?b.r-b.l:b.d-b.u;
  const gap=encounter===8?eightScore[round-1].gap:[21,20,19,30,25][round-1],cut=6+Math.round((span-gap-12)*Number(entry[1])/3);return {b,vertical,reverse:entry[0]==='R',cut,gap,span,kind:{w:'white',b:'blue',r:'red',g:'glitch'}[entry[2]]}}
 function sevenGate(){const {b,vertical,reverse,cut,gap,span,kind}=nextGate(),speed=61+round*6;
@@ -343,7 +347,7 @@ function frontalGuard(){return blasterSkull(5,true,0,true)}
 function blockShield(age){if(age<.06||age>=2.9)return;const arrive=ease((age-.06)/.26),impact=Math.max(0,age-.42),kick=Math.sin(Math.min(1,impact/.25)*Math.PI),drop=ease((age-.58)/1.17),dust=ease((age-1.75)/1.15);g.save();g.translate(180+(1-arrive)*17+drop*7,82-(1-arrive)*13+kick*3+drop*19);g.rotate((1-arrive)*.22-drop*.34);g.scale(1.55+arrive*.18+kick*.12,1.66-kick*.16);g.globalAlpha=arrive;const tile=frontalGuard(),split=Math.round(4*drop);if(dust>0&&fractureFrames.get(tile)?.[4])erodeSkull(fractureFrames.get(tile)[4],dust,.7,18);else splitSkull(tile,split);crossEye(g,-5-split,-2-split,t,1-drop);g.restore()}
 function ringPoint(c,r){const dy=Math.sin(c.angle);return [Math.round(x+Math.cos(c.angle)*r),Math.round(y+dy*r*(dy>0?.49:.72))]}
 function farewellRing(){const a=farewellAge;if(a<1.5||a>9.1)return;const enter=ease((a-1.5)/.8),charge=ease((a-2.3)/2.7),eye=1-ease((a-6.08)/.68);
- for(const c of ring){const dust=ease((a-6.82-c.seed*.025)/1.94),r=c.r+18*(1-enter),[mx,my]=ringPoint(c,r);g.save();g.translate(mx,my);g.rotate(Math.atan2(y-my,x-mx));const size=c.big?1.48:1.08;g.scale(size,size);g.translate(13-THROAT_X,13-14);g.globalAlpha=enter;const tile=blasterSkull(Math.round(6*charge),c.big,charge*(1-ease((a-5.32)/.76)));if(dust>0)erodeSkull(tile,dust,c.seed,13);else splitSkull(tile,0);crossEye(g,-4,c.big?-5:-4,t,eye);if(a<6.08){const f=ease((a-5.32)/.76);g.translate(-13,-13);drawBlasterCharge(charge,c.big,1-f*f*(3-2*f))}g.restore()}}
+ for(const c of ring){const dust=ease((a-6.82-c.seed*.025)/1.94),r=c.r+18*(1-enter),[mx,my]=ringPoint(c,r);g.save();g.translate(mx,my);g.rotate(Math.atan2(y-my,x-mx));const size=c.big?1.48:1.08;g.scale(size,size);g.translate(13-THROAT_X,13-14);g.globalAlpha=enter;const tile=blasterSkull(6*charge,c.big,charge*(1-ease((a-5.32)/.76)));if(dust>0)erodeSkull(tile,dust,c.seed,13);else splitSkull(tile,0);crossEye(g,-4,c.big?-5:-4,t,eye);if(a<6.08){const f=ease((a-5.32)/.76);g.translate(-13,-13);drawBlasterCharge(charge,c.big,1-f*f*(3-2*f))}g.restore()}}
 function farewellFigure(){const a=farewellAge;if(a<10.1){sevenFigure();return}if(a>=10.96||!visitorSheet)return;
  const f=ease((a-10.1)/.86),beat=Math.floor((a-10.1)*22);g.save();g.imageSmoothingEnabled=false;
  for(let sy=0;sy<88;sy+=4){const n=sy/4,wave=Math.sin(n*2.1+beat*.8),dx=Math.round(wave*(2+26*f)*f);if(f>.28+(n*7%22)/32)continue;const dy=32+sy-Math.round(f*f*sy*.36);g.globalAlpha=.22*(1-f);g.drawImage(visitorSheet,0,sy,100,4,130-dx*2,dy,100,3);g.globalAlpha=1-f*.55;g.drawImage(visitorSheet,0,sy,100,4,130+dx,dy,100,Math.max(1,4-Math.floor(f*4)))}g.restore()}
