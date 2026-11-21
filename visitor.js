@@ -241,15 +241,17 @@ function blasterSkull(open,big=false,charge=0,front=false){const glow=Math.round
  // and the short lower jaw sits below the dark throat rather than beside it.
  // Front-only surfaces hidden in plan view: throat interior, socket walls
  // and the underside joining both mandibular branches at the chin.
- if(front){const section=['       kssss','     kssmmssk','    kmbhhbbmskk','   kbbskkkkbmsk','   kbskkkkkkbmk','   kmbkkkkkmbhk','    kbhmsmbbhsk','     kssbhhbskk','      kmbmskkkk','      kbmskkkkk','       bskkkkkk','       mskkkkkk','        skkkkkk','        skkkkkk','         skkkkk','         mskkkk','          bmssk','          khbmb','           kmbh','            kss'];
- section.forEach((r,j)=>[...r].forEach((v,i)=>{if(v!==' '){ctx.fillStyle=palette[v];ctx.fillRect(i,j+8,1,1);ctx.fillRect(29-i,j+8,1,1)}}))}
+ // The front elevations supply the head-on contour that a top view lacks.
+ // Clip projected markings to this outline; do not flatten the two jaws together.
+ let face;
+ if(front){face=[' k',' khk',' kbhk','  kbhk     k','  kmbhk   khk','   kmbhkkkhbbkk','   kshhhhbmbhhb','  kmhhbbmmmhhbm',' kbhbbskkmbhbms',' khbskkkksmbbms',' kmbkkkkkksbhbm','  kskkkkkksmhbk','  kmbskkkkmbhbk','  kbhhbmmsbhbsk','   kmbhhbhbbskk','    kshbhbmskks','    kmbkmbhssmb','    kbhkkbhbbhh','    kbhksmbkkks','     mbkshkkkkk','     khksbkkkkk','     khksmkkkkk','      hbkskkkkk','      mbkskkkkk','       bhmskkks','       kmhbssmb','        kmbhhhb','         ksmbbm','          kksss'];ctx.beginPath();face.forEach((row,y)=>[...row].forEach((v,i)=>{if(v===' ')return;for(const x of [i,29-i]){ctx.fillStyle=palette[v];ctx.fillRect(x,y,1,1);ctx.rect(x,y,1,1)}}));ctx.clip()}
  let part='crown';
  const dot=(x,y,t)=>{ctx.fillStyle=palette[t];if(!front){ctx.fillRect(x,y,1,1);return}
   const d=y-14,sign=Math.sign(d),f=Math.max(0,(x-11)/14);
   let u=14.5+d,v=3+x,h=2;
   if(part==='crown'){u+=sign*Math.min(2,x*.16);v=4+x*.86-Math.max(0,Math.abs(d)-7)*.65;h=4}
-  if(part==='jaw'){u+=sign*(1+f);v=16+(x-10)*.85;u-=sign*Math.max(0,x-17)*.6;h=3}
-  if(part==='fang'){u+=sign*(.5+f);v=13+(x-11)*.78+(t==='h'||t==='b'?1:0);h=3}
+  if(part==='jaw'){u=14.5+sign*(7-(x-10)*.59);v=21+(x-10)*.55;h=2}
+  if(part==='fang'){u+=sign*(.5+f);v=13+(x-11)*.45+(t==='h'||t==='b'?1:0);h=3}
   if(part==='crown'&&x>=7&&x<=11&&Math.abs(d)>=3&&Math.abs(d)<=6){ctx.fillStyle=palette.k;h=4}ctx.fillRect(Math.floor(u),Math.round(v),2,h)};
  // A vaulted crown, hooked occipital spurs and two orbital trenches. Read each
  // row from the back of the skull toward its snout. Reflect shape, not lighting.
