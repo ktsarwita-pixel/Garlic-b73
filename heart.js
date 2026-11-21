@@ -113,10 +113,11 @@ function studyShelf(x,y,w,h,seed){
  const east=x>180;
  let tile=shelfTiles.get(seed);
  if(!tile){tile=document.createElement('canvas');tile.width=w;tile.height=h;
-  const c=tile.getContext('2d'),tw=w-3,th=h-6;
-  // Work in cabinet coordinates. Mirror only the plan: every upright projects
-  // three pixels right and six down, regardless of which wall it stands against.
-  const plank=(u,v,ww,hh,z,col)=>{c.fillStyle=col;c.fillRect((east?tw-u-ww:u)+Math.ceil(z/2),v+z,ww,hh)};
+  // Draw along the wall, then turn the open face into the aisle. Keep the
+  // original collision footprint: west cases face east, east cases face west.
+  const c=tile.getContext('2d'),tw=h-3,th=w-6;
+  c.setTransform(0,1,east?-1:1,0,east?w:0,0);
+  const plank=(u,v,ww,hh,z,col)=>{c.fillStyle=col;c.fillRect(u+Math.ceil(z/2),v+z,ww,hh)};
   const timber=(u,v,ww,hh,deep)=>{for(let z=deep;z>0;z--){plank(u,v,ww,hh,z,'#645041');plank(u,v+hh-1,ww,1,z,'#796553')}
    plank(u,v,ww,hh,0,'#94785e');plank(u,v,ww,1,0,'#b39a7b');};
   let state=317+seed;const roll=n=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return (state>>>8)%n};
@@ -130,7 +131,7 @@ function studyShelf(x,y,w,h,seed){
   ink(0,0,tw,top,'#927459');ink(0,0,tw,1,'#b39a7b');ink(2,2,tw-5,1,'#a18465');
   ink(0,top-2,tw,1,'#c1a17b');ink(0,top-1,tw,1,'#503d32');
   for(let row=0;row<tiers;row++){
-   const y0=top+Math.floor(row*(h-top-2)/tiers),sill=top+Math.floor((row+1)*(h-top-2)/tiers)-2;
+   const y0=top+Math.floor(row*(w-top-2)/tiers),sill=top+Math.floor((row+1)*(w-top-2)/tiers)-2;
    ink(1,y0,tw-2,sill-y0,'#433630');let bx=2,j=0;
    while(bx<tw-2){const width=Math.min(tw-2-bx,2+roll(3)),height=Math.max(2,sill-y0-1-roll(2)),yy=sill-height;
     const leather=(seed+row+j)%3===0;ink(bx,yy,width,height,leather?'#593c36':cloth[roll(cloth.length)]);
