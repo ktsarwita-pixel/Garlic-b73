@@ -243,8 +243,7 @@ function blasterSkull(open,big=false,charge=0,front=false){const glow=Math.round
  // and the underside joining both mandibular branches at the chin.
  // The front elevations supply the head-on contour that a top view lacks.
  // Clip projected markings to this outline; do not flatten the two jaws together.
- let face;
- if(front){face=[' k',' khk',' kbhk','  kbhk     k','  kmbhk   khk','   kmbhkkkhbbkk','   kshhhhbmbhhb','  kmhhbbmmmhhbm',' kbhbbskkmbhbms',' khbskkkksmbbms',' kmbkkkkkksbhbm','  kskkkkkksmhbk','  kmbskkkkmbhbk','  kbhhbmmsbhbsk','   kmbhhbhbbskk','    kshbhbmskks','    kmbkmbhssmb','    kbhkkbhbbhh','    kbhksmbkkks','     mbkshkkkkk','     kmbsbkkkkk','     ksmsbkkkkk','      smbskkkkk','      ksmskkkkk','       kmbskkkk','        kmbsskk','         kmbbms','          ksmmb','           ksss'];ctx.beginPath();face.forEach((row,y)=>[...row].forEach((v,i)=>{if(v===' ')return;for(const x of [i,29-i]){ctx.fillStyle=palette[x>14&&y>15&&v==='h'?'b':v];ctx.fillRect(x,y,1,1);ctx.rect(x,y,1,1)}}));ctx.clip()}
+ const face=[' k',' khk',' kbhk','  kbhk     k','  kmbhk   khk','   kmbhkkkhbbkk','   kshhhhbmbhhb','  kmhhbbmmmhhbm',' kbhbbskkmbhbms',' khbskkkksmbbms',' kmbkkkkkksbhbm','  kskkkkkksmhbk','  kmbskkkkmbhbk','  kbhhbmmsbhbsk','   kmbhhbhbbskk','    kshbhbmskks','    kmbkmbhssmb','    kbhkkbhbbhh','    kbhksmbkkks','     mbkshkkkkk','     kmbsbkkkkk','     ksmsbkkkkk','      smbskkkkk','      ksmskkkkk','       kmbskkkk','        kmbsskk','         kmbbms','          ksmmb','           ksss'];if(front){ctx.beginPath();face.forEach((row,y)=>[...row].forEach((v,i)=>{if(v===' ')return;for(const x of [i,29-i]){ctx.fillStyle=palette[x>14&&y>15&&v==='h'?'b':v];ctx.fillRect(x,y,1,1);ctx.rect(x,y,1,1)}}));ctx.clip()}
  let part='crown';
  const dot=(x,y,t)=>{ctx.fillStyle=palette[t];if(!front){ctx.fillRect(x,y,1,1);return}
   const d=y-14,sign=Math.sign(d);
@@ -258,14 +257,17 @@ function blasterSkull(open,big=false,charge=0,front=false){const glow=Math.round
  // A vaulted crown, hooked occipital spurs and two orbital trenches. Read each
  // row from the back of the skull toward its snout. Reflect shape, not lighting.
  const cap=['   kmbbhbbbk','  kmbhhbbhhbk','  kbhhhmbhhbbk','  kbhmsksbbhhbk','   kbbskkkkkbhbk','   khbskkkkkmbbk','   khhhbkkksbhbk','  ksbhhhbbbhhbkk','  kbhhbkkmbbsk',' kbhhsk  kbbk',' kbbsk    kk','kbsk'];
- // Dorsal elevation of the shield: a forked nasal notch between broad
- // orbital cups, a raised medial brow, and slim spurs behind the temples.
- const dorsal=['    kmbhhbsk','   kmbhhbbmbk','  kmbhbbmmbhhsk','   khbmskkkmbhhk','   khbskkkkkkbhbk','   kmbskkkkkkshbk','    khbskkkksbhbk','   kbhhbmssmbhbk','  kbhbmbbhhhbsk',' kbhbsk  kmbsk',' khbsk    ksk','khsk','ksk','k'];
- for(const side of [-1,1]){part='crown';(front?cap:dorsal).forEach((row,d)=>[...row].forEach((v,x)=>{if(v!==' ')dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
-  if(big){ // Two swept armor fans broaden the heavy skull, not just its scale.
-   for(let x=1;x<14;x++){const outer=(front?12:14)-Math.floor((x-1)*.34);for(let j=0;j<(front?4:5);j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s','m'][j])}
-   if(front)for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h');
-  }
+ // Sample the blocker’s actual horn, socket and muzzle rows in plan view.
+ // Compress depth over the brow and leave the moving jaw as the foreground.
+ for(const side of [-1,1]){part='crown';if(!front){
+  const rows=[0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
+  rows.forEach((fy,x)=>[...face[fy]].forEach((v,i)=>{if(v===' ')return;
+   const d=Math.round((14-i)*(big?1:.84));if(x>=13&&d<2)return;
+   dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
+ }else{cap.forEach((row,d)=>[...row].forEach((v,x)=>{if(v!==' ')dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
+  if(big){for(let x=1;x<14;x++){const outer=12-Math.floor((x-1)*.34);for(let j=0;j<4;j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s'][j])}
+   for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h')}
+ }
   // Foreshorten the mandibular arch under the maxilla. Only its shaded
   // underside and lip show between the fangs; the firing axis stays clear.
   part='jaw';const lift=[0,0,.4,.8,1.2,1.8,2][open];
@@ -297,7 +299,7 @@ function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.
  }
  g.restore();g.globalAlpha=ease(c.age/.12)*fade;g.translate(offset-2,-Math.round(14*scale));g.scale(scale,scale);g.imageSmoothingEnabled=false;
  const opening=Math.round(6*(a<0?ease((q-.18)/.78):fade));g.drawImage(blasterSkull(opening,c.big,a<0?ease((q-.12)/.72):fade),0,0);
- crossEye(g,9,10,t,1);
+ crossEye(g,9,c.big?8:9,t,1);
  if(a<0)drawBlasterCharge(q,c.big);
  else{g.save();g.globalAlpha*=Math.max(0,1-a/.21);for(const side of [-1,1]){rect(12,14+side*3,3,1,'#fff8fb');rect(16,14+side*5,2,1,'#e0c5e8')};g.restore()}
  g.restore()}}
@@ -347,7 +349,7 @@ function frontalGuard(){return blasterSkull(5,true,0,true)}
 function blockShield(age){if(age<.06||age>=2.9)return;const arrive=ease((age-.06)/.26),impact=Math.max(0,age-.42),kick=Math.sin(Math.min(1,impact/.25)*Math.PI),drop=ease((age-.58)/1.17),dust=ease((age-1.75)/1.15);g.save();g.translate(180+(1-arrive)*17+drop*7,82-(1-arrive)*13+kick*3+drop*19);g.rotate((1-arrive)*.22-drop*.34);g.scale(1.55+arrive*.18+kick*.12,1.66-kick*.16);g.globalAlpha=arrive;const tile=frontalGuard(),split=Math.round(4*drop);if(dust>0&&fractureFrames.get(tile)?.[4])erodeSkull(fractureFrames.get(tile)[4],dust,.7,18);else splitSkull(tile,split);crossEye(g,-5-split,-2-split,t,1-drop);g.restore()}
 function ringPoint(c,r){const dy=Math.sin(c.angle);return [Math.round(x+Math.cos(c.angle)*r),Math.round(y+dy*r*(dy>0?.49:.72))]}
 function farewellRing(){const a=farewellAge;if(a<1.5||a>9.1)return;const enter=ease((a-1.5)/.8),charge=ease((a-2.3)/2.7),eye=1-ease((a-6.08)/.68);
- for(const c of ring){const dust=ease((a-6.82-c.seed*.025)/1.94),r=c.r+18*(1-enter),[mx,my]=ringPoint(c,r);g.save();g.translate(mx,my);g.rotate(Math.atan2(y-my,x-mx));const size=c.big?1.48:1.08;g.scale(size,size);g.translate(13-THROAT_X,13-14);g.globalAlpha=enter;const tile=blasterSkull(Math.round(6*charge),c.big,charge*(1-ease((a-5.32)/.76)));if(dust>0)erodeSkull(tile,dust,c.seed,13);else splitSkull(tile,0);crossEye(g,-4,-3,t,eye);if(a<6.08){const f=ease((a-5.32)/.76);g.translate(-13,-13);drawBlasterCharge(charge,c.big,1-f*f*(3-2*f))}g.restore()}}
+ for(const c of ring){const dust=ease((a-6.82-c.seed*.025)/1.94),r=c.r+18*(1-enter),[mx,my]=ringPoint(c,r);g.save();g.translate(mx,my);g.rotate(Math.atan2(y-my,x-mx));const size=c.big?1.48:1.08;g.scale(size,size);g.translate(13-THROAT_X,13-14);g.globalAlpha=enter;const tile=blasterSkull(Math.round(6*charge),c.big,charge*(1-ease((a-5.32)/.76)));if(dust>0)erodeSkull(tile,dust,c.seed,13);else splitSkull(tile,0);crossEye(g,-4,c.big?-5:-4,t,eye);if(a<6.08){const f=ease((a-5.32)/.76);g.translate(-13,-13);drawBlasterCharge(charge,c.big,1-f*f*(3-2*f))}g.restore()}}
 function farewellFigure(){const a=farewellAge;if(a<10.1){sevenFigure();return}if(a>=10.96||!visitorSheet)return;
  const f=ease((a-10.1)/.86),beat=Math.floor((a-10.1)*22);g.save();g.imageSmoothingEnabled=false;
  for(let sy=0;sy<88;sy+=4){const n=sy/4,wave=Math.sin(n*2.1+beat*.8),dx=Math.round(wave*(2+26*f)*f);if(f>.28+(n*7%22)/32)continue;const dy=32+sy-Math.round(f*f*sy*.36);g.globalAlpha=.22*(1-f);g.drawImage(visitorSheet,0,sy,100,4,130-dx*2,dy,100,3);g.globalAlpha=1-f*.55;g.drawImage(visitorSheet,0,sy,100,4,130+dx,dy,100,Math.max(1,4-Math.floor(f*4)))}g.restore()}
