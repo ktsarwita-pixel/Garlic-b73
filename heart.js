@@ -115,19 +115,22 @@ function studyShelf(x,y,w,h,seed){
  if(!tile){tile=document.createElement('canvas');tile.width=w;tile.height=h;
   // Draw along the wall, then turn the open face into the aisle. Keep the
   // original collision footprint: west cases face east, east cases face west.
-  const c=tile.getContext('2d'),tw=h-3,th=w-6;
+  const c=tile.getContext('2d'),tw=h-4;
   c.setTransform(0,1,east?-1:1,0,east?w:0,0);
-  const plank=(u,v,ww,hh,z,col)=>{c.fillStyle=col;c.fillRect(u+Math.ceil(z/2),v+z,ww,hh)};
-  const timber=(u,v,ww,hh,deep)=>{for(let z=deep;z>0;z--){plank(u,v,ww,hh,z,'#645041');plank(u,v+hh-1,ww,1,z,'#796553')}
-   plank(u,v,ww,hh,0,'#94785e');plank(u,v,ww,1,0,'#b39a7b');};
+  // Project each horizontal strip onto an integer stair-step. The top recedes
+  // toward the wall; the upright face drops toward the aisle AND the viewer.
+  const rise=v=>Math.floor(v/5);
+  const plank=(u,v,ww,hh,z,col)=>{c.fillStyle=col;for(let k=0;k<hh;k++)c.fillRect(u+rise(v+k),v+k,ww,1)};
   let state=317+seed;const roll=n=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return (state>>>8)%n};
   const cloth=['#805759','#516e72','#71755a','#9a7652','#746577','#776149','#596878'];
-  // One continuous carcass: cut wells into the top rather than drawing four
-  // overlapping extruded beams (which used to leave doubled corner seams).
-  timber(0,0,tw,th,6);
-  // A closed oak lid overhangs a recessed vertical face. The narrow return
-  // faces the aisle; its shelf ends step back in depth instead of floating.
-  const top=h>30?6:5,tiers=h>30?3:2,ink=(u,v,ww,hh,col)=>plank(u,v,ww,hh,0,col);
+  const top=h>30?7:6,tiers=h>30?3:2,ink=(u,v,ww,hh,col)=>plank(u,v,ww,hh,0,col);
+  // Solid near end: enclose the formerly exposed shelf ends with a single
+  // dark wood plane, bevel and runners. No book pixels paint over this panel.
+  for(let v=0;v<w;v++){const lip=tw+rise(v),end=Math.min(h,lip+Math.min(5,w-v));
+   c.fillStyle=east?'#514235':'#5f4838';c.fillRect(lip,v,end-lip,1);
+   c.fillStyle='#3e332c';c.fillRect(end-1,v,1,1);
+   if(end-lip>2){c.fillStyle=v===top||v===w-4?'#8c7056':'#705640';c.fillRect(lip+1,v,end-lip-2,1)}}
+  ink(0,0,tw,w,'#584638');
   ink(0,0,tw,top,'#927459');ink(0,0,tw,1,'#b39a7b');ink(2,2,tw-5,1,'#a18465');
   ink(0,top-2,tw,1,'#c1a17b');ink(0,top-1,tw,1,'#503d32');
   for(let row=0;row<tiers;row++){
@@ -139,10 +142,9 @@ function studyShelf(x,y,w,h,seed){
     bx+=width;j++;if(j===2&&row===seed%tiers)bx++;
    }
    ink(0,sill,tw,1,'#aa8865');ink(0,sill+1,tw,1,'#514033');
-   // Stepped side cheeks reveal the ends of each board under the crown.
-   for(let k=0;k<3;k++){ink(tw-3+k,y0-k,1,sill-y0,'#634737');ink(tw-3+k,sill-k,1,1,'#83664e')}
-   ink(0,y0,1,sill-y0,'#775c47');
-
+   ink(tw-1,y0,1,sill-y0,'#634737');ink(0,y0,1,sill-y0,'#775c47');
+   // Contact shadow beneath the overhang and a thin board nose above its shadow.
+   ink(1,y0,tw-2,1,'#433630');ink(tw-2,sill,2,1,'#83664e');
   }
   // Flush brass bay marker, two pins and a hand-worn patch in the waxed lid.
   ink(6,1,6,2,'#705b42');ink(7,1,4,1,'#c9b08a');ink(6,2,1,1,'#617164');ink(11,2,1,1,'#bd9863');
