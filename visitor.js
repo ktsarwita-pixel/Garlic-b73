@@ -233,17 +233,24 @@ function tickBeams(dt,b){const score=eightScore[round-1];if(sent<score.count&&el
 const blasterFrames=new Map();
 function blasterSkull(open,big=false){const key=open+(big?16:0);if(blasterFrames.has(key))return blasterFrames.get(key);
  const tile=document.createElement('canvas');tile.width=30;tile.height=32;const ctx=tile.getContext('2d');
- const palette={k:'#282530',s:'#645f6c',m:'#a2979e',b:'#cfc4b9',h:'#f2e6d6',v:'#857888'};
+ const palette={k:'#282530',s:'#48454e',m:'#a6a4ad',b:'#e4e3df',h:'#fffdf5'};
  const dot=(x,y,t)=>{ctx.fillStyle=palette[t];ctx.fillRect(x,y,1,1)};
  // A vaulted crown, hooked occipital spurs and two orbital trenches. Read each
  // row from the back of the skull toward its snout. Reflect shape, not lighting.
- const cap=['    ksssbbbk','   ksmbhhbbmk','  kmbbhhhbbmsk','  kmbhbbssbmsk','  kmbbskkkkkmsk','   khbskkkkkbbk','   kmbbbmsmbbbk','   kshhhbbbhmsk','  ksbhbkkkmbsk',' kmbbsk   ksk',' khmsk','kssk'];
+ const cap=['   kmbbhbbbk','  kmbhhbbhhbk','  kbhhhmbhhbbk','  kbhmbssbbhhbk','   kbbskkkkkbhbk','   khbskkkkkmbbk','   khhmbkkksbhbk','  ksbhhhbbbhhbkk','  kbhhbkkmbbsk',' kbhhsk  kbbk',' kbbsk    kk','kbsk'];
  for(const side of [-1,1]){cap.forEach((row,d)=>[...row].forEach((v,x)=>{if(v!==' ')dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
   if(big){ // Two swept armor fans broaden the heavy skull, not just its scale.
    for(let x=1;x<14;x++){const outer=12-Math.floor((x-1)*.34);for(let j=0;j<4;j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s'][j])}
    for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h');
   }
-  for(let x=11;x<=24;x++){const f=(x-11)/13,spread=2+Math.round(f*(open*.96+1)),thick=(x>21?2:4)+(big&&x<21?1:0);for(let j=0;j<thick;j++)dot(x,14+side*(spread+j),j===0?'k':j===thick-1?'s':side<0?'h':'b');if(x===16||x===20)dot(x,14+side*(spread-1),'m')}
+  // Cheek sweeps into a hooked canine, with separate inward-pointing teeth.
+  // Pivot the whole muzzle about the temple so teeth track their roots.
+  const inner=[2,2,2,2,3,3,3,3,3,3,3,4,3,1,1];
+  const depth=[4,5,5,5,5,4,4,4,4,4,4,4,3,3,1];
+  for(let i=0;i<inner.length;i++){const x=11+i,spread=inner[i]+Math.round(Math.min(i,11)*open/15),w=depth[i]+(big&&i<10?1:0);
+   for(let j=0;j<w;j++)dot(x,14+side*(spread+j),j===0&&w>2?'s':j===w-1&&w>2?'m':side<0?'h':'b');
+   if(i===5||i===9){dot(x,14+side*(spread-1),'b');dot(x,14+side*(spread-2),'h')}
+  }
  }
  blasterFrames.set(key,tile);return tile}
 function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.pos:c.reverse?b.r:b.l,c.vertical?(c.reverse?b.d:b.u):c.pos);if(c.vertical)g.rotate(c.reverse?-Math.PI/2:Math.PI/2);else if(c.reverse)g.scale(-1,1);
