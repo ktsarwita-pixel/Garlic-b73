@@ -58,8 +58,8 @@ function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')retur
  // A continuous breath-driven reed replaces the percussive knock. Morph its
  // resonances with a stable all-pole lattice, then hand off to the charge wail.
  let intake=0,mix=0;if(!fire&&u<.50){const v=Math.min(5,Math.max(0,(u-.02)/.08)),n=Math.floor(v),f=v-n;
- const hz=(heavy?.88:1)*(102+26*u+.8*Math.sin(31*t));reedPhase=(reedPhase+hz/rate)%1;
- let w=.47*noise+.19*(Math.exp(-reedPhase*14)-1/14);for(let m=9;m>=0;m--){const k=intakeShapes[n][m]*(1-f)+intakeShapes[Math.min(5,n+1)][m]*f;w=w*Math.sqrt(1-k*k)-k*memory[m];memory[m+1]=k*w+memory[m]}memory[0]=w;intake=Math.tanh(1.65*w);mix=Math.min(1,(.5-u)/.12);mix=mix*mix*(3-2*mix)}
+ const hz=(heavy?.88:1)*(106+24*u+98*Math.exp(-((u-.04)**2)/.0012)+65*Math.exp(-((u-.22)**2)/.0014));reedPhase=(reedPhase+hz/rate)%1;
+ let w=.28*noise+.34*Math.sin(2*Math.PI*reedPhase)+.12*(Math.exp(-reedPhase*14)-1/14);for(let m=9;m>=0;m--){const k=intakeShapes[n][m]*(1-f)+intakeShapes[Math.min(5,n+1)][m]*f;w=w*Math.sqrt(1-k*k)-k*memory[m];memory[m+1]=k*w+memory[m]}memory[0]=w;intake=Math.tanh(1.65*w);mix=Math.min(1,(.5-u)/.12);mix=mix*mix*(3-2*mix)}
  const sing=fire?(heavy?.96:.025):.34+.68*Math.min(1,u/.4);
  const bite=fire&&!heavy?.69*Math.exp(-t/.072)*Math.sin(2*Math.PI*(124*t+9*(1-Math.exp(-t/.05)))):0;
  const tone=intake*mix+(1-mix)*Math.tanh(bite+.38*buzz+.44*vowel+.32*air*grit+(fire?.64:.15+.33*u)*band+(fire?.06:.13*u)*whistle+sing*cry);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}blasterSounds.set(key,buffer)}
