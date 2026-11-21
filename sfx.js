@@ -46,7 +46,7 @@ function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')retur
  const env=Math.min(1,t/(fire?.009:.032))*(ring?.8:shape)*Math.min(1,(duration-t)/(ring?.72:fire?.10:.055));
  const air=fire?(heavy?1.5:2.1-1.2*u):.2+1.2*u*u;const whistle=Math.sin(2*Math.PI*phase*4);// Sweep filtered breath down through the beam tail, up into the charge whistle.
  const hz=fire?(heavy?1360:640+1450*Math.exp(-4*u)):700+3200*u*u*u;
- const coeff=2*Math.sin(Math.PI*hz/rate);base+=coeff*band;band+=coeff*(noise-base-.85*band);
+ const coeff=Math.min(1.2,2*Math.sin(Math.PI*hz/rate));base+=coeff*band;band+=coeff*(noise-base-.85*band);
  const tone=Math.tanh(.46*buzz+.68*vowel+.37*air*grit+(fire?.85:.15+.38*u)*band+(fire?.06:.26*u)*whistle);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}blasterSounds.set(key,buffer)}
  const src=audio.createBufferSource();src.buffer=buffer;src.connect(bus);src.onended=()=>src.disconnect();src.start()}
 function sfx(name,pitch){if(name==='beamCharge'||name==='beamFire'||name==='ringCharge')return playBlaster(name,pitch);playNotes(cues[name],pitch);if(!sound||!bus||audio.state!=='running'||!textures[name])return;
