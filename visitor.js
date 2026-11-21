@@ -220,8 +220,8 @@ function blasterPose(c){const a=c.age-c.charge,fade=1-ease((a-.27)/.2),scale=c.b
  const shift=offset+(c.big?6-2*Math.round(ease(c.age/c.charge)*(a<0?1:0)):0);
  return {fade,scale,offset:shift,muzzle:shift-2+Math.round(THROAT_X*scale)}}
 function tickBeams(dt,b){const score=eightScore[round-1];if(sent<score.count&&elapsed>=nextBeam){const vertical=sent%2===0,big=round===3||round===5&&sent>=20;
- cannons.push({vertical,reverse:sent%4>=2,pos:Math.round(big?Math.max((vertical?b.l:b.u)+18,Math.min((vertical?b.r:b.d)-18,vertical?x:y)):vertical?x:y),big,age:0,charge:big?.92:round===4?.76:round<4?.77:.58,width:big?13:9});sent++;nextBeam+=big?Math.max(1.25,score.beat):score.beat}
- for(const c of cannons){const prev=c.age;c.age+=dt;if(prev<c.charge&&c.age>=c.charge)sfx('impact',c.big?.75:.43);
+ cannons.push({vertical,reverse:sent%4>=2,pos:Math.round(big?Math.max((vertical?b.l:b.u)+18,Math.min((vertical?b.r:b.d)-18,vertical?x:y)):vertical?x:y),big,age:0,charge:big?.92:round===4?.76:round<4?.77:.58,width:big?13:9});sfx('beamCharge',cannons[cannons.length-1].charge);sent++;nextBeam+=big?Math.max(1.25,score.beat):score.beat}
+ for(const c of cannons){const prev=c.age;c.age+=dt;if(prev<c.charge&&c.age>=c.charge)sfx('beamFire',c.charge);
  const along=c.vertical?(c.reverse?b.d-y:y-b.u):(c.reverse?b.r-x:x-b.l),distance=along-blasterPose(c).muzzle;
  if(distance>=-2&&c.age>=c.charge&&c.age<c.charge+.27&&!testGod&&inv<=0&&Math.abs((c.vertical?x:y)-c.pos)<blastRadius(c.width,distance)+2){hp=Math.max(0,hp-(c.big?6:4));inv=.85;sfx('hurt');if(!hp){mode='dying';deathAge=0;shots=[];cannons=[];msg('Your soul begins to crack.')}ui();if(!hp)return}}
  cannons=cannons.filter(c=>c.age<c.charge+.47)}
@@ -283,7 +283,7 @@ function wallSequence(dt,b){if(!wallPull&&slamCount>=3)return false;if(!wallPull
 let farewellAge=0,ring=[];
 function beginFarewell(){x=180;y=160;mode='farewell';farewellAge=0;const offset=Math.random()*.16-.08;ring=Array.from({length:15},(_,i)=>({angle:offset+i*Math.PI*2/15+(Math.random()-.5)*.028,r:(i%3===1?62:54)+Math.random()*2,big:i%3===1,seed:Math.random()*9}));inv=0;msg('The broken blaster falls.');ui()}
 function farewellTick(dt){const old=farewellAge;farewellAge+=dt;const at=n=>old<n&&farewellAge>=n;
- if(at(1.6))sampleCue('rattle');if(at(5.9))sfx('crack');if(at(6.65))sfx('dust');if(at(7.2))msg('Sans: “SEE YOU SOON”');if(at(10.1))sfx('phaseOut');if(at(11)){mode='departed';msg('The corridor is silent.');ui()}}
+ if(at(1.6))sampleCue('rattle');if(at(2.3))sfx('ringCharge',3.78);if(at(6.65))sfx('dust');if(at(7.2))msg('Sans: “SEE YOU SOON”');if(at(10.1))sfx('phaseOut');if(at(11)){mode='departed';msg('The corridor is silent.');ui()}}
 // Every grain starts at a real opaque bone pixel. The silhouette loses exactly
 // the pixels that lift away; stable release times keep the ash from flickering.
 const ashMaps=new WeakMap();

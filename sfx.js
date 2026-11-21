@@ -29,7 +29,19 @@ function playNotes(notes,pitch=1){if(!sound||!bus||audio.state!=='running')retur
 // One reusable noise source; filters and envelopes give each transient its own texture.
 const textures={stone:['lowpass',870,180,.43,.12],slash:['bandpass',4300,770,.13,.19],evade:['highpass',2500,820,.14,.065],impact:['lowpass',2800,240,.25,.22],dust:['highpass',1400,4700,.56,.08],shatter:['bandpass',4200,1350,.39,.16]};
 let grain;
-function sfx(name,pitch){playNotes(cues[name],pitch);if(!sound||!bus||audio.state!=='running'||!textures[name])return;
+// Original low-rate instruments: a rising nasal intake and a pitched, raspy beam roar.
+const blasterSounds=new Map();
+function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')return;
+ const fire=name==='beamFire',ring=name==='ringCharge',heavy=ring||length>.85,duration=fire?(heavy?.45:.36):length,key=[name,length].join(':');let buffer=blasterSounds.get(key);
+ if(!buffer){const rate=16000;buffer=audio.createBuffer(1,Math.ceil(rate*duration),rate);const samples=buffer.getChannelData(0);let phase=0,low=0,last=0,seed=19;
+ for(let i=0;i<samples.length;i++){const t=i/rate,u=t/duration,f0=(heavy?.78:1)*(fire?69+166*Math.exp(-t*19):66+147*Math.min(1,u*1.24)**.76);phase+=f0/rate;phase-=Math.floor(phase);
+ // Resonances sweep apart as the jaw opens; the blast has a noisy attack and a low tail.
+ const vowel=Math.sin(phase*Math.PI*2*(fire?5-2*u:2.2+2*u))*Math.exp(-3.6*phase),buzz=(1-2*phase)*(.68+.32*Math.sin(2*Math.PI*t*(fire?34:18+12*u)));
+ seed=(Math.imul(seed,1664525)+1013904223)>>>0;const noise=seed/2147483648-1;low+=(noise-low)*.28;const grit=low-last;last+=.12*grit;
+ const env=Math.min(1,t/(fire?.004:.035))*(fire?Math.exp(-2.4*u):(.42+.58*Math.min(1,u*2)))*Math.min(1,(duration-t)/(ring?.72:fire?.10:.055));
+ samples[i]=Math.round(90*Math.tanh((.58*buzz+1.3*vowel+(fire?1.25:.16)*grit)*1.7))/90*env*(fire?.27:ring?.15:.12)}blasterSounds.set(key,buffer)}
+ const src=audio.createBufferSource();src.buffer=buffer;src.connect(bus);src.onended=()=>src.disconnect();src.start()}
+function sfx(name,pitch){if(name==='beamCharge'||name==='beamFire'||name==='ringCharge')return playBlaster(name,pitch);playNotes(cues[name],pitch);if(!sound||!bus||audio.state!=='running'||!textures[name])return;
  if(!grain){grain=audio.createBuffer(1,audio.sampleRate,audio.sampleRate);const data=grain.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1}
  const [type,from,to,duration,amp]=textures[name],now=audio.currentTime,src=audio.createBufferSource(),filter=audio.createBiquadFilter(),v=audio.createGain();
  src.buffer=grain;filter.type=type;filter.frequency.setValueAtTime(from,now);filter.frequency.exponentialRampToValueAtTime(to,now+duration);
