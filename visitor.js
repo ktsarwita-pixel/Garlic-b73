@@ -255,12 +255,12 @@ function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.
  crossEye(g,9,10,t,1);
  if(a<0)drawBlasterCharge(q,c.big);
  g.restore()}}
-function drawBlasterCharge(q,big){g.save();const build=ease((q-.12)/.72),lock=ease((q-.78)/.18),count=big?5:3;
+function drawBlasterCharge(q,big,opacity=1){g.save();const alpha=g.globalAlpha*opacity;const build=ease((q-.12)/.72),lock=ease((q-.78)/.18),count=big?5:3;
   // Strands converge around a fixed throat, then vanish into a held white core before recoil.
   for(let i=0;i<count;i++){const phase=(q*(1.5+q)+i/count)%1,dist=(1-phase)*(big?14:10),dy=Math.sin(i*2.4+q*5)*dist*.34;
-   g.globalAlpha=build*(1-lock)*Math.sin(Math.PI*phase);rect(THROAT_X+Math.round(dist),14+Math.round(dy),1+Math.round(phase),1,'#d1b3df')}
-  g.globalAlpha=build;const radius=Math.round((big?3:2)*build);rect(THROAT_X,14-radius,3,radius*2+1,'#b08cbd');rect(THROAT_X-1,13,5,3,'#e0cbeb');
-  g.globalAlpha=build*(.45+.55*lock);rect(THROAT_X,14,2+Math.round(lock*3),1,'#fffaf4');g.restore()}
+   g.globalAlpha=alpha*build*(1-lock)*Math.sin(Math.PI*phase);rect(THROAT_X+Math.round(dist),14+Math.round(dy),1+Math.round(phase),1,'#d1b3df')}
+  g.globalAlpha=alpha*build;const radius=Math.round((big?3:2)*build);rect(THROAT_X,14-radius,3,radius*2+1,'#b08cbd');rect(THROAT_X-1,13,5,3,'#e0cbeb');
+  g.globalAlpha=alpha*build*(.45+.55*lock);rect(THROAT_X,14,2+Math.round(lock*3),1,'#fffaf4');g.restore()}
 function nextGate(){const score=encounter===8?eightScore[round-1].gates:gateScores[round-1],entry=score[patternStep%score.length],b=sevenBox(),vertical=entry[0]==='T',span=vertical?b.r-b.l:b.d-b.u;
  const gap=encounter===8?eightScore[round-1].gap:[21,20,19,30,25][round-1],cut=6+Math.round((span-gap-12)*Number(entry[1])/3);return {b,vertical,reverse:entry[0]==='R',cut,gap,span,kind:{w:'white',b:'blue',r:'red',g:'glitch'}[entry[2]]}}
 function sevenGate(){const {b,vertical,reverse,cut,gap,span,kind}=nextGate(),speed=61+round*6;
@@ -291,9 +291,14 @@ const fractureFrames=new WeakMap();
 function splitSkull(tile,split){g.imageSmoothingEnabled=false;if(!split){g.drawImage(tile,-13,-13);return}
  let frames=fractureFrames.get(tile);if(!frames){frames=[];fractureFrames.set(tile,frames)}
  if(!frames[split]){const f=document.createElement('canvas');f.width=40;f.height=42;const ctx=f.getContext('2d');for(let i=0;i<tile.width;i++){const cut=10+Math.floor(i*.24)+(i%6===2?1:0);ctx.drawImage(tile,i,0,1,cut,i+5-split,5-split,1,cut);ctx.drawImage(tile,i,cut,1,32-cut,i+5+split,5+cut+split,1,32-cut);if(i>=7&&i<=18&&i%3!==0){ctx.fillStyle=i%2?'#cebfcb':'#918295';ctx.fillRect(i+5+split,5+cut+split,1,1)}}frames[split]=f}g.drawImage(frames[split],-18,-18)}
-function blockShield(age){if(age<.13||age>=2.9)return;const drop=ease((age-.53)/1.25),dust=ease((age-1.75)/1.15);g.save();g.translate(180+12*(1-ease((age-.13)/.3))+drop*8,85+drop*18);g.rotate(-.7+drop*.85);g.scale(1.68,1.68);g.globalAlpha=ease((age-.13)/.14);const tile=blasterSkull(4,true);if(dust>0&&fractureFrames.get(tile)?.[4])erodeSkull(fractureFrames.get(tile)[4],dust,.7,18);else splitSkull(tile,Math.round(drop*4));crossEye(g,-4,-3,t,1-drop);g.restore()}
-function farewellRing(){const a=farewellAge;if(a<1.5||a>9.1)return;const enter=ease((a-1.5)/.8),charge=ease((a-2.3)/2.7),eye=1-ease((a-6.02)/.75);
- for(const c of ring){const dust=ease((a-6.82-c.seed*.025)/1.94),r=c.r+18*(1-enter),dir=c.angle;g.save();g.translate(Math.round(x+Math.cos(dir)*r),Math.round(y+Math.sin(dir)*r));g.rotate(dir+Math.PI);const size=c.big?1.48:1.08;g.scale(size,size);g.globalAlpha=enter;const tile=blasterSkull(Math.round(6*charge),c.big);if(dust>0)erodeSkull(tile,dust,c.seed,13);else splitSkull(tile,0);crossEye(g,-4,-3,t,eye);if(a<5.9){g.translate(-13,-13);drawBlasterCharge(charge,c.big)}g.restore()}}
+// A dedicated front view: paired crown prongs, recessed orbits and a central muzzle.
+let guardFace;
+function frontalGuard(){if(guardFace)return guardFace;const tile=document.createElement('canvas');tile.width=30;tile.height=32;const ctx=tile.getContext('2d'),palette={k:'#282530',s:'#655f71',m:'#a69ba5',b:'#d1c6bc',h:'#f3e8db'};
+ const half=['  k','  sk','  mbk','   hbk    kk','   kmbk  kmbk','    khbkkmhbbkk','    kmbhbhhbmmm','   ksbhhbbmmmss','  kmbbhbmskkmbb','  kbhbmskkkksmb','  kmmskkkkkkkhb','   kskkkkkksmbb','   kmbskkksmbsk','    kbhbbmbbskk','    kmbhhbbskks','     ksmbhbkksk','      ksbhbmsks','      kbskmbskk','      khskkkkkk','       bskkkkss','       kmbssmbb','        kbhbbmm','         kmbbss','           kkkk'];
+ half.forEach((row,y)=>[...row].forEach((v,x)=>{if(palette[v]){ctx.fillStyle=palette[v];ctx.fillRect(x,y,1,1);ctx.fillRect(29-x,y,1,1)}}));return guardFace=tile}
+function blockShield(age){if(age<.06||age>=2.9)return;const arrive=ease((age-.06)/.26),impact=Math.max(0,age-.42),kick=Math.sin(Math.min(1,impact/.25)*Math.PI),drop=ease((age-.58)/1.17),dust=ease((age-1.75)/1.15);g.save();g.translate(180+(1-arrive)*17+drop*7,82-(1-arrive)*13+kick*3+drop*19);g.rotate((1-arrive)*.22-drop*.34);g.scale(1.55+arrive*.18+kick*.12,1.66-kick*.16);g.globalAlpha=arrive;const tile=frontalGuard(),split=Math.round(4*drop);if(dust>0&&fractureFrames.get(tile)?.[4])erodeSkull(fractureFrames.get(tile)[4],dust,.7,18);else splitSkull(tile,split);crossEye(g,-5-split,-3-split,t,1-drop);if(impact>0&&impact<.2){const f=impact/.2;g.globalAlpha=1-f;for(let i=0;i<6;i++){const d=3+f*9;rect(Math.cos(i)*d,Math.sin(i)*d,2,1,'#ffe7bb')}}g.restore()}
+function farewellRing(){const a=farewellAge;if(a<1.5||a>9.1)return;const enter=ease((a-1.5)/.8),charge=ease((a-2.3)/2.7),eye=1-ease((a-6.08)/.68);
+ for(const c of ring){const dust=ease((a-6.82-c.seed*.025)/1.94),r=c.r+18*(1-enter),dir=c.angle;g.save();g.translate(Math.round(x+Math.cos(dir)*r),Math.round(y+Math.sin(dir)*r));g.rotate(dir+Math.PI);const size=c.big?1.48:1.08;g.scale(size,size);g.globalAlpha=enter;const tile=blasterSkull(Math.round(6*charge),c.big);if(dust>0)erodeSkull(tile,dust,c.seed,13);else splitSkull(tile,0);crossEye(g,-4,-3,t,eye);if(a<6.08){const f=ease((a-5.32)/.76);g.translate(-13,-13);drawBlasterCharge(charge,c.big,1-f*f*(3-2*f))}g.restore()}}
 function farewellFigure(){const a=farewellAge;if(a<10.1){sevenFigure();return}if(a>=10.96||!visitorSheet)return;
  const f=ease((a-10.1)/.86),beat=Math.floor((a-10.1)*22);g.save();g.imageSmoothingEnabled=false;
  for(let sy=0;sy<88;sy+=4){const n=sy/4,wave=Math.sin(n*2.1+beat*.8),dx=Math.round(wave*(2+26*f)*f);if(f>.28+(n*7%22)/32)continue;const dy=32+sy-Math.round(f*f*sy*.36);g.globalAlpha=.22*(1-f);g.drawImage(visitorSheet,0,sy,100,4,130-dx*2,dy,100,3);g.globalAlpha=1-f*.55;g.drawImage(visitorSheet,0,sy,100,4,130+dx,dy,100,Math.max(1,4-Math.floor(f*4)))}g.restore()}
