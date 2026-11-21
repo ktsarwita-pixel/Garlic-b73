@@ -236,6 +236,22 @@ function blasterSkull(open,big=false,charge=0,front=false){const glow=Math.round
  const tile=document.createElement('canvas');tile.width=30;tile.height=32;const ctx=tile.getContext('2d');
  const palette={k:'#282530',s:'#48454e',m:'#a6a4ad',b:'#e4e3df',h:'#fffdf5',u:'#e4e3df',l:'#fffdf5'};
  if(glow){const mix=(a,b)=>'#'+a.map((v,i)=>Math.round(v+(b[i]-v)*glow/8).toString(16).padStart(2,'0')).join('');palette.u=mix([228,227,223],[152,117,175]);palette.l=mix([255,253,245],[221,197,234])}
+ if(!front){
+  // Cut the finished blocker, including its temple highlights. Local source Y
+  // becomes firing X. Keep the crown cut rigid; animate only the bite below it.
+  const src=frontalGuard();ctx.imageSmoothingEnabled=false;ctx.translate(0,29);ctx.rotate(-Math.PI/2);
+  const strip=(sy,dy,width,gap=0,tint=false)=>{const left=Math.floor((29-width)/2),half=width>>1;
+   for(let side=0;side<2;side++){const dx=left+side*half+(side?gap:-gap);
+    ctx.drawImage(src,side*15,sy,15,1,dx,dy,half,1);
+    if(tint&&glow){ctx.save();ctx.globalCompositeOperation='source-atop';ctx.globalAlpha=glow/8*.85;ctx.fillStyle=sy<27?'#9875af':'#ddc5ea';ctx.fillRect(dx,dy,half,1);ctx.restore()}}
+  };
+  const upper=[0,1,2,3,4,5,6,7,8,9,11,12,13,14,15,16,17,18];
+  upper.forEach((sy,j)=>strip(sy,j,(sy<7?26:28)-(big?0:4),sy>15?Math.round(open*(sy-15)/9):0));
+  // Closed, only the front edge of the chin shows. Opening exposes the
+  // cheek hinges one scanline at a time, without scaling the eye sockets.
+  const jaw=[19,20,21,22,23,24].slice(6-open).concat([24,26,27,28]);
+  jaw.forEach((sy,j)=>strip(sy,upper.length+j,Math.max(20,26-Math.floor(j/2)*2)-(big?0:2),Math.round(open*(1+j/jaw.length)*.4),sy>=24));
+  blasterFrames.set(key,tile);return tile}
  // Both views consume the same bone samples. In front view anatomical depth
  // determines height: horns sweep upward, the crown overhangs the muzzle,
  // and the short lower jaw sits below the dark throat rather than beside it.
@@ -257,51 +273,10 @@ function blasterSkull(open,big=false,charge=0,front=false){const glow=Math.round
  // A vaulted crown, hooked occipital spurs and two orbital trenches. Read each
  // row from the back of the skull toward its snout. Reflect shape, not lighting.
  const cap=['   kmbbhbbbk','  kmbhhbbhhbk','  kbhhhmbhhbbk','  kbhmsksbbhhbk','   kbbskkkkkbhbk','   khbskkkkkmbbk','   khhhbkkksbhbk','  ksbhhhbbbhhbkk','  kbhhbkkmbbsk',' kbhhsk  kbbk',' kbbsk    kk','kbsk'];
- // Sample the blocker’s actual horn, socket and muzzle rows in plan view.
- // Compress depth over the brow and leave the moving jaw as the foreground.
- for(const side of [-1,1]){part='crown';if(!front){
-  const rows=[0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
-  rows.forEach((fy,x)=>[...face[fy]].forEach((v,i)=>{if(v===' ')return;
-   const d=Math.round((14-i)*(big?1:.84));if(x>=13&&d<2)return;
-   dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
-  // Restore the narrow central nasal bridge above the mouth; its notch
-  // points into the bore rather than splitting the brow into two stripes.
-  for(let x=9;x<=12;x++){dot(x,14+side*(12-x),x===12?'s':side<0?'h':'b')}
- }else{cap.forEach((row,d)=>[...row].forEach((v,x)=>{if(v!==' ')dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
+ for(const side of [-1,1]){part='crown';cap.forEach((row,d)=>[...row].forEach((v,x)=>{if(v!==' ')dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
   if(big){for(let x=1;x<14;x++){const outer=12-Math.floor((x-1)*.34);for(let j=0;j<4;j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s'][j])}
    for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h')}
  }
-  // The blocker's recessed throat sits behind both moving bones. Its dark
-  // walls give the mouth volume without painting across the beam centerline.
-  if(!front)for(let x=12;x<22;x++){const span=2+Math.round((1+(open/6)*3)*Math.sin((x-11)*Math.PI/13));for(let d=1;d<=span;d++)if(x<20||d<=2)dot(x,14+side*d,'k')}
-  // Foreshorten the mandibular arch under the maxilla. Only its shaded
-  // underside and lip show between the fangs; the firing axis stays clear.
-  part='jaw';const lift=[0,0,.4,.8,1.2,1.8,2][open];
-  for(let x=10;x<=21;x++){const f=(x-10)/11,d=1+Math.round(f*lift);
-   // Shade the hinge, not the entire chin: the exposed lip still
-   // picks up the same beam colours as the frontal mandible.
-   dot(x,14+side*d,x<15?'s':x<17?'m':'u');dot(x,14+side*(d+1),x<15?'m':'l');
-  }
-  // The chin turns inward at the tip, as in the frontal U. Foreshorten
-  // each half separately, leaving the central firing line unobstructed.
-  if(!front&&lift>1.5){dot(21,14+side*2,'m');dot(21,14+side,'k')}
-  // Cheek sweeps into a hooked canine, with separate inward-pointing teeth.
-  // Pivot the whole muzzle about the temple so teeth track their roots.
-  part='fang';const inner=[2,2,2,2,3,3,3,3,3,3,3,4,3,1,1];
-  const depth=[5,6,6,5,5,4,3,3,3,3,3,4,3,3,1];
-  for(let i=0;i<inner.length;i++){const x=11+i,spread=inner[i]+Math.round(Math.min(i,11)*open/15),w=depth[i]+(big&&i<10?1:0);
-   // Carry the shield's cheek-to-hinge shading down the outer arch.
-   for(let j=0;j<w;j++){const edge=j===w-1,root=i<4;
-    const tone=j===0&&w>2?'s':edge&&w>2?(root?'b':'m'):root&&j===1?'m':i>=4&&i<=9&&j===1?'b':side<0?'h':'b';dot(x,14+side*(spread+j),tone)}
-   if(i===5||i===9){dot(x,14+side*(spread-1),'b');dot(x,14+side*(spread-2),'h')}
-  }
- }
- // Fixed upper mount sits above the moving jaws. Its shoulders enclose a
- // notched outlet: the beam and the coloured second jaw remain visible.
- if(!front){const mount=['   kmbbbmsk',' kmbhhhhhbbmsk','kbhhbbmmmmbhhbk','ksmbbskkkksmbsk','  kssk    kssk'];
-  mount.forEach((row,d)=>{for(const side of d?[-1,1]:[1])for(let i=0;i<row.length;i++){
-   const tone=row[i],x=i+2;if(tone===' '||x>=15||(!d&&x>=13)||(!big&&d===4))continue;
-   dot(x,14+side*d,side>0&&tone==='h'?'b':tone)}})}
  blasterFrames.set(key,tile);return tile}
 function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.pos:c.reverse?b.r:b.l,c.vertical?(c.reverse?b.d:b.u):c.pos);if(c.vertical)g.rotate(c.reverse?-Math.PI/2:Math.PI/2);else if(c.reverse)g.scale(-1,1);
  const span=c.vertical?b.d-b.u:b.r-b.l,w=c.width,a=c.age-c.charge,q=c.age/c.charge,{fade,scale,offset,muzzle}=blasterPose(c),length=span-muzzle;
