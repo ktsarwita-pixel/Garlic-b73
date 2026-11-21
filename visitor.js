@@ -233,22 +233,21 @@ function tickBeams(dt,b){const score=eightScore[round-1];if(sent<score.count&&el
 const blasterFrames=new Map();
 function blasterSkull(open,big=false){const key=open+(big?16:0);if(blasterFrames.has(key))return blasterFrames.get(key);
  const tile=document.createElement('canvas');tile.width=30;tile.height=32;const ctx=tile.getContext('2d');
- const palette={k:'#282530',s:'#48454e',m:'#a6a4ad',b:'#e4e3df',h:'#fffdf5'};
+ const palette={k:'#282530',s:'#48454e',m:'#a6a4ad',b:'#e4e3df',h:'#fffdf5',u:'#777681'};
  const dot=(x,y,t)=>{ctx.fillStyle=palette[t];ctx.fillRect(x,y,1,1)};
  // A vaulted crown, hooked occipital spurs and two orbital trenches. Read each
  // row from the back of the skull toward its snout. Reflect shape, not lighting.
- const cap=['   kmbbhbbbk','  kmbhhbbhhbk','  kbhhhmbhhbbk','  kbhmbssbbhhbk','   kbbskkkkkbhbk','   khbskkkkkmbbk','   khhmbkkksbhbk','  ksbhhhbbbhhbkk','  kbhhbkkmbbsk',' kbhhsk  kbbk',' kbbsk    kk','kbsk'];
+ const cap=['   kmbbhbbbk','  kmbhhbbhhbk','  kbhhhmbhhbbk','  kbhmsksbbhhbk','   kbbskkkkkbhbk','   khbskkkkkmbbk','   khhhbkkksbhbk','  ksbhhhbbbhhbkk','  kbhhbkkmbbsk',' kbhhsk  kbbk',' kbbsk    kk','kbsk'];
  for(const side of [-1,1]){cap.forEach((row,d)=>[...row].forEach((v,x)=>{if(v!==' ')dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
   if(big){ // Two swept armor fans broaden the heavy skull, not just its scale.
    for(let x=1;x<14;x++){const outer=12-Math.floor((x-1)*.34);for(let j=0;j<4;j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s'][j])}
    for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h');
   }
-  // Lower mandible behind the bright maxilla. Its shorter chin tucks under the
-  // snout at rest, then pivots wide a beat later, exposing a dark inter-jaw gap.
-  const swing=[0,0,1,3,5,7,8][open];
-  for(let i=0;i<13;i++){const x=10+i,arc=6+Math.round(i*swing/13),width=Math.min(15-arc,(i<3?4:i<11?3:2)+(big?1:0));
-   for(let j=0;j<width;j++)dot(x,14+side*(arc+j),j===0?'s':j===1?'m':'b');
-   if(i===8||i===12)dot(x,14+side*(arc-1),'b');
+  // Foreshorten the mandibular arch under the maxilla. Only its shaded
+  // underside and lip show between the fangs; the firing axis stays clear.
+  const lift=[0,0,.4,.8,1.2,1.8,2][open];
+  for(let x=10;x<=21;x++){const f=(x-10)/11,d=1+Math.round(f*lift);
+   dot(x,14+side*d,'u');dot(x,14+side*(d+1),'m');
   }
   // Cheek sweeps into a hooked canine, with separate inward-pointing teeth.
   // Pivot the whole muzzle about the temple so teeth track their roots.

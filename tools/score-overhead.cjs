@@ -6,9 +6,15 @@ checks['all poses: connected bone mass'] = poses.every(t=>{
  const remaining=new Set(t.pixels.keys()), queue=[remaining.values().next().value]; remaining.delete(queue[0]);
  while(queue.length){const [x,y]=queue.pop().split(',').map(Number);for(const [dx,dy] of [[1,0],[-1,0],[0,-1],[0,1]]){const k=`${x+dx},${y+dy}`;if(remaining.delete(k))queue.push(k)}}return !remaining.size});
 checks['all poses: high-key bone against ink'] = poses.every(t=>[...t.pixels.values()].filter(c=>parseInt(c.slice(1,3),16)>=225).length/t.pixels.size>.25);
-checks['all poses: articulated enamel reaches inside both rails'] = poses.every(t=>[-1,1].every(s=>[16,20].every(x=>{const edge=xx=>Array.from({length:14},(_,i)=>i+1).find(d=>at(t,xx,14+s*d));return edge(x)<edge(x-1)&&edge(x)<edge(x+1)})));
+checks['all poses: articulated enamel reaches inside both rails'] = poses.every(t=>[-1,1].every(s=>[16,20].every(x=>{const edge=xx=>Array.from({length:14},(_,i)=>i+1).find(d=>['#fffdf5','#e4e3df','#48454e'].includes(at(t,xx,14+s*d)));return edge(x)<edge(x-1)&&edge(x)<edge(x+1)})));
 checks['all poses: tapered hooked noses'] = poses.every(t=>[-1,1].every(s=>{const ds=x=>Array.from({length:14},(_,i)=>i+1).filter(d=>at(t,x,14+s*d));return ds(25).length>0&&ds(25).length<ds(22).length&&Math.min(...ds(25))<Math.min(...ds(22))}));
 const rim=(o,b)=>{const d=[];for(let i=1;i<16;i++)if(at(tile(o,b),21,14+i))d.push(i);return d};
 checks['second jaw separates from muzzle at full gape']=[false,true].every(b=>rim(6,b).some((v,i,a)=>i&&v-a[i-1]>1));
-checks['lower hinge holds then swings past upper fang']=[false,true].every(b=>{const edge=o=>Math.max(...rim(o,b));return edge(0)===edge(1)&&edge(6)-edge(1)>=6});
+// Track the lower jaw by its underside tone, not the outermost maxilla pixel.
+const rail=(t,x,s)=>Array.from({length:14},(_,i)=>i+1).find(d=>at(t,x,14+s*d)==='#777681');
+checks['lower hinge delayed, then moves']=both.every((_,b)=>{const edge=o=>rail(tile(o,!!b),21,1);return edge(0)>0&&edge(0)===edge(1)&&edge(6)>edge(1)});
+checks['chin inside central third at full charge']=both.every(t=>[-1,1].every(s=>rail(t,21,s)<=4));
+checks['chin shorter than hooked snout']=both.every(t=>[-1,1].every(s=>rail(t,21,s)&&![22,23,24,25].some(x=>rail(t,x,s))));
+checks['subordinate jaw under enamel']=both.every(t=>[-1,1].every(s=>{const d=rail(t,21,s);return d&&at(t,21,14+s*(d+1))&&!at(t,21,14+s*(d+2))&&at(t,21,14+s*8)}));
+checks['no pose clips native tile']=poses.every(t=>[...t.pixels.keys()].every(k=>{const [x,y]=k.split(',').map(Number);return x>=0&&x<30&&y>=0&&y<32}));
 console.table(checks);const n=Object.values(checks).filter(Boolean).length;console.log(n+'/'+Object.keys(checks).length);process.exitCode=Number(!Object.values(checks).every(Boolean));
