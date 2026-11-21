@@ -258,10 +258,13 @@ function blasterSkull(open,big=false,charge=0,front=false){const glow=Math.round
  // A vaulted crown, hooked occipital spurs and two orbital trenches. Read each
  // row from the back of the skull toward its snout. Reflect shape, not lighting.
  const cap=['   kmbbhbbbk','  kmbhhbbhhbk','  kbhhhmbhhbbk','  kbhmsksbbhhbk','   kbbskkkkkbhbk','   khbskkkkkmbbk','   khhhbkkksbhbk','  ksbhhhbbbhhbkk','  kbhhbkkmbbsk',' kbhhsk  kbbk',' kbbsk    kk','kbsk'];
- for(const side of [-1,1]){part='crown';cap.forEach((row,d)=>[...row].forEach((v,x)=>{if(v!==' ')dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
+ // Dorsal elevation of the shield: a forked nasal notch between broad
+ // orbital cups, a raised medial brow, and slim spurs behind the temples.
+ const dorsal=['    kmbhhbsk','   kmbhhbbmbk','  kmbhbbmmbhhsk','   khbmskkkmbhhk','   khbskkkkkkbhbk','   kmbskkkkkkshbk','    khbskkkksbhbk','   kbhhbmssmbhbk','  kbhbmbbhhhbsk',' kbhbsk  kmbsk',' khbsk    ksk','khsk','ksk','k'];
+ for(const side of [-1,1]){part='crown';(front?cap:dorsal).forEach((row,d)=>[...row].forEach((v,x)=>{if(v!==' ')dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
   if(big){ // Two swept armor fans broaden the heavy skull, not just its scale.
-   for(let x=1;x<14;x++){const outer=12-Math.floor((x-1)*.34);for(let j=0;j<4;j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s'][j])}
-   for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h');
+   for(let x=1;x<14;x++){const outer=(front?12:14)-Math.floor((x-1)*.34);for(let j=0;j<(front?4:5);j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s','m'][j])}
+   if(front)for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h');
   }
   // Foreshorten the mandibular arch under the maxilla. Only its shaded
   // underside and lip show between the fangs; the firing axis stays clear.
@@ -272,9 +275,9 @@ function blasterSkull(open,big=false,charge=0,front=false){const glow=Math.round
   // Cheek sweeps into a hooked canine, with separate inward-pointing teeth.
   // Pivot the whole muzzle about the temple so teeth track their roots.
   part='fang';const inner=[2,2,2,2,3,3,3,3,3,3,3,4,3,1,1];
-  const depth=[4,5,5,5,5,4,4,4,4,4,4,4,3,3,1];
+  const depth=[5,6,6,5,5,4,3,3,3,3,3,4,3,3,1];
   for(let i=0;i<inner.length;i++){const x=11+i,spread=inner[i]+Math.round(Math.min(i,11)*open/15),w=depth[i]+(big&&i<10?1:0);
-   for(let j=0;j<w;j++)dot(x,14+side*(spread+j),j===0&&w>2?'s':j===w-1&&w>2?'m':side<0?'h':'b');
+   for(let j=0;j<w;j++)dot(x,14+side*(spread+j),j===0&&w>2?'s':j===w-1&&w>2?(i<4?'b':'m'):i<3&&j===1?'m':side<0?'h':'b');
    if(i===5||i===9){dot(x,14+side*(spread-1),'b');dot(x,14+side*(spread-2),'h')}
   }
  }
