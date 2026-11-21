@@ -264,22 +264,35 @@ function blasterSkull(open,big=false,charge=0,front=false){const glow=Math.round
   rows.forEach((fy,x)=>[...face[fy]].forEach((v,i)=>{if(v===' ')return;
    const d=Math.round((14-i)*(big?1:.84));if(x>=13&&d<2)return;
    dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
+  // Restore the narrow central nasal bridge above the mouth; its notch
+  // points into the bore rather than splitting the brow into two stripes.
+  for(let x=9;x<=12;x++){dot(x,14+side*(12-x),x===12?'s':side<0?'h':'b')}
  }else{cap.forEach((row,d)=>[...row].forEach((v,x)=>{if(v!==' ')dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
   if(big){for(let x=1;x<14;x++){const outer=12-Math.floor((x-1)*.34);for(let j=0;j<4;j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s'][j])}
    for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h')}
  }
+  // The blocker's recessed throat sits behind both moving bones. Its dark
+  // walls give the mouth volume without painting across the beam centerline.
+  if(!front)for(let x=12;x<22;x++){const span=2+Math.round((1+(open/6)*3)*Math.sin((x-11)*Math.PI/13));for(let d=1;d<=span;d++)if(x<20||d<=2)dot(x,14+side*d,'k')}
   // Foreshorten the mandibular arch under the maxilla. Only its shaded
   // underside and lip show between the fangs; the firing axis stays clear.
   part='jaw';const lift=[0,0,.4,.8,1.2,1.8,2][open];
   for(let x=10;x<=21;x++){const f=(x-10)/11,d=1+Math.round(f*lift);
-   dot(x,14+side*d,'u');dot(x,14+side*(d+1),'l');
+   // Shade the hinge, not the entire chin: the exposed lip still
+   // picks up the same beam colours as the frontal mandible.
+   dot(x,14+side*d,x<15?'s':x<17?'m':'u');dot(x,14+side*(d+1),x<15?'m':'l');
   }
+  // The chin turns inward at the tip, as in the frontal U. Foreshorten
+  // each half separately, leaving the central firing line unobstructed.
+  if(!front&&lift>1.5){dot(21,14+side*2,'m');dot(21,14+side,'s')}
   // Cheek sweeps into a hooked canine, with separate inward-pointing teeth.
   // Pivot the whole muzzle about the temple so teeth track their roots.
   part='fang';const inner=[2,2,2,2,3,3,3,3,3,3,3,4,3,1,1];
   const depth=[5,6,6,5,5,4,3,3,3,3,3,4,3,3,1];
   for(let i=0;i<inner.length;i++){const x=11+i,spread=inner[i]+Math.round(Math.min(i,11)*open/15),w=depth[i]+(big&&i<10?1:0);
-   for(let j=0;j<w;j++)dot(x,14+side*(spread+j),j===0&&w>2?'s':j===w-1&&w>2?(i<4?'b':'m'):i<3&&j===1?'m':side<0?'h':'b');
+   // Carry the shield's cheek-to-hinge shading down the outer arch.
+   for(let j=0;j<w;j++){const edge=j===w-1,root=i<4;
+    const tone=j===0&&w>2?'s':edge&&w>2?(root?'b':'m'):root&&j===1?'m':i>=4&&i<=9&&j===1?'b':side<0?'h':'b';dot(x,14+side*(spread+j),tone)}
    if(i===5||i===9){dot(x,14+side*(spread-1),'b');dot(x,14+side*(spread-2),'h')}
   }
  }
