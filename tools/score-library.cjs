@@ -1,0 +1,4 @@
+function libraryScore(tiles){const all=Array.from(tiles.values()),checks=Array(10).fill(true);for(const cv of all){const w=cv.width,h=cv.height,d=cv.getContext('2d').getImageData(0,0,w,h).data;const at=(x,y)=>Array.from(d.slice(4*(x+y*w),4*(x+y*w)+3)).map(v=>v.toString(16).padStart(2,'0')).join('');const count=(y,c)=>Array.from({length:w},(_,x)=>at(x,y)===c).filter(Boolean).length;const rows=Array.from({length:h},(_,i)=>i),ledges=rows.filter(y=>count(y,'aa8865')>=14);const has=c=>rows.some(y=>count(y,c));[all.length===6,new Set(all.map(c=>c.toDataURL())).size===6,w===22&&[24,40].includes(h),count(0,'b39a7b')>=16,ledges.length===(h>30?3:2),ledges.every(y=>count(y+1,'514033')>=14)&&ledges.length>0,has('634737'),has('bd9863'),has('617164'),ledges.length>0&&ledges.every(y=>count(y-1,'83664e')>0)].forEach((ok,i)=>checks[i]&&=ok)}return checks.filter(Boolean).length}
+
+// Pass the rendered shelfTiles map from the study canvas.
+module.exports=libraryScore;

@@ -124,34 +124,28 @@ function studyShelf(x,y,w,h,seed){
   // One continuous carcass: cut wells into the top rather than drawing four
   // overlapping extruded beams (which used to leave doubled corner seams).
   timber(0,0,tw,th,6);
-  const bays=h>30?2:1,back=4,opening=tw-back-1;
-  plank(1,3,1,th-6,0,'#a38d74');plank(2,th-8,1,4,0,'#806950');
-  for(let bay=0;bay<bays;bay++){
-   const start=2+Math.floor(bay*(th-2)/bays),end=Math.floor((bay+1)*(th-2)/bays);
-   plank(back,start,opening,end-start,0,'#4c403a');
-   plank(back,start,opening,1,0,'#403733');
-   if(bay)plank(back,start-2,opening,1,0,'#b39a7b');
-   // Divide the whole bay among complete spines. Spread the spare pixels
-   // across the run instead of truncating a book or leaving a gap at the end.
-   // Mix squat folios, slim pamphlets and matched leather volumes. Leave a
-   // recessed pocket in selected bays so the back boards can actually be seen.
-   const set=roll(cloth.length);let p=start+1,j=0;
-   while(p<end){const size=Math.min(end-p,2+roll(4)),front=tw-2-roll(3),u=back+roll(3),span=front-u+1;
-    if(j===2&&(seed+bay)%3===1){plank(back,p,opening,size,0,'#503e34');plank(back+2,p,1,size,0,'#634737');p+=size;j++;continue}
-    const leather=(j+seed+bay)%3===0,color=leather?'#593c36':cloth[(set+j+bay)%cloth.length];
-    plank(u,p,span,size,0,color);plank(u+1,p,span-2,1,0,leather?'#916959':'#ac9c81');
-    if(size>=3){plank(u+2,p+1,span-4,size-2,0,j%2?'#c3af8e':'#b8a188');plank(front-2,p,3,size,0,color);
-     plank(front-2,p+1,2,1,0,'#bd9863');if(size===5)plank(front-2,p+3,2,1,0,'#ac8657')}
-    plank(front,p,1,size,0,'#473732');p+=size;j++;
+  // A closed oak lid overhangs a recessed vertical face. The narrow return
+  // faces the aisle; its shelf ends step back in depth instead of floating.
+  const top=h>30?6:5,tiers=h>30?3:2,ink=(u,v,ww,hh,col)=>plank(u,v,ww,hh,0,col);
+  ink(0,0,tw,top,'#927459');ink(0,0,tw,1,'#b39a7b');ink(2,2,tw-5,1,'#a18465');
+  ink(0,top-2,tw,1,'#c1a17b');ink(0,top-1,tw,1,'#503d32');
+  for(let row=0;row<tiers;row++){
+   const y0=top+Math.floor(row*(h-top-2)/tiers),sill=top+Math.floor((row+1)*(h-top-2)/tiers)-2;
+   ink(1,y0,tw-2,sill-y0,'#433630');let bx=2,j=0;
+   while(bx<tw-2){const width=Math.min(tw-2-bx,2+roll(3)),height=Math.max(2,sill-y0-1-roll(2)),yy=sill-height;
+    const leather=(seed+row+j)%3===0;ink(bx,yy,width,height,leather?'#593c36':cloth[roll(cloth.length)]);
+    ink(bx,yy,1,height,'#947b66');if(width>=3){ink(bx+1,yy+1,width-2,1,'#bd9863');if(height>5)ink(bx+1,sill-2,width-2,1,'#bcae94')}
+    bx+=width;j++;if(j===2&&row===seed%tiers)bx++;
    }
+   ink(0,sill,tw,1,'#aa8865');ink(0,sill+1,tw,1,'#514033');
+   // Stepped side cheeks reveal the ends of each board under the crown.
+   for(let k=0;k<3;k++){ink(tw-3+k,y0-k,1,sill-y0,'#634737');ink(tw-3+k,sill-k,1,1,'#83664e')}
+   ink(0,y0,1,sill-y0,'#775c47');
+
   }
-  // Pegged joints, worn sill and a little brass catalogue plate on each case.
-  for(const v of [1,th-2]){plank(1,v,1,1,0,'#564a40');plank(tw-3,v,1,1,0,'#67584a')}
-  plank(1,th/2|0,2,4,0,'#806b4e');plank(1,(th/2|0)+1,2,2,0,'#baa781');
-  // Scraped edges, mortised feet and a green bloom on the catalogue hardware.
-  for(let k=3;k<th-2;k+=4+roll(4)){plank(0,k,1,2,0,'#c2a387');plank(2,k+1,1,1,0,'#634737')}
-  for(let u=1;u<tw-2;u+=3){plank(u,th-1,2,1,4,'#634737');plank(u,th-1,1,1,5,'#927352')}
-  plank(1,(th/2|0)+2,1,2,0,'#617164');plank(2,(th/2|0),1,1,0,'#ccae78');
+  // Flush brass bay marker, two pins and a hand-worn patch in the waxed lid.
+  ink(6,1,6,2,'#705b42');ink(7,1,4,1,'#c9b08a');ink(6,2,1,1,'#617164');ink(11,2,1,1,'#bd9863');
+  ink(2,top-3,3,1,'#aa8967');ink(14,1,2,1,'#79604d');
   shelfTiles.set(seed,tile);
  }
  g.save();g.globalAlpha=.12;rect(x+2,y+2,w,h,'#262322');g.globalAlpha=.22;rect(x+2,y+2,w-1,h-1,'#262322');g.globalAlpha=1;g.drawImage(tile,x,y);g.restore();
