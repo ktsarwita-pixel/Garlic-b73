@@ -1,0 +1,1 @@
+GasterBlaster.ogg, GasterBlast.ogg, GasterBlast2.ogg: Undertale blaster sound references from https://github.com/Jcw87/c2-sans-fight/tree/master/Files (fan recreation). Undertale by Toby Fox.
