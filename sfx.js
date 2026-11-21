@@ -1,5 +1,7 @@
 // Short one-shot instruments: waveform, onset, duration, starting/ending Hz, gain.
 const cues={
+ glitchDodgeOut:[['square',0,.022,720,396,.023],['triangle',.027,.035,482,247,.048],['sawtooth',.073,.064,227,56,.035]],
+ glitchDodgeIn:[['triangle',0,.044,86,214,.047],['square',.051,.021,311,603,.022],['triangle',.081,.072,541,408,.043]],
  phaseOut:[['sine',0,.12,630,90,.055],['triangle',.026,.07,443,111,.028]],
  phaseIn:[['triangle',0,.11,112,450,.035],['sine',.07,.085,450,340,.027]],
  evade:[['triangle',0,.055,890,290,.045],['sine',.035,.12,380,820,.036]],
@@ -27,19 +29,25 @@ function playNotes(notes,pitch=1){if(!sound||!bus||audio.state!=='running')retur
  v.gain.setValueAtTime(.0001,at);v.gain.exponentialRampToValueAtTime(level,at+.006);v.gain.exponentialRampToValueAtTime(.0001,at+length);
  o.connect(v);v.connect(bus);o.onended=()=>{o.disconnect();v.disconnect()};o.start(at);o.stop(at+length+.01)}}
 // One reusable noise source; filters and envelopes give each transient its own texture.
-const textures={stone:['lowpass',870,180,.43,.12],slash:['bandpass',4300,770,.13,.19],evade:['highpass',2500,820,.14,.065],impact:['lowpass',2800,240,.25,.22],dust:['highpass',1400,4700,.56,.08],shatter:['bandpass',4200,1350,.39,.16]};
+const textures={glitchDodgeOut:['bandpass',2450,620,.124,.095],glitchDodgeIn:['bandpass',820,2670,.115,.072],stone:['lowpass',870,180,.43,.12],slash:['bandpass',4300,770,.13,.19],evade:['highpass',2500,820,.14,.065],impact:['lowpass',2800,240,.25,.22],dust:['highpass',1400,4700,.56,.08],shatter:['bandpass',4200,1350,.39,.16]};
 let grain;
 // Original low-rate instruments: a rising nasal intake and a pitched, raspy beam roar.
 const blasterSounds=new Map();
 function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')return;
  const fire=name==='beamFire',ring=name==='ringCharge',heavy=ring||length>.85,duration=fire?(heavy?2.4:1.9):length,key=[name,length].join(':');let buffer=blasterSounds.get(key);
- if(!buffer){const rate=16000;buffer=audio.createBuffer(1,Math.ceil(rate*duration),rate);const samples=buffer.getChannelData(0);let phase=0,low=0,last=0,warm=0,seed=19;
+ if(!buffer){const rate=16000;buffer=audio.createBuffer(1,Math.ceil(rate*duration),rate);const samples=buffer.getChannelData(0);// Broad loudness contours measured in tenths of the reference clips; no sampled audio.
+ const contour=fire?(heavy?[1,.92,.79,.50,.33,.17,.125,.083,.042,.042]:[1,.92,.79,.67,.58,.50,.42,.33,.25,.042]):[.85,1,.85,1,.74,.52,.41,.26,.15,.037];
+ let phase=0,low=0,last=0,warm=0,seed=19,band=0,base=0;
  for(let i=0;i<samples.length;i++){const t=i/rate,u=t/duration,f0=(heavy?.78:1)*(fire?92+210*Math.exp(-t*9):110+720*Math.pow(Math.min(1,u),2.5));phase+=f0/rate;phase-=Math.floor(phase);
  // Resonances sweep apart as the jaw opens; the blast has a noisy attack and a low tail.
  const vowel=Math.sin(phase*Math.PI*2*(fire?5-2*u:2.2+2*u))*Math.exp(-3.6*phase),buzz=(.82*Math.sin(phase*2*Math.PI)+.18*Math.sin(phase*4*Math.PI))*(.85+.15*Math.sin(2*Math.PI*t*(fire?34:18+12*u)));
  seed=(Math.imul(seed,1664525)+1013904223)>>>0;const noise=seed/2147483648-1;low+=(noise-low)*.28;const grit=low-last;last+=.12*grit;
- const env=Math.min(1,t/(fire?.012:.05))*(fire?Math.exp(-(heavy?4.2:1.9)*u):(ring?.8:1-.91*Math.max(0,(u-.35)/.65)))*Math.min(1,(duration-t)/(ring?.72:fire?.10:.055));
- const air=fire?(heavy?1.5:2.1-1.2*u):.2+1.2*u*u;const whistle=Math.sin(2*Math.PI*phase*4);const tone=Math.tanh(.42*buzz+.78*vowel+air*grit+(fire?.06:.26*u)*whistle);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}blasterSounds.set(key,buffer)}
+ const pos=Math.max(0,Math.min(9,u*10-.5)),index=Math.floor(pos),shape=contour[index]+(contour[Math.min(index+1,9)]-contour[index])*(pos-index);
+ const env=Math.min(1,t/(fire?.009:.032))*(ring?.8:shape)*Math.min(1,(duration-t)/(ring?.72:fire?.10:.055));
+ const air=fire?(heavy?1.5:2.1-1.2*u):.2+1.2*u*u;const whistle=Math.sin(2*Math.PI*phase*4);// Sweep filtered breath down through the beam tail, up into the charge whistle.
+ const hz=fire?(heavy?1360:640+1450*Math.exp(-4*u)):700+3200*u*u*u;
+ const coeff=2*Math.sin(Math.PI*hz/rate);base+=coeff*band;band+=coeff*(noise-base-.85*band);
+ const tone=Math.tanh(.46*buzz+.68*vowel+.37*air*grit+(fire?.85:.15+.38*u)*band+(fire?.06:.26*u)*whistle);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}blasterSounds.set(key,buffer)}
  const src=audio.createBufferSource();src.buffer=buffer;src.connect(bus);src.onended=()=>src.disconnect();src.start()}
 function sfx(name,pitch){if(name==='beamCharge'||name==='beamFire'||name==='ringCharge')return playBlaster(name,pitch);playNotes(cues[name],pitch);if(!sound||!bus||audio.state!=='running'||!textures[name])return;
  if(!grain){grain=audio.createBuffer(1,audio.sampleRate,audio.sampleRate);const data=grain.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1}
