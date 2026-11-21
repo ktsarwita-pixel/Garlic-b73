@@ -296,6 +296,12 @@ function blasterSkull(open,big=false,charge=0,front=false){const glow=Math.round
    if(i===5||i===9){dot(x,14+side*(spread-1),'b');dot(x,14+side*(spread-2),'h')}
   }
  }
+ // Fixed upper mount sits above the moving jaws. Its shoulders enclose a
+ // notched outlet: the beam and the coloured second jaw remain visible.
+ if(!front){const mount=['   kmbbbmsk',' kmbhhhhhbbmsk','kbhhbbmmmmbhhbk','ksmbbskkkksmbsk','  kssk    kssk'];
+  mount.forEach((row,d)=>{for(const side of d?[-1,1]:[1])for(let i=0;i<row.length;i++){
+   const tone=row[i],x=i+2;if(tone===' '||x>=15||(!d&&x>=13)||(!big&&d===4))continue;
+   dot(x,14+side*d,side>0&&tone==='h'?'b':tone)}})}
  blasterFrames.set(key,tile);return tile}
 function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.pos:c.reverse?b.r:b.l,c.vertical?(c.reverse?b.d:b.u):c.pos);if(c.vertical)g.rotate(c.reverse?-Math.PI/2:Math.PI/2);else if(c.reverse)g.scale(-1,1);
  const span=c.vertical?b.d-b.u:b.r-b.l,w=c.width,a=c.age-c.charge,q=c.age/c.charge,{fade,scale,offset,muzzle}=blasterPose(c),length=span-muzzle;
