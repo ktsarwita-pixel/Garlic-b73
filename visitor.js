@@ -228,28 +228,23 @@ function tickBeams(dt,b){const score=eightScore[round-1];if(sent<score.count&&el
  const along=c.vertical?(c.reverse?b.d-y:y-b.u):(c.reverse?b.r-x:x-b.l),distance=along-blasterPose(c).muzzle;
  if(distance>=-2&&c.age>=c.charge&&c.age<c.charge+.27&&!testGod&&inv<=0&&Math.abs((c.vertical?x:y)-c.pos)<blastRadius(c.width,distance)+2){hp=Math.max(0,hp-(c.big?6:4));inv=.85;sfx('hurt');if(!hp){mode='dying';deathAge=0;shots=[];cannons=[];msg('Your soul begins to crack.')}ui();if(!hp)return}}
  cannons=cannons.filter(c=>c.age<c.charge+.47)}
-// Side-profile skull, mandible on a separate pivot. Bake the opening arc at native resolution.
+// Dorsal view. Both temples, horns and jaw rails are projected around the
+// beam axis (y=14); local +x always points toward the target.
 const blasterFrames=new Map();
 function blasterSkull(open,big=false){const key=open+(big?16:0);if(blasterFrames.has(key))return blasterFrames.get(key);
  const tile=document.createElement('canvas');tile.width=30;tile.height=32;const ctx=tile.getContext('2d');
- const colors={k:'#282530',s:'#665e71',m:'#a59aa3',b:'#d2c7be',h:'#f4e9db',v:'#282530'};
- function pixel(x,y,c){ctx.fillStyle=colors[c];ctx.fillRect(Math.round(x),Math.round(y),1,1)}
- const head=['kk','kskk      kkk',' kmbkk  kkbsk','  kmbbkkbhmsk','   kmbbWWWbbsk','  kmbWWWWbbbmskk',' kmbWWbbbbbmbbbsk','ksbWWbmbsmbbbWWbbkk','kmbWbbmskkkmbWWWWWbkk','ksbbbmkkvkkkmbbbbbbbmskk',' ksbbmkkvvkksmmmkkkmbbbsk','  kmbmskkkksbmskk  kmmssk','   ksmbbbmbbskk     kskk','    ksmmbbskk        kk','     kssskk'];
- head.forEach((row,y)=>[...row].forEach((c,x)=>{if(c!==' ')pixel(x,y+1,c==='W'?'h':c)}));
- const jaw=['    kkk','  kkmbbkkkk     kk',' kmbbbbbbbbkkkkkhk','  ksmmmbbbbbbbbbbsk','   kkkkssmmmbbbmsk','       kkkkkkkkkk'];
- // Shear around the rear hinge in whole columns to keep the teeth joined at every opening.
- jaw.forEach((row,y)=>[...row].forEach((c,x)=>{if(c!==' ')pixel(4+x,13+y+Math.max(0,x-3)*open/15,c)}));
- // The cheek pivot overlaps both bones even in the widest open pose.
- const hinge=[' skk ','sbbmk','mhbsk',' mbsk','  msk'];hinge.forEach((r,j)=>[...r].forEach((v,i)=>{if(v!==' ')pixel(4+i,12+j,v)}));
- for(const [x,y,v] of [[13,6,'s'],[14,7,'m'],[15,7,'s'],[16,8,'m'],[18,9,'h'],[19,9,'h'],[3,4,'b']])pixel(x,y,v);
- if(big){const crest=['kk',' kmkk     kk','  khbkk  kms','   kbbhkkbsk','    ksmhhbmk','      kmmssk'];crest.forEach((row,y)=>[...row].forEach((v,x)=>{if(v!==' ')pixel(x+3,y,v)}));
-  // Reinforced jaw rail follows the mandible rather than sliding over it.
-  for(let x=9;x<20;x++){const y=17+Math.round((x-7)*open/15);pixel(x,y,x<13?'s':'m');if(x%4!==0)pixel(x,y-1,'b')}
+ const palette={k:'#282530',s:'#645f6c',m:'#a2979e',b:'#cfc4b9',h:'#f2e6d6',v:'#857888'};
+ const dot=(x,y,t)=>{ctx.fillStyle=palette[t];ctx.fillRect(x,y,1,1)};
+ // A vaulted crown, hooked occipital spurs and two orbital trenches. Read each
+ // row from the back of the skull toward its snout. Reflect shape, not lighting.
+ const cap=['    ksssbbbk','   ksmbhhbbmk','  kmbbhhhbbmsk','  kmbhbbssbmsk','  kmbbskkkkkmsk','   khbskkkkkbbk','   kmbbbmsmbbbk','   kshhhbbbhmsk','  ksbhbkkkmbsk',' kmbbsk   ksk',' khmsk','kssk'];
+ for(const side of [-1,1]){cap.forEach((row,d)=>[...row].forEach((v,x)=>{if(v!==' ')dot(x,14+side*d,side>0&&v==='h'?'b':v)}));
+  if(big){ // Two swept armor fans broaden the heavy skull, not just its scale.
+   for(let x=1;x<14;x++){const outer=12-Math.floor((x-1)*.34);for(let j=0;j<4;j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s'][j])}
+   for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h');
+  }
+  for(let x=11;x<=24;x++){const f=(x-11)/13,spread=2+Math.round(f*(open*.96+1)),thick=(x>21?2:4)+(big&&x<21?1:0);for(let j=0;j<thick;j++)dot(x,14+side*(spread+j),j===0?'k':j===thick-1?'s':side<0?'h':'b');if(x===16||x===20)dot(x,14+side*(spread-1),'m')}
  }
- // Raised zygomatic ridge and broken enamel catch the light coming from the throat.
- for(const [x,y,v] of [[3,9,'m'],[4,8,'b'],[5,7,'h'],[10,13,'m'],[11,12,'b'],[12,12,'h'],[15,11,'m'],[17,11,'b'],[20,11,'h']])pixel(x,y,v);
- for(const x of [11,16,20]){const seat=15+Math.round((x-7)*open/15);pixel(x,seat,'h');pixel(x+1,seat,'s');if(big)pixel(x,seat+1,'m')}
- if(open>1){ctx.fillStyle=open>4?'#e8daed':'#96889f';ctx.fillRect(10,14,3,1);ctx.fillStyle='#70617c';ctx.fillRect(9,15,2,1)}
  blasterFrames.set(key,tile);return tile}
 function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.pos:c.reverse?b.r:b.l,c.vertical?(c.reverse?b.d:b.u):c.pos);if(c.vertical)g.rotate(c.reverse?-Math.PI/2:Math.PI/2);else if(c.reverse)g.scale(-1,1);
  const span=c.vertical?b.d-b.u:b.r-b.l,w=c.width,a=c.age-c.charge,q=c.age/c.charge,{fade,scale,offset,muzzle}=blasterPose(c),length=span-muzzle;
@@ -268,14 +263,14 @@ function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.
  const opening=Math.round(6*(a<0?ease((q-.18)/.78):fade));g.drawImage(blasterSkull(opening,c.big),0,0);
  crossEye(g,9,10,t,1);
  if(a<0)drawBlasterCharge(q,c.big);
- else{g.save();g.globalAlpha*=Math.max(0,1-a/.21);rect(12,12,6,1,'#fff8fb');rect(10,15,4,1,'#e3cde8');rect(15,18,5,1,'#e0c5e8');g.restore()}
+ else{g.save();g.globalAlpha*=Math.max(0,1-a/.21);for(const side of [-1,1]){rect(12,14+side*3,3,1,'#fff8fb');rect(16,14+side*5,2,1,'#e0c5e8')};g.restore()}
  g.restore()}}
 function drawBlasterCharge(q,big,opacity=1){g.save();const alpha=g.globalAlpha*opacity;const build=ease((q-.12)/.72),lock=ease((q-.78)/.18),count=big?5:3;
   // Strands converge around a fixed throat, then vanish into a held white core before recoil.
   for(let i=0;i<count;i++){const phase=(q*(1.5+q)+i/count)%1,dist=(1-phase)*(big?14:10),dy=Math.sin(i*2.4+q*5)*dist*.34;
    g.globalAlpha=alpha*build*(1-lock)*Math.sin(Math.PI*phase);rect(THROAT_X+Math.round(dist),14+Math.round(dy),1+Math.round(phase),1,'#d1b3df')}
   // Reflected charge climbs the jaw rail before locking at the emitter.
-  g.globalAlpha=alpha*.72*build;const lip=16+Math.round(3*build);rect(14,lip,5,1,'#c2a3d2');rect(19,lip+1,2,1,'#ead8ef');
+  g.globalAlpha=alpha*.72*build;for(const side of [-1,1]){const lip=14+side*(2+Math.round(2*build));rect(14,lip,3,1,'#c2a3d2');rect(19,lip+side*Math.round(2*build),2,1,'#ead8ef')}
   g.globalAlpha=alpha*build;const radius=Math.round((big?3:2)*build);rect(THROAT_X,14-radius,3,radius*2+1,'#b08cbd');rect(THROAT_X-1,13,5,3,'#e0cbeb');
   g.globalAlpha=alpha*build*(.45+.55*lock);rect(THROAT_X,14,2+Math.round(lock*3),1,'#fffaf4');g.restore()}
 function nextGate(){const score=encounter===8?eightScore[round-1].gates:gateScores[round-1],entry=score[patternStep%score.length],b=sevenBox(),vertical=entry[0]==='T',span=vertical?b.r-b.l:b.d-b.u;
