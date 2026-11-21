@@ -32,18 +32,14 @@ let grain;
 // Original low-rate instruments: a rising nasal intake and a pitched, raspy beam roar.
 const blasterSounds=new Map();
 function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')return;
- const clip=decoded.get(name==='beamFire'?(length>.85?'GasterBlast2':'GasterBlast'):'GasterBlaster');
- if(clip){const src=audio.createBufferSource(),amp=audio.createGain(),now=audio.currentTime,fire=name==='beamFire',ring=name==='ringCharge';src.buffer=clip;
- const rate=fire?1:ring?.92:clip.duration/length;src.playbackRate.value=rate;if(ring){src.loop=true;src.loopStart=clip.duration*.36;src.loopEnd=clip.duration*.76}
- const duration=fire?clip.duration:length,level=fire?.24:ring?.17:.20;src.connect(amp);amp.connect(bus);amp.gain.setValueAtTime(level,now);amp.gain.setValueAtTime(level,now+duration-(ring?.72:fire?.18:.04));amp.gain.linearRampToValueAtTime(0,now+duration);src.onended=()=>{src.disconnect();amp.disconnect()};src.start(now);src.stop(now+duration);return}
- const fire=name==='beamFire',ring=name==='ringCharge',heavy=ring||length>.85,duration=fire?(heavy?.45:.36):length,key=[name,length].join(':');let buffer=blasterSounds.get(key);
+ const fire=name==='beamFire',ring=name==='ringCharge',heavy=ring||length>.85,duration=fire?(heavy?2.4:1.9):length,key=[name,length].join(':');let buffer=blasterSounds.get(key);
  if(!buffer){const rate=16000;buffer=audio.createBuffer(1,Math.ceil(rate*duration),rate);const samples=buffer.getChannelData(0);let phase=0,low=0,last=0,warm=0,seed=19;
- for(let i=0;i<samples.length;i++){const t=i/rate,u=t/duration,f0=(heavy?.78:1)*(fire?69+166*Math.exp(-t*19):66+147*Math.min(1,u*1.24)**.76);phase+=f0/rate;phase-=Math.floor(phase);
+ for(let i=0;i<samples.length;i++){const t=i/rate,u=t/duration,f0=(heavy?.78:1)*(fire?92+210*Math.exp(-t*9):110+720*Math.pow(Math.min(1,u),2.5));phase+=f0/rate;phase-=Math.floor(phase);
  // Resonances sweep apart as the jaw opens; the blast has a noisy attack and a low tail.
  const vowel=Math.sin(phase*Math.PI*2*(fire?5-2*u:2.2+2*u))*Math.exp(-3.6*phase),buzz=(.82*Math.sin(phase*2*Math.PI)+.18*Math.sin(phase*4*Math.PI))*(.85+.15*Math.sin(2*Math.PI*t*(fire?34:18+12*u)));
  seed=(Math.imul(seed,1664525)+1013904223)>>>0;const noise=seed/2147483648-1;low+=(noise-low)*.28;const grit=low-last;last+=.12*grit;
- const env=Math.min(1,t/(fire?.012:.05))*(fire?Math.exp(-2.4*u):(.42+.58*Math.min(1,u*2)))*Math.min(1,(duration-t)/(ring?.72:fire?.10:.055));
- const tone=Math.tanh(.66*buzz+.92*vowel+(fire?.52:.08)*grit);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}blasterSounds.set(key,buffer)}
+ const env=Math.min(1,t/(fire?.012:.05))*(fire?Math.exp(-(heavy?4.2:1.9)*u):(ring?.8:1-.91*Math.max(0,(u-.35)/.65)))*Math.min(1,(duration-t)/(ring?.72:fire?.10:.055));
+ const air=fire?(heavy?1.5:2.1-1.2*u):.2+1.2*u*u;const whistle=Math.sin(2*Math.PI*phase*4);const tone=Math.tanh(.42*buzz+.78*vowel+air*grit+(fire?.06:.26*u)*whistle);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}blasterSounds.set(key,buffer)}
  const src=audio.createBufferSource();src.buffer=buffer;src.connect(bus);src.onended=()=>src.disconnect();src.start()}
 function sfx(name,pitch){if(name==='beamCharge'||name==='beamFire'||name==='ringCharge')return playBlaster(name,pitch);playNotes(cues[name],pitch);if(!sound||!bus||audio.state!=='running'||!textures[name])return;
  if(!grain){grain=audio.createBuffer(1,audio.sampleRate,audio.sampleRate);const data=grain.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1}
@@ -57,8 +53,8 @@ function beep(f){playNotes([['triangle',0,.14,f,f,.08]])}
 const gameSamples={'soul-split':[.19,170],'soul-scatter':[.20,230],murmur:[.105,105],'murmur-open':[.105,109],'murmur-round':[.105,98],seam:[.055,200],'seam-slip':[.055,175],'seam-freeze':[.055,155],'seal-open':[.19,120],'seal-close':[.19,90],rift:[.16,315],fatal:[.33,85],rattle:[.15,190],clear:[.13,784],empty:[.14,145],retry:[.12,485]};
 for(const [form,total] of [['white',4],['violet',5]])for(let n=1;n<=total;n++)gameSamples[form+n]=[.15+n*.013,form==='white'?830:440];
 const decoded=new Map();
-function loadGameSamples(){for(const name of [...Object.keys(gameSamples),'GasterBlaster','GasterBlast','GasterBlast2']){
- fetch(`assets/sfx/${name}.${name.startsWith('Gaster')?'ogg':'wav'}`).then(r=>{if(!r.ok)throw Error(r.status);return r.arrayBuffer()})
+function loadGameSamples(){for(const name of Object.keys(gameSamples)){
+ fetch(`assets/sfx/${name}.wav`).then(r=>{if(!r.ok)throw Error(r.status);return r.arrayBuffer()})
  .then(raw=>audio.decodeAudioData(raw)).then(buffer=>decoded.set(name,buffer)).catch(()=>{});
 }}
 function sampleCue(name,rate=1,level=1){if(!sound||!bus||audio.state!=='running')return;
