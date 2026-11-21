@@ -45,14 +45,19 @@ function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')retur
  const vowel=Math.sin(phase*Math.PI*2*(fire?5-2*u:2.2+2*u))*Math.exp(-3.6*phase),buzz=(.82*Math.sin(phase*2*Math.PI)+.18*Math.sin(phase*4*Math.PI))*(.85+.15*Math.sin(2*Math.PI*t*(fire?34:18+12*u)));
  seed=(Math.imul(seed,1664525)+1013904223)>>>0;const noise=seed/2147483648-1;low+=(noise-low)*.28;const grit=low-last;last+=.12*grit;
  const pos=Math.max(0,Math.min(9,u*10-.5)),index=Math.floor(pos),shape=contour[index]+(contour[Math.min(index+1,9)]-contour[index])*(pos-index);
- const env=Math.min(1,t/(fire?.009:.032))*(ring?.8:shape)*Math.min(1,(duration-t)/(ring?.72:fire?.10:.055));
+ const env=Math.min(1,t/(fire?.009:.011))*(ring?.8:shape)*Math.min(1,(duration-t)/(ring?.72:fire?.10:.055));
  const air=fire?(heavy?1.5:2.1-1.2*u):.2+1.2*u*u;const whistle=Math.sin(2*Math.PI*phase*4);// Sweep filtered breath down through the beam tail, up into the charge whistle.
  const hz=fire?(heavy?1360:640+1450*Math.exp(-4*u)):700+3200*u*u*u;
  const coeff=Math.min(1.2,2*Math.sin(Math.PI*hz/rate));base+=coeff*band;band+=coeff*(noise-base-.85*band);
  if(u>knots[knot+1]&&knot<knots.length-2)knot++;const blend=(u-knots[knot])/(knots[knot+1]-knots[knot]);
  const center=resonance[knot]*(resonance[knot+1]/resonance[knot])**(blend*blend*(3-2*blend));formPhase+=center/rate;formPhase-=Math.floor(formPhase);
  const cry=Math.sin(2*Math.PI*formPhase+.38*Math.sin(2*Math.PI*phase*2))*(.84+.16*Math.cos(t*84));
- const tone=Math.tanh(.38*buzz+.44*vowel+.32*air*grit+(fire?.64:.15+.33*u)*band+(fire?.06:.13*u)*whistle+(fire?(heavy?.96:.025):.89)*cry);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}blasterSounds.set(key,buffer)}
+ // Brief wooden jaw knock, then two damped throat pulses before the upper register opens.
+ const knock=fire?0:Math.exp(-t/.026)*(.55*Math.sin(2*Math.PI*(176*t+1.55*(1-Math.exp(-t/.013))))+.23*grit);
+ const jaw=fire?0:Math.sin(4*Math.PI*phase+.5*Math.sin(2*Math.PI*phase))*(.70*Math.exp(-t/.054)+.45*Math.exp(-((u-.212)**2)/.0012));
+ const sing=fire?(heavy?.96:.025):.34+.68*Math.min(1,u/.4);
+ const bite=fire&&!heavy?.69*Math.exp(-t/.072)*Math.sin(2*Math.PI*(124*t+9*(1-Math.exp(-t/.05)))):0;
+ const tone=Math.tanh(knock+jaw+bite+.38*buzz+.44*vowel+.32*air*grit+(fire?.64:.15+.33*u)*band+(fire?.06:.13*u)*whistle+sing*cry);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}blasterSounds.set(key,buffer)}
  const src=audio.createBufferSource();src.buffer=buffer;src.connect(bus);src.onended=()=>src.disconnect();src.start()}
 function sfx(name,pitch){if(name==='beamCharge'||name==='beamFire'||name==='ringCharge')return playBlaster(name,pitch);playNotes(cues[name],pitch);if(!sound||!bus||audio.state!=='running'||!textures[name])return;
  if(!grain){grain=audio.createBuffer(1,audio.sampleRate,audio.sampleRate);const data=grain.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1}
