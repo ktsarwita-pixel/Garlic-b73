@@ -32,6 +32,8 @@ function playNotes(notes,pitch=1){if(!sound||!bus||audio.state!=='running')retur
 const textures={glitchDodgeOut:['bandpass',2450,620,.124,.095],glitchDodgeIn:['bandpass',820,2670,.115,.072],stone:['lowpass',870,180,.43,.12],slash:['bandpass',4300,770,.13,.19],evade:['highpass',2500,820,.14,.065],impact:['lowpass',2800,240,.25,.22],dust:['highpass',1400,4700,.56,.08],shatter:['bandpass',4200,1350,.39,.16]};
 let grain;
 // Original low-rate instruments: a rising nasal intake and a pitched, raspy beam roar.
+// Coarse vocal-tract shapes only. Excitation is generated from scratch, not sampled.
+const intakeShapes=[[-0.977,-0.217,0.18,0.126,0.205,0.118,0.07,0.124,0.079,0.098],[-0.949,-0.34,-0.024,0.077,-0.056,0.062,-0.001,0.006,0.037,0.057],[-0.935,-0.088,-0.322,0.238,-0.115,0.116,0.022,0.155,0.022,0.009],[-0.914,0.563,-0.681,0.27,0.189,-0.095,0.08,0.087,-0.057,-0.013],[-0.967,0.678,-0.436,-0.134,0.299,0.187,-0.042,-0.042,0.043,0.05],[-0.911,0.787,-0.557,-0.11,0.312,0.176,-0.036,-0.002,0.114,0.087]];
 const blasterSounds=new Map();
 function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')return;
  const fire=name==='beamFire',ring=name==='ringCharge',heavy=ring||length>.85,duration=fire?(heavy?2.4:1.9):length,key=[name,length].join(':');let buffer=blasterSounds.get(key);
@@ -39,6 +41,7 @@ function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')retur
  const contour=fire?(heavy?[1,.92,.79,.50,.33,.17,.125,.083,.042,.042]:[1,.92,.79,.67,.58,.50,.42,.33,.25,.042]):[.85,1,.85,1,.74,.52,.41,.26,.15,.037];
  // A separate resonant voice lets the upper scream rise without pitching up the jaw growl.
  const knots=[0,.08,.27,.48,.70,.86,1],resonance=fire?[1320,1000,690,690,680,860,520]:[92,100,120,950,2980,510,340];
+ const memory=new Float64Array(11);let reedPhase=0;
  let formPhase=0,knot=0,phase=0,low=0,last=0,warm=0,seed=19,band=0,base=0;
  for(let i=0;i<samples.length;i++){const t=i/rate,u=t/duration,f0=(heavy?.78:1)*(fire?45+72*Math.min(1,t/.29)*Math.min(1,(1-u)/.24):95+62*u);phase+=f0/rate;phase-=Math.floor(phase);
  // Resonances sweep apart as the jaw opens; the blast has a noisy attack and a low tail.
@@ -52,12 +55,14 @@ function playBlaster(name,length){if(!sound||!bus||audio.state!=='running')retur
  if(u>knots[knot+1]&&knot<knots.length-2)knot++;const blend=(u-knots[knot])/(knots[knot+1]-knots[knot]);
  const center=resonance[knot]*(resonance[knot+1]/resonance[knot])**(blend*blend*(3-2*blend));formPhase+=center/rate;formPhase-=Math.floor(formPhase);
  const cry=Math.sin(2*Math.PI*formPhase+.38*Math.sin(2*Math.PI*phase*2))*(.84+.16*Math.cos(t*84));
- // Brief wooden jaw knock, then two damped throat pulses before the upper register opens.
- const knock=fire?0:Math.exp(-t/.026)*(.55*Math.sin(2*Math.PI*(176*t+1.55*(1-Math.exp(-t/.013))))+.23*grit);
- const jaw=fire?0:Math.sin(4*Math.PI*phase+.5*Math.sin(2*Math.PI*phase))*(.70*Math.exp(-t/.054)+.45*Math.exp(-((u-.212)**2)/.0012));
+ // A continuous breath-driven reed replaces the percussive knock. Morph its
+ // resonances with a stable all-pole lattice, then hand off to the charge wail.
+ let intake=0,mix=0;if(!fire&&u<.50){const v=Math.min(5,Math.max(0,(u-.02)/.08)),n=Math.floor(v),f=v-n;
+ const hz=(heavy?.88:1)*(102+26*u+.8*Math.sin(31*t));reedPhase=(reedPhase+hz/rate)%1;
+ let w=.47*noise+.19*(Math.exp(-reedPhase*14)-1/14);for(let m=9;m>=0;m--){const k=intakeShapes[n][m]*(1-f)+intakeShapes[Math.min(5,n+1)][m]*f;w=w*Math.sqrt(1-k*k)-k*memory[m];memory[m+1]=k*w+memory[m]}memory[0]=w;intake=Math.tanh(1.65*w);mix=Math.min(1,(.5-u)/.12);mix=mix*mix*(3-2*mix)}
  const sing=fire?(heavy?.96:.025):.34+.68*Math.min(1,u/.4);
  const bite=fire&&!heavy?.69*Math.exp(-t/.072)*Math.sin(2*Math.PI*(124*t+9*(1-Math.exp(-t/.05)))):0;
- const tone=Math.tanh(knock+jaw+bite+.38*buzz+.44*vowel+.32*air*grit+(fire?.64:.15+.33*u)*band+(fire?.06:.13*u)*whistle+sing*cry);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}blasterSounds.set(key,buffer)}
+ const tone=intake*mix+(1-mix)*Math.tanh(bite+.38*buzz+.44*vowel+.32*air*grit+(fire?.64:.15+.33*u)*band+(fire?.06:.13*u)*whistle+sing*cry);warm+=(fire?.48:.31)*(tone-warm);samples[i]=warm*env*(fire?.25:ring?.14:.12)}blasterSounds.set(key,buffer)}
  const src=audio.createBufferSource();src.buffer=buffer;src.connect(bus);src.onended=()=>src.disconnect();src.start()}
 function sfx(name,pitch){if(name==='beamCharge'||name==='beamFire'||name==='ringCharge')return playBlaster(name,pitch);playNotes(cues[name],pitch);if(!sound||!bus||audio.state!=='running'||!textures[name])return;
  if(!grain){grain=audio.createBuffer(1,audio.sampleRate,audio.sampleRate);const data=grain.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1}
