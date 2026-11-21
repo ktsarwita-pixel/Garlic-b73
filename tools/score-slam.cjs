@@ -1,0 +1,7 @@
+// Kinematic rubric; not a subjective animation review. Run: node tools/score-slam.cjs
+const fs=require('node:fs'),vm=require('node:vm');const ctx=vm.createContext({lastPaint:{},ink:'#111',ease:x=>Math.max(0,Math.min(1,x))});
+vm.runInContext(fs.readFileSync(require.resolve('../visitor.js'),'utf8'),ctx);
+const checks=new Map();function check(name,ok){checks.set(name,(checks.get(name)??true)&&!!ok)}
+for(const side of [-1,1])for(const [nx,ny] of [[side,0],[0,1],[0,-1]]){const pose=age=>ctx.armRig(side,{age,nx,ny}),rest=pose(0),aim=pose(.56),wind=pose(.22);for(let i=0;i<=355;i++){const p=pose(i/100);check('anchored shoulder',p.sx===rest.sx&&p.sy===rest.sy);check('rigid upper arm',Math.abs(Math.hypot(p.ex-p.sx,p.ey-p.sy)-9)<1e-8);check('rigid forearm',Math.abs(Math.hypot(p.px-p.ex,p.py-p.ey)-8)<1e-8)}
+check('visible anticipation',Math.hypot(wind.px-rest.px,wind.py-rest.py)>5);check('aim at selected wall',(aim.px-aim.sx)*nx+(aim.py-aim.sy)*ny>14);check('impact follow-through',Math.hypot(aim.px-pose(.64).px,aim.py-pose(.64).py)>.5);check('settled recovery',Math.hypot(rest.px-pose(3.55).px,rest.py-pose(3.55).py)<.01);check('independent wrist snap',Math.abs(aim.angle-Math.atan2(aim.py-aim.ey,aim.px-aim.ex))>.09);check('staggered finger closure',wind.digits&&Math.max(...wind.digits)-Math.min(...wind.digits)>.1);check('thumb releases on cast',wind.thumb-pose(1.76).thumb>.2)}
+console.log([...checks].map(([n,v])=>(v?'PASS ':'MISS ')+n).join('\n'));console.log([...checks.values()].filter(Boolean).length+'/10');

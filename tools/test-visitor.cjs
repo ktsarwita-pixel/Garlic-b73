@@ -19,11 +19,11 @@ for(let r=1;r<=6;r++){
   if(r<6){for(patternStep=0;patternStep<gateScores[r-1].length;patternStep++){
     const gate=nextGate();assert(gate.cut>0&&gate.span-gate.gap-gate.cut>0);
   }patternStep=0;}
-  for(let i=0;i<700&&mode==='dodge';i++){t+=.02;sevenTick(.02)}
+  for(let i=0;i<1200&&mode==='dodge';i++){t+=.02;sevenTick(.02)}
   assert.equal(mode,'ready');swings++;flash=1.45;mode='strike';
   for(let i=0;i<75&&mode==='strike';i++)sevenTick(.02);
 }
-assert.equal(mode,'sevenHold');assert.equal(slamCount,3);for(let i=0;i<500;i++)sevenTick(.02);assert.equal(encounter,7);for(let i=0;i<110;i++)sevenTick(.02);assert.equal(encounter,8);assert.equal(mode,'dodge');
+assert.equal(mode,'sevenHold');assert.equal(slamCount,6);for(let i=0;i<500;i++)sevenTick(.02);assert.equal(encounter,7);for(let i=0;i<110;i++)sevenTick(.02);assert.equal(encounter,8);assert.equal(mode,'dodge');
 for(let r=1;r<=5;r++){const sizes=[];for(let i=0;i<2000&&mode==='dodge';i++){const prev=sent;t+=.02;sevenTick(.02);if(sent>prev)sizes.push(cannons.at(-1).big);if(r===5)assert.equal(shots.length,0)}assert.equal(mode,'ready');assert.equal(sizes.length,[5,3,2,10,22][r-1]);assert.equal(sizes.filter(Boolean).length,[0,0,2,0,2][r-1]);swings++;flash=1.45;mode='strike';for(let i=0;i<75&&mode==='strike';i++)sevenTick(.02)}assert.equal(mode,'farewell');assert.equal(ring.length,15);assert.equal(ring.filter(c=>c.big).length,5);const hpBefore=hp;for(let i=0;i<560;i++)sevenTick(.02);assert.equal(mode,'departed');assert.equal(hp,hpBefore);
 // A player following the visible sights can clear the square with ordinary inputs.
 for(const dt of [1/30,1/60]){startEight();round=4;eightWave();testGod=false;hp=20;inv=0;
@@ -32,6 +32,9 @@ for(const dt of [1/30,1/60]){startEight();round=4;eightWave();testGod=false;hp=2
    if(Math.abs(goal-pos)>1.6)keys.add(c.vertical?(pos<goal?'d':'a'):(pos<goal?'s':'w'));}
   t+=dt;sevenTick(dt);assert.equal(hp,20);}
  assert.equal(mode,'ready');assert.equal(sent,10);keys.clear();}
+// Six accelerating, alternating slams must remain escapable with normal directional input.
+for(const dt of [1/30,1/60]){startSeven(6);testGod=false;hp=20;inv=0;let count=0,axis=null;
+ for(let k=0;k<25/dt&&mode==='dodge';k++){keys.clear();const w=wallPull;if(w){if(count!==slamCount){assert.notEqual(axis,!!w.nx);axis=!!w.nx;count=slamCount}if(w.age>1.05)keys.add(w.nx<0?'d':w.nx>0?'a':w.ny<0?'s':'w')}sevenTick(dt);assert.equal(hp,20)}assert.equal(mode,'ready');assert.equal(count,6);keys.clear()}
 testGod=true;
 for(const [nx,ny] of [[1,0],[-1,0],[0,1],[0,-1]]){
   startSeven(6);const b=sevenBox();x=nx>0?b.r-5:nx<0?b.l+5:180;y=ny>0?b.d-5:ny<0?b.u+5:(b.u+b.d)/2;
