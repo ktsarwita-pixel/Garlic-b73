@@ -41,7 +41,7 @@ const hollowSkull=[
  '   kwwwsskksswwwsk',
  '   kswwwskkswwwsk',
  '    ksswwwWWWwsk',
- '       kkkkkk',
+ '     kswwwwwssk',
  '     kswwwwwssk',
  '      ksswwssk',
  '        kkkk'];
@@ -109,6 +109,9 @@ function sevenFigure(glow=true,wake=1,step=0,rear=false){if(!visitorSheet){visit
  jointLine(167,hy+19,170,hy+21,1,'#706b70');jointLine(190,hy+20,187,hy+22,1,'#878084');
  // Only the outer ends bridge the recessed jaw gap; no inner sweep or bright rim.
  const jaw=hx+Math.round(13/16*(2+droop/2));
+ // An unbroken, toothless seam rises slightly into the shadow of the far cheek.
+ stampInk(jaw+13,hy+26,3,1,p.d);stampInk(jaw+15,hy+27,9,1,p.k);
+ stampInk(jaw+23,hy+26,3,1,p.k);stampInk(jaw+25,hy+25,2,1,p.d);
  for(const edge of [13,26])stampInk(jaw+edge,hy+25,1,4,p.s);
  // Single-pixel bevels on the broken orbital rim, seam and rib ends.
  stampInk(174,hy+5,4,1,'#eee1cf');stampInk(177,hy+7,1,3,'#625c64');stampInk(168,hy+19,3,1,'#867e84');stampInk(171,hy+20,2,1,'#ada6a3');stampInk(175,83,4,1,'#b2abac');stampInk(173,86,4,1,'#a79fa3');stampInk(181,85,2,1,'#95505a');
@@ -253,9 +256,12 @@ function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.
  g.restore();g.globalAlpha=ease(c.age/.12)*fade;g.translate(offset-2,-Math.round(14*scale));g.scale(scale,scale);g.imageSmoothingEnabled=false;
  const opening=Math.round(6*(a<0?ease((q-.18)/.78):fade));g.drawImage(blasterSkull(opening,c.big),0,0);
  crossEye(g,9,10,t,1);
- if(c.big&&a<0){g.save();const gather=ease(q/.9);g.globalAlpha*=gather;for(let i=0;i<3;i++){const phase=(q*1.8+i/3)%1,dist=Math.round(11*(1-phase));rect(THROAT_X+dist,14+Math.round((i-1)*dist*.38),2,1,phase>.55?'#f5eafa':'#a783bc')}
-  rect(THROAT_X,13,1+Math.round(4*gather),3,'#ead7ef');g.restore()}
- if(a<0&&q>.35){const k=ease((q-.35)/.65),r=Math.round(4*(1-k))+1;g.globalAlpha*=k;rect(THROAT_X,14,r*2+1,1,'#e4c8ee');rect(THROAT_X+r,14-r,1,2*r+1,'#fff8ff')}
+ if(a<0){g.save();const build=ease((q-.12)/.72),lock=ease((q-.78)/.18),count=c.big?5:3;
+  // Strands converge around a fixed throat, then vanish into a held white core before recoil.
+  for(let i=0;i<count;i++){const phase=(q*(1.5+q)+i/count)%1,dist=(1-phase)*(c.big?14:10),dy=Math.sin(i*2.4+q*5)*dist*.34;
+   g.globalAlpha=build*(1-lock)*Math.sin(Math.PI*phase);rect(THROAT_X+Math.round(dist),14+Math.round(dy),1+Math.round(phase),1,'#d1b3df')}
+  g.globalAlpha=build;const radius=Math.round((c.big?3:2)*build);rect(THROAT_X,14-radius,3,radius*2+1,'#b08cbd');rect(THROAT_X-1,13,5,3,'#e0cbeb');
+  g.globalAlpha=build*(.45+.55*lock);rect(THROAT_X,14,2+Math.round(lock*3),1,'#fffaf4');g.restore()}
  g.restore()}}
 function nextGate(){const score=encounter===8?eightScore[round-1].gates:gateScores[round-1],entry=score[patternStep%score.length],b=sevenBox(),vertical=entry[0]==='T',span=vertical?b.r-b.l:b.d-b.u;
  const gap=encounter===8?eightScore[round-1].gap:[21,20,19,30,25][round-1],cut=6+Math.round((span-gap-12)*Number(entry[1])/3);return {b,vertical,reverse:entry[0]==='R',cut,gap,span,kind:{w:'white',b:'blue',r:'red',g:'glitch'}[entry[2]]}}
