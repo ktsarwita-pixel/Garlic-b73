@@ -111,25 +111,26 @@ function furnitureBody(x,y,w,h,depth,top){
 }
 function studyShelf(x,y,w,h,seed){
  const east=x>180;
+ const lift=h>30?15:10;
  let tile=shelfTiles.get(seed);
- if(!tile){tile=document.createElement('canvas');tile.width=w;tile.height=h;
+ if(!tile){tile=document.createElement('canvas');tile.width=w;tile.height=h+lift;
   // Draw along the wall, then turn the open face into the aisle. Keep the
   // original collision footprint: west cases face east, east cases face west.
   const c=tile.getContext('2d'),tw=h-4;
   c.setTransform(0,1,east?-1:1,0,east?w:0,0);
   // Project each horizontal strip onto an integer stair-step. The top recedes
   // toward the wall; the upright face drops toward the aisle AND the viewer.
-  const rise=v=>Math.floor(v/5);
+  const rise=v=>Math.floor(v/5)+Math.round(lift*Math.max(0,v-5)/(w-6));
   const plank=(u,v,ww,hh,z,col)=>{c.fillStyle=col;for(let k=0;k<hh;k++)c.fillRect(u+rise(v+k),v+k,ww,1)};
   let state=317+seed;const roll=n=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return (state>>>8)%n};
   const cloth=['#805759','#516e72','#71755a','#9a7652','#746577','#776149','#596878'];
-  const top=h>30?7:6,tiers=h>30?3:2,ink=(u,v,ww,hh,col)=>plank(u,v,ww,hh,0,col);
+  const top=h>30?5:4,tiers=h>30?3:2,ink=(u,v,ww,hh,col)=>plank(u,v,ww,hh,0,col);
   // Solid near end: enclose the formerly exposed shelf ends with a single
   // dark wood plane, bevel and runners. No book pixels paint over this panel.
-  for(let v=0;v<w;v++){const lip=tw+rise(v),end=Math.min(h,lip+Math.min(5,w-v));
+  for(let v=0;v<w;v++){const lip=tw+rise(v),end=Math.min(h+lift,h+lift-Math.floor((w-v-1)/6));
    c.fillStyle=east?'#514235':'#5f4838';c.fillRect(lip,v,end-lip,1);
    c.fillStyle='#3e332c';c.fillRect(end-1,v,1,1);
-   if(end-lip>2){c.fillStyle=v===top||v===w-4?'#8c7056':'#705640';c.fillRect(lip+1,v,end-lip-2,1)}}
+   if(end-lip>2){c.fillStyle=v===top||v===w-4?'#8c7056':east?'#594536':'#705640';c.fillRect(lip+1,v,end-lip-2,1);if(v>2&&v<w-3){c.fillStyle='#514034';c.fillRect(end-4,v,1,1)}}}
   ink(0,0,tw,w,'#584638');
   ink(0,0,tw,top,'#927459');ink(0,0,tw,1,'#b39a7b');ink(2,2,tw-5,1,'#a18465');
   ink(0,top-2,tw,1,'#c1a17b');ink(0,top-1,tw,1,'#503d32');
@@ -151,7 +152,7 @@ function studyShelf(x,y,w,h,seed){
   ink(2,top-3,3,1,'#aa8967');ink(14,1,2,1,'#79604d');
   shelfTiles.set(seed,tile);
  }
- g.save();g.globalAlpha=.12;rect(x+2,y+2,w,h,'#262322');g.globalAlpha=.22;rect(x+2,y+2,w-1,h-1,'#262322');g.globalAlpha=1;g.drawImage(tile,x,y);g.restore();
+ g.save();g.globalAlpha=.12;rect(x+2,y+2,w,h,'#262322');g.globalAlpha=.22;rect(x+2,y+2,w-1,h-1,'#262322');g.globalAlpha=.16;rect(x+3,y+h-1,w-2,3,'#28251f');g.globalAlpha=1;g.drawImage(tile,x,y-lift);g.restore();
 }
 // Faded prints stay in the north wall band, clear of the playable floor.
 function familyPhotos(){
