@@ -133,18 +133,25 @@ function studyShelf(x,y,w,h,seed){
    if(bay)plank(back,start-2,opening,1,0,'#b39a7b');
    // Divide the whole bay among complete spines. Spread the spare pixels
    // across the run instead of truncating a book or leaving a gap at the end.
-   const length=end-start,count=Math.floor(length/2.4),set=roll(cloth.length);
-   for(let j=0;j<count;j++){
-    const p=start+Math.floor(j*length/count),size=start+Math.floor((j+1)*length/count)-p;
-    const u=back+roll(2),front=tw-2-roll(2),span=front-u+1;
-    const color=cloth[(set+Math.floor(j/2)+bay)%cloth.length];
-    plank(u,p,span,size,0,color);plank(u+1,p+1,span-3,1,0,j%3?'#c8bba2':'#aa9d88');
-    plank(front,p,1,size,0,'#574949');if(size===3)plank(front-1,p+1,1,1,0,'#bcaa82');
+   // Mix squat folios, slim pamphlets and matched leather volumes. Leave a
+   // recessed pocket in selected bays so the back boards can actually be seen.
+   const set=roll(cloth.length);let p=start+1,j=0;
+   while(p<end){const size=Math.min(end-p,2+roll(4)),front=tw-2-roll(3),u=back+roll(3),span=front-u+1;
+    if(j===2&&(seed+bay)%3===1){plank(back,p,opening,size,0,'#503e34');plank(back+2,p,1,size,0,'#634737');p+=size;j++;continue}
+    const leather=(j+seed+bay)%3===0,color=leather?'#593c36':cloth[(set+j+bay)%cloth.length];
+    plank(u,p,span,size,0,color);plank(u+1,p,span-2,1,0,leather?'#916959':'#ac9c81');
+    if(size>=3){plank(u+2,p+1,span-4,size-2,0,j%2?'#c3af8e':'#b8a188');plank(front-2,p,3,size,0,color);
+     plank(front-2,p+1,2,1,0,'#bd9863');if(size===5)plank(front-2,p+3,2,1,0,'#ac8657')}
+    plank(front,p,1,size,0,'#473732');p+=size;j++;
    }
   }
   // Pegged joints, worn sill and a little brass catalogue plate on each case.
   for(const v of [1,th-2]){plank(1,v,1,1,0,'#564a40');plank(tw-3,v,1,1,0,'#67584a')}
   plank(1,th/2|0,2,4,0,'#806b4e');plank(1,(th/2|0)+1,2,2,0,'#baa781');
+  // Scraped edges, mortised feet and a green bloom on the catalogue hardware.
+  for(let k=3;k<th-2;k+=4+roll(4)){plank(0,k,1,2,0,'#c2a387');plank(2,k+1,1,1,0,'#634737')}
+  for(let u=1;u<tw-2;u+=3){plank(u,th-1,2,1,4,'#634737');plank(u,th-1,1,1,5,'#927352')}
+  plank(1,(th/2|0)+2,1,2,0,'#617164');plank(2,(th/2|0),1,1,0,'#ccae78');
   shelfTiles.set(seed,tile);
  }
  g.save();g.globalAlpha=.12;rect(x+2,y+2,w,h,'#262322');g.globalAlpha=.22;rect(x+2,y+2,w-1,h-1,'#262322');g.globalAlpha=1;g.drawImage(tile,x,y);g.restore();
@@ -185,6 +192,13 @@ function studyPatina(){
   const x=Math.max(a,87),w=Math.min(a+18,273)-x;if(w<1)continue;
   dot(x,y,w,7,['#797c7a','#747875','#818380'][(k+course)%3]);dot(x+1,y,w-1,1,'#9a9b95');dot(x,y+6,w,1,'#626663');if(w>8&&k%3===0)dot(x+3,y,3,1,'#656963');}}
  for(const side of [0,1])for(let j=0;j<19;j++){const x=side?266:88,y=68+j*16;dot(x,y,6,15,j%3?'#767a76':'#80837d');dot(x+(side?4:1),y+1,1,13,'#9b9e95');dot(x,y+14,6,1,'#585e59');if(j%4===0)dot(x+2,y+2,2,2,'#676c64')}
+ // Cool pooled shadow, tide marks and a worn strip where readers approached the desk.
+ const shade=c.createRadialGradient(180,208,38,180,208,166);shade.addColorStop(0,'rgba(123,100,64,0)');shade.addColorStop(.74,'rgba(68,56,43,.10)');shade.addColorStop(1,'rgba(38,38,32,.28)');c.fillStyle=shade;c.fillRect(94,68,172,303);
+ for(let k=0;k<58;k++){const left=k%2===0,x=left?95:264,y=71+(k*47)%294,n=2+(k*11)%9;
+  dot(left?x:x-n,y,n,2,'rgba(74,69,49,.28)');dot(left?x+n-2:x-n,y-1,2,1,'rgba(190,176,142,.32)')}
+ for(let k=0;k<28;k++){const yy=244+(k*17)%112,xx=169+(k*11)%22;dot(xx,yy,2+k%4,1,'rgba(196,181,152,.34)')}
+ // Fine cobweb strands anchored to the inner stone corners, not across the walkway.
+ for(const [x,d,y] of [[95,1,69],[264,-1,69],[264,-1,305]]){const silk='rgba(208,202,178,.39)';for(const [dx,dy] of [[18,2],[13,7],[7,12],[1,16]])line(x,y,x+dx*d,y+dy,silk);for(const n of [.48,.84]){line(x+18*n*d,y+2*n,x+13*n*d,y+8*n,silk);line(x+13*n*d,y+8*n,x+7*n*d,y+13*n,silk);line(x+7*n*d,y+13*n,x+n*d,y+16*n,silk)}}
  const mouth=(x,y,d)=>{crack(x,y,[[-2*d,-2],[d,-2],[-3*d,-1]]);crack(x,y,[[3*d,-2],[3*d,0],[d,-2]]);dot(x-2,y-1,5,2,'#343a35');dot(x-1,y+1,3,1,'#9a9c90')};
  mouth(96,67,1);mouth(263,227,-1);
  for(const [x,y,d] of [[102,102,1],[248,137,-1],[134,267,1],[234,323,-1],[101,57,1],[258,56,-1]]){
