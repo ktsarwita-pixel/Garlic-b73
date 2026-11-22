@@ -16,7 +16,7 @@
 #tester .icon{width:20px;height:20px;vertical-align:middle;shape-rendering:crispEdges}
 #tester:hover{background:#262626;color:#f0eee4;transform:translateY(1px);box-shadow:0 2px 0 #000}
 #tester:active{transform:translateY(3px);box-shadow:0 0 0 #000}
-#test-panel{width:min(400px,94vw);max-height:88dvh;overflow:auto;background:#141414;color:#e8e7da;border:none;border-radius:0;padding:16px;font:12px/1.5 monospace;box-shadow:0 6px 0 #000}
+#test-panel{outline:none;width:min(400px,94vw);max-height:88dvh;overflow:auto;background:#141414;color:#e8e7da;border:none;border-radius:0;padding:16px;font:12px/1.5 monospace;box-shadow:0 6px 0 #000}
 #test-panel::backdrop{background:rgba(5,5,6,.82)}
 #test-panel header{display:flex;align-items:center;gap:10px;padding:0 0 14px;border:none}
 #test-panel h2{margin:0;flex:1;font:10px p;color:#f0eee4;letter-spacing:1px;display:flex;align-items:center;gap:9px;text-shadow:2px 2px #000}
@@ -44,9 +44,9 @@
 .test-line{display:flex;gap:8px}
 .test-line input{flex:1;min-width:0;background:#0b0b0d;border:none;color:#e8e7da;padding:9px 10px;border-radius:0;font:13px monospace;outline:none;transition:background .08s}
 .test-line input:focus{background:#070708}
-.test-line button{flex:none;display:flex;align-items:center;gap:7px;border:none;background:#e8e7da;color:#181818;font:10px p;letter-spacing:1px;padding:9px 13px;border-radius:0;box-shadow:0 3px 0 #8e8e86;transition:transform .08s,box-shadow .08s,background .08s}
+.test-line button{flex:none;display:flex;align-items:center;gap:7px;border:none;background:#e8e7da;color:#181818;font:10px p;letter-spacing:1px;padding:9px 13px;border-radius:0;box-shadow:0 3px 0 #000;transition:transform .08s,box-shadow .08s,background .08s}
 .test-line button:hover{background:#f2f0ea}
-.test-line button:active{transform:translateY(3px);box-shadow:0 0 0 #8e8e86}
+.test-line button:active{transform:translateY(3px);box-shadow:0 0 0 #000}
 .test-line button .icon{width:13px;height:13px;shape-rendering:crispEdges;color:#181818}
 .admin-hint{color:#7a7683;font-size:9px;letter-spacing:1px;margin:12px 0 8px;text-align:center}
 #test-result{display:block;color:#c8c5d2;font-size:11px;min-height:1.4em;text-shadow:1px 1px #000}
