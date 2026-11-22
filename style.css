@@ -13,43 +13,45 @@
 @media(prefers-reduced-motion:reduce){.actions button.bound,.actions button.bound::after{animation:none}}
 /* Admin panel — themed pixel console: hard 2px edges, scanlines, amber. */
 /* Admin panel — white theme, simple & clean. */
-#tester{color:#1a1a1a;background:#fff;border:1.5px solid #e5e2da;border-radius:9px;min-width:42px;height:38px;box-shadow:0 1px 3px rgba(0,0,0,.5);transition:transform .08s,box-shadow .08s,background .08s}
-#tester .icon{width:19px;height:19px;vertical-align:middle;shape-rendering:auto;color:#1a1a1a}
-#tester:hover{background:#f6f5f2;color:#1a1a1a;transform:translateY(1px)}
-#tester:active{transform:translateY(2px);box-shadow:0 0 0 rgba(0,0,0,0)}
-#test-panel{width:min(400px,94vw);max-height:88dvh;overflow:auto;background:#ffffff;color:#1f2430;border:1.5px solid #e5e2da;border-radius:14px;padding:18px;font:12px/1.5 monospace;box-shadow:0 12px 40px rgba(0,0,0,.45);margin:auto;align-content:start}
-#test-panel::backdrop{background:rgba(12,12,14,.55)}
-#test-panel header{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid #eeebe4}
-#test-panel h2{margin:0;flex:1;font:700 12px monospace;color:#1f2430;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
-#test-panel h2 .icon{width:16px;height:16px;color:#1f2430;shape-rendering:auto}
-#test-close{flex:none;width:30px;height:30px;border:1.5px solid #e5e2da;background:#fff;color:#6b6f76;padding:0;box-shadow:none;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:color .08s,border-color .08s,background .08s}
-#test-close:hover{color:#1f2430;border-color:#c9c5bb;background:#f6f5f2}
-#test-close .icon{width:14px;height:14px;shape-rendering:auto}
-.admin-sub{margin:10px 0 0;color:#8a8f98;font-size:9px;letter-spacing:2px;text-transform:uppercase}
-#test-panel h3{margin:14px 0 8px;color:#43464d;font:700 10px monospace;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:7px}
-#test-panel h3 .icon{width:14px;height:14px;color:#43464d;shape-rendering:auto}
+/* Admin panel — themed pixel console: hard 2px edges, scanlines, amber. */
+#tester{color:#ffd677;border:2px solid #6b5f45;background:#1d1a14;border-radius:0;min-width:42px;height:40px;box-shadow:0 3px 0 #000;transition:transform .08s,background .08s,box-shadow .08s}
+#tester .icon{width:20px;height:20px;vertical-align:middle;shape-rendering:crispEdges}
+#tester:hover{background:#282112;color:#ffe4a8;transform:translateY(1px);box-shadow:0 2px 0 #000}
+#tester:active{transform:translateY(3px);box-shadow:0 0 0 #000}
+#test-panel{width:min(400px,94vw);max-height:88dvh;overflow:auto;background-color:#0f0d0a;background-image:repeating-linear-gradient(0deg,#0000 0 3px,#fff3dc0d 3px 4px);color:#e9e1cf;border:2px solid #6f6450;border-radius:0;padding:16px;font:12px/1.5 monospace;box-shadow:0 0 0 1px #000,0 6px 0 #050505,inset 0 0 0 2px #16110c}
+#test-panel::backdrop{background:rgba(5,5,6,.82)}
+#test-panel header{display:flex;align-items:center;gap:10px;padding:0 0 12px;border-bottom:2px solid #3a352a}
+#test-panel h2{margin:0;flex:1;font:11px monospace;color:#ffd677;letter-spacing:1px;display:flex;align-items:center;gap:9px;text-shadow:2px 2px #000}
+#test-panel h2 .icon{width:17px;height:17px;shape-rendering:crispEdges}
+#test-close{flex:none;width:32px;height:32px;border:2px solid #3a352a;background:#1d1a14;color:#a99e8c;padding:0;box-shadow:0 3px 0 #000;display:flex;align-items:center;justify-content:center;border-radius:0;transition:transform .08s,box-shadow .08s,border-color .08s}
+#test-close .icon{width:13px;height:13px;shape-rendering:crispEdges}
+#test-close:hover{border-color:#ffd677;color:#ffd677;transform:translateY(1px);box-shadow:0 2px 0 #000}
+#test-close:active{transform:translateY(3px);box-shadow:0 0 0 #000}
+.admin-sub{margin:10px 0 0;color:#8f8672;font-size:9px;letter-spacing:2px;text-transform:uppercase}
+#test-panel h3{margin:16px 0 8px;color:#b3a68c;font:9px monospace;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:8px;border-bottom:1px solid #2a2620;padding:0 0 6px}
+#test-panel h3 .icon{width:13px;height:13px;shape-rendering:crispEdges}
 .test-quick{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.test-quick button{border:1.5px solid #e5e2da;background:#fff;color:#43464d;padding:7px 0;border-radius:8px;font:11px monospace;box-shadow:none;transition:transform .08s,border-color .08s,background .08s,color .08s}
-.test-quick button:hover{border-color:#1f2430;background:#f6f5f2;color:#1f2430}
-.test-quick button:active{transform:translateY(1px)}
+.test-quick button{border:2px solid #3d382c;background:#1a1712;color:#dccb9e;padding:8px 0;border-radius:0;font:12px monospace;letter-spacing:1px;box-shadow:0 3px 0 #000;transition:transform .08s,box-shadow .08s,background .08s,border-color .08s}
+.test-quick button:hover{border-color:#ffd677;background:#2a2114;color:#ffd677}
+.test-quick button:active{transform:translateY(3px);box-shadow:0 0 0 #000}
 .admin-scenarios{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.admin-scenarios button{text-align:left;border:1.5px solid #e5e2da;background:#fff;color:#1f2430;padding:9px 10px;border-radius:8px;font:11px monospace;box-shadow:none;transition:transform .08s,border-color .08s,background .08s}
-.admin-scenarios button:hover{border-color:#1f2430;background:#f6f5f2}
-.admin-scenarios button:active{transform:translateY(1px)}
+.admin-scenarios button{text-align:left;border:2px solid #3d382c;background:#1a1712;color:#e6dcc4;padding:9px 10px;border-radius:0;font:11px monospace;box-shadow:0 3px 0 #000;transition:transform .08s,box-shadow .08s,background .08s,border-color .08s}
+.admin-scenarios button:hover{border-color:#ffd677;color:#ffd677;background:#231d12}
+.admin-scenarios button:active{transform:translateY(3px);box-shadow:0 0 0 #000}
 .admin-speed{display:flex;align-items:center;gap:10px;margin:2px 0 4px}
-.admin-speed label{flex:none;color:#8a8f98;font-size:9px;letter-spacing:2px;text-transform:uppercase}
-.admin-speed output{flex:none;color:#1f2430;font:12px monospace;min-width:40px;text-align:right}
-.admin-speed input{flex:1;accent-color:#1f2430;height:5px}
-#test-panel label[for="test-input"]{color:#8a8f98;font-size:9px;letter-spacing:2px;text-transform:uppercase;display:block;margin:12px 0 6px}
+.admin-speed label{flex:none;color:#a99e8c;font-size:9px;letter-spacing:2px;text-transform:uppercase}
+.admin-speed output{flex:none;color:#ffd677;font:12px monospace;min-width:40px;text-align:right;text-shadow:1px 1px #000}
+.admin-speed input{flex:1;accent-color:#ffd677;height:6px}
+#test-panel label[for="test-input"]{color:#a99e8c;font-size:9px;letter-spacing:2px;text-transform:uppercase;display:block;margin:12px 0 6px}
 .test-line{display:flex;gap:8px}
-.test-line input{flex:1;min-width:0;background:#faf9f6;border:1.5px solid #e5e2da;color:#1f2430;padding:9px 10px;border-radius:8px;font:13px monospace;transition:border-color .08s}
-.test-line input:focus{outline:none;border-color:#1f2430;background:#fff}
-.test-line button{flex:none;display:flex;align-items:center;gap:6px;border:1.5px solid #1f2430;background:#1f2430;color:#fff;font:700 12px monospace;letter-spacing:1px;padding:9px 14px;border-radius:8px;box-shadow:none;transition:background .08s,transform .08s}
-.test-line button:hover{background:#2b3038;border-color:#2b3038}
-.test-line button:active{transform:translateY(1px)}
-.test-line button .icon{width:13px;height:13px;shape-rendering:auto}
-.admin-hint{color:#a3a7ae;font-size:9px;letter-spacing:1px;margin:12px 0 8px;text-align:center}
-#test-result{display:block;color:#1f2430;font-size:11px;min-height:1.4em;padding-top:2px}
+.test-line input{flex:1;min-width:0;background:#0c0b08;border:2px solid #3a352a;color:#f5eccf;padding:9px 10px;border-radius:0;font:13px monospace}
+.test-line input:focus{outline:none;border-color:#ffd677;box-shadow:inset 0 0 0 1px rgba(255,214,119,.25)}
+.test-line button{flex:none;display:flex;align-items:center;gap:7px;border:2px solid #ffd677;background:#ffd677;color:#241f14;font:bold 12px monospace;letter-spacing:1px;padding:9px 13px;border-radius:0;box-shadow:0 3px 0 #7a5f28;transition:transform .08s,box-shadow .08s,background .08s}
+.test-line button:hover{background:#ffe4a8}
+.test-line button:active{transform:translateY(3px);box-shadow:0 0 0 #000}
+.test-line button .icon{width:13px;height:13px;shape-rendering:crispEdges}
+.admin-hint{color:#6f6a5c;font-size:9px;letter-spacing:1px;margin:12px 0 8px;text-align:center}
+#test-result{display:block;color:#ffd677;font-size:11px;min-height:1.4em;text-shadow:1px 1px #000}
 #test-panel label[for="test-speed"]{margin:0}
 /* A clipped second copy tears the icon and lettering on the same scanline. */
 .command-face{display:inline-flex;align-items:center;justify-content:center;gap:inherit}
