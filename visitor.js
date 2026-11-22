@@ -210,7 +210,7 @@ const eightScore=[
  {count:7,beat:1.28,gates:['L1w','L2w','R2w','R0w'],gap:22,pace:.80},
  {count:5,beat:2.0,gates:['R1w','R2g','L2b','L0r','R1g','L3w','R2r'],gap:16,pace:.46},
  {count:4,beat:2.3,gates:['L1b','R1r','L3r','R2b','L0r'],gap:15,pace:.48},
- {count:11,beat:1.24,gates:['T1w','L1w','R2w','T2w','L2w'],gap:46,pace:.94},
+ {count:12,beat:1.1,gates:['T1w','L1w','R2w','T2w','L2w'],gap:44,pace:.82},
  {count:28,beat:.57,gates:[]}
 ];
 let cannons=[],sent=0,nextBeam=0;
@@ -283,42 +283,6 @@ function blasterSkull(open,big=false,charge=0,front=false){open=Math.round(open*
   if(big){for(let x=1;x<14;x++){const outer=12-Math.floor((x-1)*.34);for(let j=0;j<4;j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s'][j])}
    for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h')}
  }
- // ---- Polish: deep eye sockets, horn shading, crown rim, clean jaw braces.
- if(front){
-  const cp=(x,y,c)=>{if(x<0||x>29||y<0||y>31)return;ctx.fillStyle=c;ctx.fillRect(x,y,1,1)};
-  const mm=(x,y,c)=>{cp(x,y,c);cp(29-x,y,c)};
-  const rows=(y0,y1,x0,x1,c)=>{for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){cp(x,y,c);cp(29-x,y,c)}};
-  const row1=(y,x0,x1,c)=>{for(let x=x0;x<=x1;x++){cp(x,y,c);cp(29-x,y,c)}};
-  // Horn lower edge: a shadow strip under the horn sweep.
-  row1(4,3,5,'#3a3744');
-  // Brow shelf: a dark 1px line over the sockets, plus a thin light rim above it.
-  row1(8,6,11,'#262433');
-  row1(9,7,10,'#48454e');
-  // Deep sockets with a white glint at the outer corner.
-  rows(10,11,7,10,'#15121f');
-  rows(10,10,8,9,'#332a45');
-  mm(6,10,'#ffffff');
-  // Muzzle crest: a bright ridge down the centre face, tapering.
-  rows(12,15,14,15,'#fffdf5');
-  rows(16,18,14,15,'#e4e3df');
-  rows(19,22,14,15,'#c9ced4');
-  // Cheek accents: short rib angled down the cheek.
-  rows(13,14,4,5,'#48454e');
-  rows(14,15,3,4,'#48454e');
-  // Jaw band: clean, light braces with a subtle crease. Dark interior.
-  rows(18,27,4,6,'#d6d7dc');
-  rows(19,20,4,6,'#fffdf5');
-  rows(23,23,4,6,'#a6a4ad');
-  rows(21,26,8,11,'#14101e');
-  rows(21,21,8,11,'#3d3550');
-  // Glazed rim on the crown.
-  rows(5,5,9,10,'#ffffff');
-  row1(6,9,10,'#f5f5f0');
-  // Chin cap.
-  rows(28,29,11,18,'#e4e3df');
-  row1(30,12,17,'#f5f5f0');
-  row1(31,13,16,'#c8c9cf');
- }
  blasterFrames.set(key,tile);return tile}
 function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.pos:c.reverse?b.r:b.l,c.vertical?(c.reverse?b.d:b.u):c.pos);if(c.vertical)g.rotate(c.reverse?-Math.PI/2:Math.PI/2);else if(c.reverse)g.scale(-1,1);
  const span=c.vertical?b.d-b.u:b.r-b.l,w=c.width,a=c.age-c.charge,q=c.age/c.charge,{fade,scale,offset,muzzle}=blasterPose(c),length=span-muzzle;
@@ -334,22 +298,17 @@ function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.
   for(let k=w+flow%23;k<length;k+=23){rect(k,-half,6,1,'#f4ddff');rect(k+7,half-1,4,1,'#c59ed7')}
  }
  g.restore();g.globalAlpha=ease(c.age/.12)*fade;g.translate(offset-2,-Math.round(14*scale));g.scale(scale,scale);g.imageSmoothingEnabled=false;
- const opening=6*(a<0?ease((q-.18)/.62):fade);g.drawImage(blasterSkull(opening,c.big,a<0?ease((q-.12)/.66):fade),0,0);
+ const opening=6*(a<0?ease((q-.18)/.78):fade);g.drawImage(blasterSkull(opening,c.big,a<0?ease((q-.12)/.72):fade),0,0);
  crossEye(g,9,c.big?8:9,t,1);
  if(a<0)drawBlasterCharge(q,c.big);
- else{const fl=Math.max(0,1-a/.21);g.save();g.globalAlpha*=fl;
-  // A tight starburst core, then a muzzle dust wash.
-  for(const [dx,dy,c] of [[0,-2,'#fff8fb'],[0,2,'#fff8fb'],[2,-3,'#ffffff'],[2,3,'#ffffff'],[-2,-2,'#e0c5e8'],[-2,2,'#e0c5e8'],[-3,-1,'#c9a3e6'],[-3,1,'#c9a3e6'],[3,0,'#ffffff'],[-1,0,'#fff8fb'],[1,0,'#fff8fb']])
-   rect(12+dx,14+dy,1,1,c);
-  g.globalAlpha*=fl*.65;rect(13,12,1,5,'#fffaf3');g.restore()}
+ else{g.save();g.globalAlpha*=Math.max(0,1-a/.21);for(const side of [-1,1]){rect(12,14+side*3,3,1,'#fff8fb');rect(16,14+side*5,2,1,'#e0c5e8')};g.restore()}
  g.restore()}}
-function drawBlasterCharge(q,big,opacity=1){g.save();const alpha=g.globalAlpha*opacity;const build=ease((q-.10)/.72),lock=ease((q-.76)/.18),count=big?6:4;
+function drawBlasterCharge(q,big,opacity=1){g.save();const alpha=g.globalAlpha*opacity;const build=ease((q-.12)/.72),lock=ease((q-.78)/.18),count=big?5:3;
   // Strands converge around a fixed throat, then vanish into a held white core before recoil.
-  for(let i=0;i<count;i++){const phase=(q*(1.5+q)+i/count)%1,dist=(1-phase)*(big?16:12),dy=Math.sin(i*2.4+q*5)*dist*.34;
-   g.globalAlpha=alpha*build*(1-lock)*Math.sin(Math.PI*phase);rect(THROAT_X+Math.round(dist),14+Math.round(dy),1+Math.round(phase),1,'#dbc2f2')}
-  // A held white core at the emitter; the jaw itself carries the charge cue.
-  g.globalAlpha=alpha*build*.45;rect(THROAT_X,12,1,5,'#fffaf3');
-  g.globalAlpha=alpha*build*(.6+.4*lock);rect(THROAT_X,13,1,3,'#ffffff');g.restore()}
+  for(let i=0;i<count;i++){const phase=(q*(1.5+q)+i/count)%1,dist=(1-phase)*(big?14:10),dy=Math.sin(i*2.4+q*5)*dist*.34;
+   g.globalAlpha=alpha*build*(1-lock)*Math.sin(Math.PI*phase);rect(THROAT_X+Math.round(dist),14+Math.round(dy),1+Math.round(phase),1,'#d1b3df')}
+  // A pinprick at the emitter; the jaw itself now carries the charge cue.
+  g.globalAlpha=alpha*build*(.4+.6*lock);rect(THROAT_X,14,1,1,'#fffaf3');g.restore()}
 function nextGate(){const score=encounter===8?eightScore[round-1].gates:gateScores[round-1],entry=score[patternStep%score.length],b=sevenBox(),vertical=entry[0]==='T',span=vertical?b.r-b.l:b.d-b.u;
  const gap=encounter===8?eightScore[round-1].gap:[21,20,19,30,25][round-1],cut=6+Math.round((span-gap-12)*Number(entry[1])/3);return {b,vertical,reverse:entry[0]==='R',cut,gap,span,kind:{w:'white',b:'blue',r:'red',g:'glitch'}[entry[2]]}}
 function sevenGate(){const {b,vertical,reverse,cut,gap,span,kind}=nextGate(),speed=61+round*6;
@@ -448,7 +407,7 @@ const epilogueLines=[
  [7,'explore the multiverse to search for the right Sans']
 ];
 // Soft cut: veil the frame to black, switch mode under the cover of the fade.
-function withVeil(cb,hold=340){const v=typeof document!=='undefined'&&document.getElementById?document.getElementById('veil'):null;if(!v||veilPending){cb();return}veilPending=true;v.classList.add('on');setTimeout(()=>{try{cb()}finally{v.classList.remove('on');veilPending=false}},hold)}
+function withVeil(cb,hold=340){const v=document.getElementById('veil');if(!v||veilPending){cb();return}veilPending=true;v.classList.add('on');setTimeout(()=>{try{cb()}finally{v.classList.remove('on');veilPending=false}},hold)}
 function beginMainMenu(){withVeil(()=>{mode='mainMenu';epilogueAge=0;keys.clear();drag=false;target=null;msg('');if(typeof document!=='undefined'){document.querySelector('#ending-narration').textContent='';document.querySelector('#main-menu-play').focus()}ui()},420)}
 function beginEpilogue(){withVeil(()=>{if(typeof document!=='undefined')document.querySelector('#ending-narration').textContent='';mode='departed';epilogueAge=0;keys.clear();drag=false;target=null;msg('');ui()},420)}
 function epilogueTick(dt){const old=epilogueAge;epilogueAge+=dt;for(const [at,line] of epilogueLines)if(old<at&&epilogueAge>=at){msg(line);if(typeof document!=='undefined')document.querySelector('#ending-narration').textContent=line;}}
