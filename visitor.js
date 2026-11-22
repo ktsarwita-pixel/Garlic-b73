@@ -283,6 +283,16 @@ function blasterSkull(open,big=false,charge=0,front=false){open=Math.round(open*
   if(big){for(let x=1;x<14;x++){const outer=12-Math.floor((x-1)*.34);for(let j=0;j<4;j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s'][j])}
    for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h')}
  }
+ // ---- Polish: horn-edge shading and a thin brow rim — minimal, not a face rework. ----
+ if(front){
+  const cp=(x,y,c)=>{if(x<0||x>29||y<0||y>31)return;ctx.fillStyle=c;ctx.fillRect(x,y,1,1)};
+  const mir=(x,y,c)=>{cp(x,y,c);cp(29-x,y,c)};
+  const band=(y,x0,x1,c)=>{for(let x=x0;x<=x1;x++){mir(x,y,c)}};
+  // Horn sweep lower edge.
+  band(4,3,5,'#3a3744');
+  // Light rim under the brow hood.
+  band(9,7,10,'#48454e');
+}
  blasterFrames.set(key,tile);return tile}
 function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.pos:c.reverse?b.r:b.l,c.vertical?(c.reverse?b.d:b.u):c.pos);if(c.vertical)g.rotate(c.reverse?-Math.PI/2:Math.PI/2);else if(c.reverse)g.scale(-1,1);
  const span=c.vertical?b.d-b.u:b.r-b.l,w=c.width,a=c.age-c.charge,q=c.age/c.charge,{fade,scale,offset,muzzle}=blasterPose(c),length=span-muzzle;
@@ -298,17 +308,17 @@ function drawBeams(b){for(const c of cannons){g.save();g.translate(c.vertical?c.
   for(let k=w+flow%23;k<length;k+=23){rect(k,-half,6,1,'#f4ddff');rect(k+7,half-1,4,1,'#c59ed7')}
  }
  g.restore();g.globalAlpha=ease(c.age/.12)*fade;g.translate(offset-2,-Math.round(14*scale));g.scale(scale,scale);g.imageSmoothingEnabled=false;
- const opening=6*(a<0?ease((q-.18)/.78):fade);g.drawImage(blasterSkull(opening,c.big,a<0?ease((q-.12)/.72):fade),0,0);
+ const opening=6*(a<0?ease((q-.14)/.68):fade);g.drawImage(blasterSkull(opening,c.big,a<0?ease((q-.10)/.68):fade),0,0);
  crossEye(g,9,c.big?8:9,t,1);
  if(a<0)drawBlasterCharge(q,c.big);
- else{g.save();g.globalAlpha*=Math.max(0,1-a/.21);for(const side of [-1,1]){rect(12,14+side*3,3,1,'#fff8fb');rect(16,14+side*5,2,1,'#e0c5e8')};g.restore()}
+ else{g.save();g.globalAlpha*=Math.max(0,1-a/.21);for(const side of [-1,1]){rect(12,14+side*3,3,1,'#fff8fb');rect(16,14+side*5,2,1,'#e0c5e8')}rect(12,14,1,1,'#ffffff');g.restore()}
  g.restore()}}
-function drawBlasterCharge(q,big,opacity=1){g.save();const alpha=g.globalAlpha*opacity;const build=ease((q-.12)/.72),lock=ease((q-.78)/.18),count=big?5:3;
+function drawBlasterCharge(q,big,opacity=1){g.save();const alpha=g.globalAlpha*opacity;const build=ease((q-.10)/.74),lock=ease((q-.78)/.18),count=big?6:4;
   // Strands converge around a fixed throat, then vanish into a held white core before recoil.
   for(let i=0;i<count;i++){const phase=(q*(1.5+q)+i/count)%1,dist=(1-phase)*(big?14:10),dy=Math.sin(i*2.4+q*5)*dist*.34;
-   g.globalAlpha=alpha*build*(1-lock)*Math.sin(Math.PI*phase);rect(THROAT_X+Math.round(dist),14+Math.round(dy),1+Math.round(phase),1,'#d1b3df')}
-  // A pinprick at the emitter; the jaw itself now carries the charge cue.
-  g.globalAlpha=alpha*build*(.4+.6*lock);rect(THROAT_X,14,1,1,'#fffaf3');g.restore()}
+   g.globalAlpha=alpha*build*(1-lock)*Math.sin(Math.PI*phase);rect(THROAT_X+Math.round(dist),14+Math.round(dy),1+Math.round(phase),1,'#dcc2f2')}
+  // A held core at the emitter; the jaw itself now carries the charge cue.
+  g.globalAlpha=alpha*build*.55;rect(THROAT_X,13,1,3,'#fffaf3');g.globalAlpha=alpha*build*(.4+.6*lock);rect(THROAT_X,14,1,1,'#ffffff');g.restore()}
 function nextGate(){const score=encounter===8?eightScore[round-1].gates:gateScores[round-1],entry=score[patternStep%score.length],b=sevenBox(),vertical=entry[0]==='T',span=vertical?b.r-b.l:b.d-b.u;
  const gap=encounter===8?eightScore[round-1].gap:[21,20,19,30,25][round-1],cut=6+Math.round((span-gap-12)*Number(entry[1])/3);return {b,vertical,reverse:entry[0]==='R',cut,gap,span,kind:{w:'white',b:'blue',r:'red',g:'glitch'}[entry[2]]}}
 function sevenGate(){const {b,vertical,reverse,cut,gap,span,kind}=nextGate(),speed=61+round*6;
