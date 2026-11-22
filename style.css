@@ -12,31 +12,27 @@
 @keyframes bone-impact{0%,60%,100%{transform:translateY(0)}68%{transform:translateY(-3px);border-color:#fff4dc}83%{transform:translateY(1px)}}
 @media(prefers-reduced-motion:reduce){.actions button.bound,.actions button.bound::after{animation:none}}
 /* Admin panel — matches the game's own console UI: dark, flat, square, zero borders. */
-#tester{color:#c8c5d2;border:none;background:#202020;border-radius:0;min-width:42px;height:40px;box-shadow:0 3px 0 #000;transition:transform .08s,background .08s,box-shadow .08s,color .08s}
+#tester{color:#c8c5d2;background:none;border:none;min-width:40px;height:40px;transition:color .08s}
 #tester .icon{width:20px;height:20px;vertical-align:middle;shape-rendering:crispEdges}
-#tester:hover{background:#262626;color:#f0eee4;transform:translateY(1px);box-shadow:0 2px 0 #000}
-#tester:active{transform:translateY(3px);box-shadow:0 0 0 #000}
+#tester:hover{color:#f0eee4}
 #test-panel{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;margin:0;padding:16px;background:rgba(5,5,6,.82);font:12px/1.5 monospace;outline:none}
 #test-panel[hidden]{display:none!important}
 .test-panel-inner{width:min(400px,100%);max-height:88dvh;overflow:auto;background:#131313;color:#e8e7da;border-radius:0;padding:16px;box-shadow:0 6px 0 #000;outline:none}
 #test-panel header{display:flex;align-items:center;gap:10px;padding:0 0 14px;border:none}
 #test-panel h2{margin:0;flex:1;font:10px p;color:#f0eee4;letter-spacing:1px;display:flex;align-items:center;gap:9px;text-shadow:2px 2px #000}
 #test-panel h2 .icon{width:16px;height:16px;shape-rendering:crispEdges}
-#test-close{flex:none;width:32px;height:32px;border:none;background:#202020;color:#bcb7c6;padding:0;box-shadow:0 3px 0 #000;display:flex;align-items:center;justify-content:center;border-radius:0;transition:transform .08s,box-shadow .08s,color .08s,background .08s}
+#test-close{flex:none;width:32px;height:32px;border:none;background:none;color:#bcb7c6;padding:0;display:flex;align-items:center;justify-content:center;border-radius:0;transition:color .08s}
 #test-close .icon{width:13px;height:13px;shape-rendering:crispEdges}
-#test-close:hover{background:#262626;color:#e8e7da;transform:translateY(1px);box-shadow:0 2px 0 #000}
-#test-close:active{transform:translateY(3px);box-shadow:0 0 0 #000}
+#test-close:hover{color:#e8e7da}
 .admin-sub{margin:0 0 14px;color:#a9a2b4;font-size:9px;letter-spacing:2px;text-transform:uppercase}
 #test-panel h3{margin:16px 0 8px;color:#c8c5d2;font:8px p;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:8px;border:none;padding:0}
 #test-panel h3 .icon{width:13px;height:13px;shape-rendering:crispEdges}
 .test-quick{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.test-quick button{border:none;background:#202020;color:#c8c5d2;padding:8px 0;border-radius:0;font:9px p;letter-spacing:1px;box-shadow:0 3px 0 #000;transition:transform .08s,box-shadow .08s,background .08s,color .08s}
-.test-quick button:hover{background:#2a292f;color:#f0eee4}
-.test-quick button:active{transform:translateY(3px);box-shadow:0 0 0 #000}
+.test-quick button{border:2px solid #92816c;background:#202020;color:#dbc29e;padding:7px 0;border-radius:0;font:9px p;letter-spacing:1px;transition:background .08s,border-color .08s,color .08s}
+.test-quick button:hover{background:#ffd883;border-color:#ffe7aa;color:#342a25}
 .admin-scenarios{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.admin-scenarios button{text-align:left;border:none;background:#202020;color:#e8e7da;padding:9px 10px;border-radius:0;font:10px monospace;box-shadow:0 3px 0 #000;transition:transform .08s,box-shadow .08s,background .08s,color .08s}
-.admin-scenarios button:hover{background:#2a292f;color:#f0eee4}
-.admin-scenarios button:active{transform:translateY(3px);box-shadow:0 0 0 #000}
+.admin-scenarios button{text-align:left;border:2px solid #92816c;background:#202020;color:#dbc29e;padding:9px 10px;border-radius:0;font:10px monospace;transition:background .08s,border-color .08s,color .08s}
+.admin-scenarios button:hover{background:#ffd883;border-color:#ffe7aa;color:#342a25}
 .admin-speed{display:flex;align-items:center;gap:10px;margin:2px 0 4px}
 .admin-speed label{flex:none;color:#a9a2b4;font-size:9px;letter-spacing:2px;text-transform:uppercase}
 .admin-speed output{flex:none;color:#f0eee4;font:9px p;min-width:40px;text-align:right;text-shadow:1px 1px #000}
@@ -45,10 +41,9 @@
 .test-line{display:flex;gap:8px}
 .test-line input{flex:1;min-width:0;background:#0b0b0d;border:none;color:#e8e7da;padding:9px 10px;border-radius:0;font:13px monospace;outline:none;transition:background .08s}
 .test-line input:focus{background:#070708}
-.test-line button{flex:none;display:flex;align-items:center;gap:7px;border:none;background:#e8e7da;color:#181818;font:10px p;letter-spacing:1px;padding:9px 13px;border-radius:0;box-shadow:0 3px 0 #000;transition:transform .08s,box-shadow .08s,background .08s}
-.test-line button:hover{background:#f2f0ea}
-.test-line button:active{transform:translateY(3px);box-shadow:0 0 0 #000}
-.test-line button .icon{width:13px;height:13px;shape-rendering:crispEdges;color:#181818}
+.test-line button{flex:none;display:flex;align-items:center;gap:7px;border:2px solid #92816c;background:#202020;color:#dbc29e;font:10px p;letter-spacing:1px;padding:9px 13px;border-radius:0;transition:background .08s,border-color .08s,color .08s}
+.test-line button:hover{background:#ffd883;border-color:#ffe7aa;color:#342a25}
+.test-line button .icon{width:13px;height:13px;shape-rendering:crispEdges}
 .admin-hint{color:#7a7683;font-size:9px;letter-spacing:1px;margin:12px 0 8px;text-align:center}
 #test-result{display:block;color:#c8c5d2;font-size:11px;min-height:1.4em;text-shadow:1px 1px #000}
 #test-panel label[for="test-speed"]{margin:0}
