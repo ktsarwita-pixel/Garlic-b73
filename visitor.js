@@ -401,7 +401,7 @@ function drawVisitorBone(s){if(s.kind==='corrupt boke'){drawCorruptBoke(s);retur
 // Epilogue time is measured from the first completely black frame, in game time.
 let epilogueAge=0;
 const epilogueLines=[
- [2,'after that you find destroyed the glitching door'],
+ [2,'after that you find and destroy the glitching door'],
  [4,'you get out of the hallway'],
  [5,'you go back to your home relaxing'],
  [7,'explore and multiverse to search for the right Sans']
