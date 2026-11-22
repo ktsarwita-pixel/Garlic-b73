@@ -9,7 +9,7 @@ const server=http.createServer((q,r)=>{const f=path.join(root,new URL(q.url,'htt
  const checks=await page.evaluate(()=>{testCommand('home');paused=true;homeAge=2;draw();const checks={};
   checks['home background built']=!!paintedHome;checks['no image asset dependency']=!document.querySelector('img');
   const bg=paintedHome.getContext('2d').getImageData(0,0,1080,672).data;let colors=new Set();for(let i=0;i<bg.length;i+=96)colors.add(`${bg[i]},${bg[i+1]},${bg[i+2]}`);checks['varied room palette']=colors.size>65;
-  homeAge=.2;draw();const fireA=g.getImageData(270*3,90*3,45*3,24*3).data;homeAge=.7;draw();const fireB=g.getImageData(270*3,90*3,45*3,24*3).data;
+  homeAge=.2;draw();const fireA=g.getImageData(42*3,88*3,46*3,26*3).data;homeAge=.7;draw();const fireB=g.getImageData(42*3,88*3,46*3,26*3).data;
   let fireDiff=0;for(let i=0;i<fireA.length;i+=4)if(fireA[i]!==fireB[i]||fireA[i+1]!==fireB[i+1]||fireA[i+2]!==fireB[i+2])fireDiff++;checks['fire animates']=fireDiff>10;homeAge=2;
   function sprite(facing,walk,motion){homeFacing=facing;homeWalk=walk;homeMotion=motion;draw();return g.getImageData((180-15)*3,(186-42)*3,30*3,45*3).data}
   function diff(a,b){let n=0;for(let i=0;i<a.length;i+=4)if(a[i]!==b[i]||a[i+1]!==b[i+1]||a[i+2]!==b[i+2])n++;return n}
@@ -33,6 +33,13 @@ const server=http.createServer((q,r)=>{const f=path.join(root,new URL(q.url,'htt
   for(let i=0;i<90;i++)homeTick(1/60);checks['idle settles']=homeMotion<.01;
   drag=true;target=[x-30,y];for(let i=0;i<120;i++)homeTick(1/60);checks['touch target settles']=Math.abs(x-target[0])<3;drag=false;target=null;
   x=345;homeMotion=0;keys.add('d');for(let i=0;i<15;i++)homeTick(1/60);keys.clear();checks['wall does not trigger walking']=homeMotion<.01;
+  // The reworked floor: full-room reach, furniture solids, one connected area.
+  x=280;y=186;keys.add('w');for(let i=0;i<120;i++)homeTick(1/60);keys.clear();checks['freemove reaches the back wall']=y<140;
+  x=230;y=186;keys.add('w');for(let i=0;i<120;i++)homeTick(1/60);keys.clear();checks['sofa blocks the floor']=y>143&&y<152;
+  x=180;y=186;keys.add('w');for(let i=0;i<120;i++)homeTick(1/60);keys.clear();checks['table blocks the floor']=y>176&&y<184;
+  const walk=new Set();for(let gx=16;gx<=338;gx+=2)for(let gy=120;gy<=216;gy+=2)if(homeFree(gx,gy))walk.add(gx+','+gy);
+  const seen=new Set(['180,186']),stack=[[180,186]];while(stack.length){const [cx,cy]=stack.pop();for(const [ax,ay] of [[2,0],[-2,0],[0,2],[0,-2]]){const k=(cx+ax)+','+(cy+ay);if(walk.has(k)&&!seen.has(k)){seen.add(k);stack.push([cx+ax,cy+ay])}}}
+  checks['freemove area connected']=walk.has('180,186')&&seen.size===walk.size;
   x=180;y=186;homeAge=2;homeWalk=0;homeMotion=0;homeFacing='down';draw();return checks});
  await page.setViewportSize({width:390,height:844});checks['mobile canvas fits']=await page.evaluate(()=>{const r=c.getBoundingClientRect();return r.left>=-.1&&r.right<=innerWidth+.1&&r.top>=0&&r.bottom<=innerHeight});await page.setViewportSize({width:1200,height:800});
  checks['no browser errors']=errors.length===0;console.table(checks);console.log(`${Object.values(checks).filter(Boolean).length}/${Object.keys(checks).length} functional checks (not a visual-quality score)`);
