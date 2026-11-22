@@ -439,7 +439,11 @@ function buildHome(){
  // Window: layered frame, distant forest, individual trees and sky.
  R(121,15,118,78,'#3c2b29');R(125,19,110,70,'#c9a17b');R(129,23,102,61,'#465a6d');
  R(131,25,98,24,'#667c8b');R(131,49,98,34,'#6f8782');
- for(let i=0;i<15;i++){const px=130+i*7,tip=52+(i*7%15);P([[px-4,82],[px+3,tip],[px+9,82]],i%2?'#516d68':'#5b766d');R(px+3,tip+6,1,Math.max(0,82-tip-6),'#526a62')}
+ R(134,42,92,2,'#718894');R(135,36,17,.5,'#899ba0');R(189,39,24,.5,'#899ba0');
+ for(const [sx,sy] of [[145,29],[161,35],[197,30],[213,34],[222,27]])R(sx,sy,.6,.6,'#e4d9b3');
+ R(207,28,4,4,'#d9d3b3');R(209,27,3,3,'#667c8b');
+ P([[131,73],[145,60],[155,70],[170,57],[184,70],[200,59],[214,70],[229,58],[229,83],[131,83]],'#668079');
+ for(let i=0;i<15;i++){const px=130+i*7,tip=52+(i*7%15),shade=i%2?'#516d68':'#5b766d';P([[px-4,82],[px+3,tip],[px+9,82]],shade);P([[px-4,75],[px+3,tip+6],[px+10,75]],shade);R(px+3,tip+6,1,Math.max(0,82-tip-6),'#526a62')}
  R(131,81,98,2,'#485f55');R(178,23,4,61,'#d6b08a');R(130,49,100,3,'#d6b08a');R(128,84,104,4,'#e1bc91');R(126,88,108,3,'#5a3a30');
  // Drapes with pleats, ties and hem.
  R(119,14,122,3,'#3e2926');R(123,15,114,1,'#b58262');P([[124,18],[137,18],[136,64],[132,80],[122,87]],'#743d40');P([[236,18],[223,18],[224,64],[228,80],[238,87]],'#743d40');
@@ -448,8 +452,10 @@ function buildHome(){
  let lamp=h.createRadialGradient(334,86,0,334,86,67);lamp.addColorStop(0,'rgba(255,211,141,.12)');lamp.addColorStop(1,'rgba(255,194,125,0)');h.fillStyle=lamp;h.fillRect(268,20,92,125);
  // Built-in shelves, fine edged wood, dozens of unique little books.
  R(12,19,80,94,'#3b2a27');R(15,21,74,90,'#6b4534');R(18,24,68,83,'#412e2a');
- for(let j=0;j<3;j++){const sy=49+j*24;R(17,sy,70,4,'#8c5b40');R(17,sy,70,1,'#d09b70');let bx=20;while(bx<82){const bw=2+Math.floor(rnd()*4),bh=9+Math.floor(rnd()*12),cols=['#b26252','#858d70','#c6a474','#637f81','#77718a','#b08362','#c3b79d'];R(bx,sy-bh,bw,bh,cols[Math.floor(rnd()*cols.length)]);R(bx,sy-bh,bw,.7,'#e2c096');if(bw>3)R(bx+1,sy-bh+3,.5,bh-5,'#5e5145');bx+=bw+1}}
+ for(let j=0;j<3;j++){const sy=49+j*24;R(17,sy,70,4,'#8c5b40');R(17,sy,70,1,'#d09b70');let bx=20;while(bx<82){const bw=2+Math.floor(rnd()*4),bh=9+Math.floor(rnd()*12),cols=['#b26252','#858d70','#c6a474','#637f81','#77718a','#b08362','#c3b79d'];R(bx,sy-bh,bw,bh,cols[Math.floor(rnd()*cols.length)]);R(bx,sy-bh,bw,.7,'#e2c096');if(bw>3)R(bx+1,sy-bh+3,.5,bh-5,'#5e5145');if(bh>13){R(bx,sy-bh+3,bw,.5,'#d6b18a');R(bx,sy-4,bw,.5,'#d6b18a')}bx+=bw+1}}
  R(15,108,74,4,'#b47b55');R(17,111,70,2,'#4b3029');
+ // Gilt spine bands, little labels and the shelf's carved endcaps.
+ R(12,20,3,92,'#4a3027');R(13,21,1,89,'#a67351');R(87,20,3,92,'#4a3027');R(88,21,1,89,'#a67351');
  // Framed landscape and an old round wall clock, both offset from the fireplace.
  R(250,18,42,32,'#382823');R(252,20,38,28,'#ab805e');R(255,23,32,22,'#d8b187');R(257,25,28,18,'#779097');P([[257,42],[264,34],[269,39],[277,31],[285,40],[285,43]],'#677961');R(280,27,2,2,'#f2d79e');
  R(304,18,26,29,'#49332a');R(306,20,22,25,'#a57855');R(309,23,16,19,'#ead0a6');R(316,25,1,8,'#65483c');R(316,32,5,1,'#65483c');R(311,24,2,1,'#886e54');R(323,40,1,1,'#886e54');
@@ -459,25 +465,38 @@ function buildHome(){
  R(264,77,58,37,'#59443a');R(268,79,50,35,'#211a1b');R(271,83,44,28,'#2d1c1a');
  R(250,60,87,6,'#3c2925');R(253,61,81,2,'#bd8a62');R(246,113,94,4,'#553930');R(249,113,88,1,'#d0a27d');
  R(270,108,46,2,'#1b1818');for(let xx=274;xx<315;xx+=7)R(xx,100,1,10,'#332b29');R(272,105,42,1,'#302624');
- R(258,50,11,10,'#4c342e');R(260,51,7,8,'#cba782');R(261,53,5,5,'#7b8d7e');R(320,52,9,8,'#b48664');R(323,48,4,4,'#788c77');
+ R(320,52,9,8,'#b48664');R(323,48,4,4,'#788c77');
+ // Brass candle, an uneven stack of well-read books and a small framed portrait.
+ R(278,57,8,3,'#49362b');R(281,49,2,8,'#c39a64');R(280,48,4,2,'#e5c696');R(281,47,2,1,'#ffe9b3');
+ R(298,58,13,2,'#674231');R(299,56,12,2,'#997455');R(298,54,11,2,'#5a6c65');R(299,54,9,.5,'#c2aa83');
+ R(258,50,11,10,'#4c342e');R(260,51,7,8,'#cba782');R(261,53,5,5,'#7b8d7e');R(262,54,2,2,'#d5bb93');
  // Sofa: back cushions, curved arms, seam, worn highlights and cushions.
  P([[24,110],[27,97],[34,94],[100,94],[108,98],[112,113],[111,141],[24,141]],'#4a302b');
  R(29,98,75,25,'#a86553');R(31,99,34,22,'#b67865');R(67,99,34,22,'#b47361');R(32,100,32,1,'#d99b80');R(68,100,32,1,'#d99b80');
  R(28,120,79,18,'#a95f50');R(32,121,70,2,'#d78f72');R(32,132,70,1,'#874d42');R(31,138,8,6,'#4d3029');R(99,138,8,6,'#4d3029');
  P([[24,112],[28,107],[34,109],[35,137],[25,138]],'#79483c');P([[112,112],[108,107],[102,109],[101,137],[111,138]],'#79483c');R(26,111,2,21,'#c18268');R(108,111,2,21,'#c18268');
  P([[38,104],[52,102],[56,115],[40,118]],'#d2a582');P([[84,104],[96,102],[100,115],[86,118]],'#d7b28d');R(41,105,10,1,'#ebc8a4');R(87,105,9,1,'#f0cba1');
+ // Piped upholstery, seams and soft creases, not random noise.
+ R(35,101,27,.5,'#e2a98b');R(70,101,28,.5,'#d99e81');R(65,103,1,18,'#8c5749');
+ for(let i=0;i<5;i++){R(35+i*13,123,5,.5,'#c9816b');R(37+i*13,133,7,.5,'#c07965')}
+ R(42,111,10,.5,'#be8b70');R(88,111,9,.5,'#be8b70');R(27,114,1,19,'#d29878');R(107,114,1,19,'#d29878');
  // Woven rug: a softened perspective, border, fringe and a dense geometric weave.
  P([[108,151],[249,151],[262,211],[95,211]],'#4d3431');P([[111,154],[246,154],[257,207],[100,207]],'#b78870');P([[116,158],[241,158],[252,203],[105,203]],'#74484c');P([[119,160],[238,160],[248,201],[109,201]],'#a66a65');
  for(let xx=115;xx<250;xx+=6){R(xx,158,2,.7,'#e2bb97');R(xx-4,202,2,.7,'#e2bb97')}for(let yy=164;yy<198;yy+=7){R(113,yy,132,.6,'#c9967b');for(let xx=121;xx<239;xx+=12){R(xx,yy+2,3,1,'#e0b69a');R(xx+1,yy+1,1,3,'#d7aa8e')}}
+ // Knotted central motifs and fine edging give the rug a woven identity.
+ for(let yy=166;yy<197;yy+=14)for(let xx=133;xx<233;xx+=24){P([[xx,yy-3],[xx+4,yy],[xx,yy+3],[xx-4,yy]],'#d2a38a');P([[xx,yy-1.5],[xx+2,yy],[xx,yy+1.5],[xx-2,yy]],'#82585a')}
+ for(let i=0;i<25;i++){R(109+i*5.5,205,1,2,'#d8b59b');R(113+i*5,155,1,2,'#d8b59b')}
  // Coffee table with hand-worn grain, a book and a warm ceramic cup.
  R(133,135,93,4,'#422b27');R(138,139,5,16,'#4d3027');R(216,139,5,16,'#4d3027');R(136,128,87,8,'#81513b');R(138,129,83,2,'#bf8762');R(141,133,70,.6,'#c6966e');
  for(let i=0;i<18;i++)R(141+rnd()*76,130+rnd()*5,2+rnd()*7,.35,'#63402f');
  R(162,125,15,4,'#e2caa2');R(178,125,15,4,'#cfb48d');R(177,125,1,4,'#6a5040');R(164,126,10,.5,'#a59273');R(181,126,9,.5,'#a59273');R(204,123,7,5,'#e7d1ac');R(211,124,2,2,'#e7d1ac');R(205,123,5,1,'#7c5544');
+ R(162,129,31,.6,'#5c4033');R(164,127,9,.35,'#ab9678');R(181,127,9,.35,'#ab9678');
+ R(209,129,6,.6,'#4e342a');R(205,122,5,.5,'#f4e2bc');R(211,125,2,1,'#b59479');
  // House plants, delicate leaves, ceramic pots and brass lamp.
  const plant=(x,y)=>{R(x-5,y,10,8,'#a9674e');R(x-6,y,12,2,'#d0966e');R(x-1,y-19,1,19,'#476342');for(let k=0;k<7;k++){const py=y-4-k*2,side=k%2?1:-1;P([[x,py],[x+side*(3+k%3),py-5],[x+side*(6+k%3),py-4],[x+side*3,py-1]],k%2?'#70916b':'#527851');R(x+side*3,py-3,1,1,'#8aa97d')}};plant(20,108);plant(340,110);
  R(334,91,2,50,'#4f382e');R(331,139,13,2,'#574033');R(335,93,1,45,'#d1a66f');P([[327,92],[331,77],[339,77],[344,92]],'#d1a776');P([[330,90],[333,79],[338,79],[341,90]],'#f0cf9c');R(329,91,13,2,'#f6dbad');
  // Warm light over the room, subtle so the texture stays readable.
- const glow=h.createRadialGradient(48,113,2,48,113,95);glow.addColorStop(0,'rgba(255,175,85,.12)');glow.addColorStop(1,'rgba(255,175,85,0)');h.fillStyle=glow;h.fillRect(0,34,145,130);
+ const glow=h.createRadialGradient(290,102,2,290,102,90);glow.addColorStop(0,'rgba(255,175,85,.12)');glow.addColorStop(1,'rgba(255,175,85,0)');h.fillStyle=glow;h.fillRect(200,34,160,130);
  return layer;
 }
 function drawHome(){if(!paintedHome)paintedHome=buildHome();g.drawImage(paintedHome,0,0,360,224);
@@ -492,6 +511,7 @@ function drawFrisk(){
  // gentle walking bounce, and an idle breath; the face is never swapped.
  const stride=Math.sin(homeWalk*9)*homeMotion,step=Math.round(stride*2),bob=Math.round(Math.abs(Math.sin(homeWalk*9))*homeMotion),breath=homeMotion<.15&&Math.sin(homeAge*2.1)>.75?1:0;
  g.save();g.translate(Math.round(x),Math.round(y));
+ const D=(xx,yy,w,h,color)=>{g.fillStyle=color;g.fillRect(xx,yy,w,h)};
  g.save();g.globalAlpha=.28;rect(-10,0,20,2,'#181117');rect(-7,2,14,1,'#181117');g.restore();
  if(homeFacing==='left'||homeFacing==='right'){
   if(homeFacing==='right')g.scale(-1,1);
@@ -501,21 +521,38 @@ function drawFrisk(){
   rect(-5,-7+step,5,6,'#342c40');rect(-7,-3+step,7,3,'#31252a');rect(-6,-3+step,4,1,'#795344');
   g.translate(0,-bob);
   rect(-7,-21,13,15,'#292a42');rect(-6,-20,11,13,'#405d83');rect(-5,-19,9,2,'#6184a3');rect(-6,-16,11,3,'#aa6089');rect(-6,-11,11,3,'#a25c86');rect(3,-19,2,11,'#344763');rect(-5,-7,9,1,'#7084a0');
+  // Ribbed knit and a soft seam on the side-facing sweater.
+  for(let yy=-19;yy<-8;yy+=1.5){D(-5,yy,1,.35,'#6687a3');D(2,yy,1,.35,'#344c6d')}
+  D(-6,-16,1.5,.4,'#d78fa8');D(-6,-11,1.5,.4,'#d78fa8');
   rect(-8,-20-step,4,10,'#344968');rect(-8,-18-step,3,2,'#ac688f');rect(-8,-11-step,4,3,'#d9a17d');rect(-7,-11-step,2,1,'#f0c39a');
   // Hair wraps behind the face; the small nose points left.
   rect(-7,-33,13,14,'#302528');rect(-6,-34,10,2,'#35282a');rect(-7,-31,12,12,'#57382e');rect(-5,-28,8,8,'#e5b18a');rect(-7,-27,2,4,'#e5b18a');rect(-5,-23,8,2,'#c99175');rect(-5,-25,2,1,'#50352f');rect(-7,-30,9,3,'#604031');rect(-4,-32,7,2,'#79503a');rect(1,-29,4,10,'#483028');rect(3,-25,2,6,'#392a28');rect(2,-28,1,5,'#8e5c42');
+  // A staggered hairline, small ear and cheek catchlight.
+  D(-6,-31,4,.5,'#9a6a49');D(-3,-32,4,.5,'#936145');D(0,-30,1,2,'#80543d');
+  D(-6,-24,1,1,'#efc19b');D(-4,-22,3,.4,'#b77c67');D(2,-26,1,2,'#c48e72');
  }else{
   const back=homeFacing==='up';
   // Draw both feet separately to make the planted and passing poses readable.
   rect(-6,-8-step,5,7,'#302b3b');rect(1,-8+step,5,7,'#302b3b');rect(-7,-3-step,6,3,'#302329');rect(1,-3+step,6,3,'#302329');rect(-6,-3-step,4,1,'#765142');rect(2,-3+step,4,1,'#765142');
   g.translate(0,-bob-breath);
   rect(-9,-21,18,15,'#292b40');rect(-8,-20,16,13,'#435d82');rect(-7,-19,14,2,'#6889a6');rect(-8,-16,16,3,'#a75e89');rect(-8,-11,16,3,'#a65d87');rect(-8,-7,16,1,'#7891a7');rect(5,-19,2,11,'#374d70');rect(-6,-13,1,2,'#d68bad');
-  rect(-11,-19-step,3,10,'#31415e');rect(-10,-18-step,3,2,'#af6b92');rect(-10,-10-step,3,3,'#dca785');rect(-9,-10-step,2,1,'#f2c79e');
-  rect(8,-19+step,3,10,'#31415e');rect(8,-18+step,3,2,'#af6b92');rect(8,-10+step,3,3,'#c78c70');rect(8,-10+step,2,1,'#e8b896');
+  // Fine woven sweater stitches and a shaped ribbed hem.
+  for(let yy=-19;yy<-7;yy+=1.5){D(-6.5,yy,1,.35,'#6e8da7');D(3.5,yy,1,.35,'#3d5272')}
+  for(let xx=-6;xx<7;xx+=2)D(xx,-7.5,1,.5,'#92a2ad');
+  D(-6,-15.5,3,.4,'#d795ae');D(-6,-10.5,3,.4,'#d28ba9');
+  rect(-11,-19+step,3,10,'#31415e');rect(-10,-18+step,3,2,'#af6b92');rect(-10,-10+step,3,3,'#dca785');rect(-9,-10+step,2,1,'#f2c79e');
+  rect(8,-19-step,3,10,'#31415e');rect(8,-18-step,3,2,'#af6b92');rect(8,-10-step,3,3,'#c78c70');rect(8,-10-step,2,1,'#e8b896');
   // A rounded, layered fringe and longer side locks, with subtle warm highlights.
-  rect(-9,-33,18,14,'#302427');rect(-8,-35,16,3,'#3d2929');rect(-9,-31,18,12,'#5d3a2e');rect(-7,-34,13,2,'#79503a');rect(-8,-30,2,10,'#49302b');rect(6,-30,2,11,'#422c2a');
+  rect(-6,-35,12,1,'#302427');rect(-8,-34,16,2,'#302427');rect(-9,-32,18,12,'#302427');
+  rect(-7,-34,14,2,'#5d3a2e');rect(-8,-32,16,11,'#5d3a2e');rect(-9,-29,3,9,'#4a302b');rect(6,-29,3,9,'#422c2a');rect(-7,-34,13,1,'#79503a');
+  // Step the silhouette in at the crown and separate the hair into locks.
+  D(-9,-33,1,2,'#302427');D(8,-33,1,2,'#302427');D(-6,-34.5,10,.5,'#a06f4d');
+  D(-7,-31,3,.5,'#a1704e');D(-3,-32,3,.5,'#956245');D(2,-32,3,.5,'#916044');
+  D(-8,-27,.5,5,'#83543b');D(7,-27,.5,5,'#6c4936');rect(-8,-30,2,10,'#49302b');rect(6,-30,2,11,'#422c2a');
   if(back){rect(-7,-31,14,12,'#5b3b2f');rect(-5,-32,9,1,'#8e5f43');rect(-5,-29,1,7,'#805239');rect(1,-30,1,8,'#724a36');rect(5,-27,1,7,'#3e2c29');rect(-7,-21,2,2,'#45302a')}
-  else{rect(-6,-29,12,9,'#e8b38a');rect(-6,-22,12,2,'#cb9275');rect(-6,-29,12,2,'#674331');rect(-6,-28,3,2,'#674331');rect(3,-28,3,2,'#674331');rect(-4,-25,3,1,'#50362f');rect(2,-25,3,1,'#50362f');rect(-1,-22,2,1,'#a66760');rect(-6,-23,2,1,'#d99b80');rect(4,-23,2,1,'#d99b80')}
+  else{rect(-6,-29,12,9,'#e8b38a');rect(-6,-22,12,2,'#cb9275');rect(-6,-29,12,2,'#674331');rect(-6,-28,3,2,'#674331');rect(3,-28,3,2,'#674331');rect(-4,-25,3,1,'#50362f');rect(2,-25,3,1,'#50362f');rect(-1,-22,2,1,'#a66760');rect(-6,-23,2,1,'#d99b80');rect(4,-23,2,1,'#d99b80');
+   D(-5.5,-28,3,.5,'#83553c');D(-1,-28,2,.5,'#83553c');D(3,-28,2,.5,'#83553c');
+   D(-4,-24.7,3,.4,'#392c29');D(2,-24.7,3,.4,'#392c29');D(-2,-21,4,.4,'#d49b80')}
  }
  g.restore();
 }
