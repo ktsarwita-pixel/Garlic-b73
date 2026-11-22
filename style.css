@@ -132,3 +132,11 @@ body.main-menu #main-menu{display:flex}
 #main-menu-play:hover,#main-menu-play:focus-visible{background:#ffd883;border-color:#ffe7aa;color:#342a25;outline:none}
 #main-menu-play:active{transform:translateY(2px)}
 #main-menu-play .icon{width:1.15em;height:1.15em;shape-rendering:crispEdges}
+
+/* Mobile / coarse pointers: larger, single-thumb friendly menu */
+@media(max-width:650px),(pointer:coarse){
+  #main-menu{gap:22px}
+  #main-menu h1{font-size:clamp(15px,4.6vw,24px)}
+  #main-menu .main-menu-sub{font-size:8px}
+  #main-menu-play{min-height:48px;padding:12px 22px;letter-spacing:0}
+}
