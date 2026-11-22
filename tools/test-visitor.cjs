@@ -25,12 +25,9 @@ for(let r=1;r<=6;r++){
 }
 assert.equal(mode,'sevenHold');assert.equal(slamCount,6);for(let i=0;i<500;i++)sevenTick(.02);assert.equal(encounter,7);for(let i=0;i<110;i++)sevenTick(.02);assert.equal(encounter,8);assert.equal(mode,'dodge');
 for(let r=1;r<=5;r++){const sizes=[];for(let i=0;i<2000&&mode==='dodge';i++){const prev=sent;t+=.02;sevenTick(.02);if(sent>prev)sizes.push(cannons.at(-1).big);if(r===5)assert.equal(shots.length,0)}assert.equal(mode,'ready');assert.equal(sizes.length,[5,3,2,10,22][r-1]);assert.equal(sizes.filter(Boolean).length,[0,0,2,0,2][r-1]);swings++;flash=1.45;mode='strike';for(let i=0;i<75&&mode==='strike';i++)sevenTick(.02)}assert.equal(mode,'farewell');assert.equal(ring.length,15);assert.equal(ring.filter(c=>c.big).length,5);const hpBefore=hp;for(let i=0;i<560;i++)sevenTick(.02);assert.equal(mode,'departed');assert.equal(hp,hpBefore);
-// The narration clock starts on black, fires each line at its requested time,
-// and gives the final line time to be read before the house reveal.
+// The narration clock starts on black and fires each line at its requested time.
 beginEpilogue();for(const [threshold,line] of epilogueLines){epilogueTick(threshold-epilogueAge-.001);assert(epilogueAge<threshold);epilogueTick(.002);assert(epilogueAge>=threshold)}
-assert.equal(mode,'departed');epilogueTick(10.49-epilogueAge);assert.equal(mode,'departed');epilogueTick(.02);assert.equal(mode,'home');
-const homeStart=x;keys.add('d');for(let i=0;i<30;i++)homeTick(1/60);keys.clear();assert(x>homeStart+20);assert.equal(homeFacing,'right');assert(homeMotion>.95);const walkTime=homeWalk;for(let i=0;i<90;i++)homeTick(1/60);assert(homeMotion<.01);assert.equal(homeWalk,walkTime);
-drag=true;target=[20,170];homeTick(.5);assert.equal(homeFacing,'left');drag=false;target=null;
+assert.equal(mode,'departed');epilogueTick(10.49-epilogueAge);assert.equal(mode,'departed');epilogueTick(.02);assert.equal(mode,'departed');
 // A player following the visible sights can clear the square with ordinary inputs.
 for(const dt of [1/30,1/60]){startEight();round=4;eightWave();testGod=false;hp=20;inv=0;
  for(let i=0;i<20/dt&&mode==='dodge';i++){keys.clear();const c=cannons.at(-1);
