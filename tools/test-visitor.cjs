@@ -29,7 +29,7 @@ for(let r=1;r<=5;r++){const sizes=[];for(let i=0;i<2000&&mode==='dodge';i++){con
 // and gives the final line time to be read before the house reveal.
 beginEpilogue();for(const [threshold,line] of epilogueLines){epilogueTick(threshold-epilogueAge-.001);assert(epilogueAge<threshold);epilogueTick(.002);assert(epilogueAge>=threshold)}
 assert.equal(mode,'departed');epilogueTick(10.49-epilogueAge);assert.equal(mode,'departed');epilogueTick(.02);assert.equal(mode,'home');
-const homeStart=x;keys.add('d');homeTick(.5);keys.clear();assert(x>homeStart);assert.equal(homeFacing,'right');
+const homeStart=x;keys.add('d');for(let i=0;i<30;i++)homeTick(1/60);keys.clear();assert(x>homeStart+20);assert.equal(homeFacing,'right');assert(homeMotion>.95);const walkTime=homeWalk;for(let i=0;i<90;i++)homeTick(1/60);assert(homeMotion<.01);assert.equal(homeWalk,walkTime);
 drag=true;target=[20,170];homeTick(.5);assert.equal(homeFacing,'left');drag=false;target=null;
 // A player following the visible sights can clear the square with ordinary inputs.
 for(const dt of [1/30,1/60]){startEight();round=4;eightWave();testGod=false;hp=20;inv=0;

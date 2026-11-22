@@ -399,7 +399,9 @@ function drawVisitorBone(s){if(s.kind==='corrupt boke'){drawCorruptBoke(s);retur
  for(const d of [1,-1]){const tip=d===1?0:h-1;rect(-1,tip,2,1,'#ddd9df');rect(2,tip,2,1,'#ada6b5');rect(-2,tip+d,7,1,'#998ca4');if(h>4)rect(-1,tip+2*d,5,1,'#786384')}}
 
 // Epilogue time is measured from the first completely black frame, in game time.
-let epilogueAge=0,homeAge=0,homeWalk=0,homeFacing='down';
+let epilogueAge=0,homeAge=0,homeWalk=0,homeMotion=0,homeFacing='down';
+// The home is drawn from primitives and cached as an offscreen canvas; no image assets.
+let paintedHome=null;
 const epilogueLines=[
  [2,'after that you find destroyed the glitching door'],
  [4,'you get out of the hallway'],
@@ -408,48 +410,112 @@ const epilogueLines=[
 ];
 function beginEpilogue(){if(typeof document!=='undefined')document.querySelector('#ending-narration').textContent='';mode='departed';epilogueAge=0;keys.clear();drag=false;target=null;msg('');ui()}
 function epilogueTick(dt){const old=epilogueAge;epilogueAge+=dt;for(const [at,line] of epilogueLines)if(old<at&&epilogueAge>=at){msg(line);if(typeof document!=='undefined')document.querySelector('#ending-narration').textContent=line;}if(epilogueAge>=10.5)enterHome()}
-function enterHome(){mode='home';homeAge=0;homeWalk=0;homeFacing='down';x=180;y=186;keys.clear();drag=false;target=null;msg('Home.');ui()}
+function enterHome(){mode='home';homeAge=0;homeWalk=0;homeMotion=0;homeFacing='down';x=180;y=186;keys.clear();drag=false;target=null;msg('Home.');ui()}
 function homeTick(dt){homeAge+=dt;let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));
  if(drag&&target){dx=target[0]-x;dy=target[1]-y;if(Math.hypot(dx,dy)<3)dx=dy=0}
- const len=Math.hypot(dx,dy);if(len){dx/=len;dy/=len;x=Math.max(19,Math.min(341,x+dx*52*dt));y=Math.max(152,Math.min(211,y+dy*52*dt));homeFacing=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');homeWalk+=dt}else homeWalk=0}
+ const len=Math.hypot(dx,dy);const from=[x,y];if(len){dx/=len;dy/=len;const step=drag&&target?Math.min(len,52*dt):52*dt;x=Math.max(15,Math.min(345,x+dx*step));y=Math.max(169,Math.min(216,y+dy*step));homeFacing=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up')}
+ const moving=Math.hypot(x-from[0],y-from[1])>.001;homeMotion+=(Number(moving)-homeMotion)*Math.min(1,dt*10);if(moving)homeWalk+=dt;}
+
 function drawEpilogue(){rect(0,0,360,224,'#000');if(mode==='home'){g.save();g.globalAlpha=ease(homeAge/1.2);drawHome();g.restore();return}
  g.textAlign='center';g.textBaseline='middle';g.font='6px p, monospace';for(let i=0;i<epilogueLines.length;i++){const [start,line]=epilogueLines[i],age=epilogueAge-start;if(age<0)continue;const fade=ease(age/.28),jitter=age<.48&&Math.floor(age*24)%3===0;g.globalAlpha=fade;if(jitter){g.fillStyle='#713953';g.fillText(line,181+Math.floor(age*19)%3,77+i*19);g.fillStyle='#4d6379';g.fillText(line,178,78+i*19)}g.fillStyle='#eee8e7';g.fillText(line,180,77+i*19);if(jitter){rect(45+(i*57+Math.floor(age*90))%265,75+i*19,8,1,'#b58caf')}}g.globalAlpha=1}
-// A quiet, warm room in the same native pixel grid as the rest of the game.
-function drawHome(){
- rect(0,0,360,224,'#201921');rect(8,6,344,110,'#75514b');rect(12,10,336,101,'#ad8272');
- // Wallpaper: tiny repeated diamond motifs, shaded moulding, and wainscot.
- for(let yy=17;yy<87;yy+=16)for(let xx=19+(yy%32?0:8);xx<344;xx+=16){rect(xx,yy,1,3,'#bc9682');rect(xx-1,yy+1,3,1,'#bc9682')}
- rect(10,86,340,4,'#63413c');rect(10,90,340,21,'#8d5b4e');for(let xx=14;xx<350;xx+=34){rect(xx,93,29,15,'#70483e');rect(xx+2,95,25,11,'#a3705c')}
- rect(8,110,344,5,'#4f302d');rect(8,115,344,109,'#9b6a4c');
- for(let yy=119;yy<224;yy+=13){rect(8,yy,344,1,'#7a4e3d');for(let xx=13+(Math.floor(yy/13)%2)*27;xx<350;xx+=54){rect(xx,yy,1,12,'#835440');if(xx+5<350)rect(xx+5,yy+4,Math.min(22,350-xx-5),1,'#ad7856')}}
- // Broad window with curtains and a distant evening sky.
- rect(130,18,100,69,'#493331');rect(134,22,92,61,'#dbb58e');rect(138,25,84,54,'#526e85');rect(138,54,84,25,'#879b9b');
- poly([[138,72],[153,60],[167,70],[180,58],[194,70],[209,62],[222,72],[222,79],[138,79]],'#576c69');rect(156,35,4,4,'#eddfb7');rect(177,25,4,54,'#e2c5a4');rect(138,51,84,4,'#e2c5a4');
- rect(127,17,7,69,'#5a363b');rect(129,20,7,39,'#894f52');rect(129,57,5,18,'#a96361');rect(226,17,7,69,'#5a363b');rect(224,20,7,39,'#894f52');rect(226,57,5,18,'#a96361');rect(126,15,108,4,'#493331');rect(132,83,96,4,'#e1bd96');
- // Packed bookshelf on the left.
- rect(18,23,72,86,'#49312b');rect(21,26,66,80,'#684538');for(let yy=49;yy<=99;yy+=24){rect(22,yy,64,4,'#432d29');rect(23,yy-1,62,1,'#aa7754')}
- const bookColors=['#bf8d68','#687d76','#ad6157','#c5ac79','#514d68','#8e916d'];for(let row=0;row<3;row++){let xx=25;for(let i=0;i<10;i++){let w=3+(i%3);let h=11+(i*3+row)%8;rect(xx,48+row*24-h,w,h,bookColors[(i+row)%bookColors.length]);rect(xx,49+row*24-h,w,1,'#e0c093');xx+=w+1}}
- rect(22,104,64,4,'#a16d50');
- // Framed little landscape and a wall clock.
- rect(254,23,44,31,'#523a32');rect(257,26,38,25,'#ceaa7e');rect(260,29,32,19,'#7895a0');poly([[260,46],[269,36],[275,42],[282,34],[292,45],[292,48],[260,48]],'#71826f');rect(284,31,3,3,'#f3d8a4');
- rect(310,21,21,22,'#583e33');rect(313,24,15,16,'#e1c79c');rect(320,26,1,7,'#654b3d');rect(320,32,5,1,'#654b3d');
- // Fireplace, mantle, glowing logs and two keepsakes.
- rect(255,67,76,49,'#67463c');rect(250,63,86,6,'#49332d');rect(253,64,80,2,'#bb8868');rect(264,77,58,39,'#b68a6c');rect(269,80,48,36,'#3a2928');rect(272,85,42,28,'#211c23');rect(277,106,30,3,'#795040');poly([[283,106],[280,99],[286,101],[288,91],[294,100],[299,94],[302,104]],'#d77b45');poly([[287,106],[286,101],[290,102],[292,97],[296,104]],'#ffd188');rect(273,110,39,3,'#5a3b32');
- rect(261,53,11,10,'#d5b08b');rect(264,50,5,4,'#799582');rect(313,54,11,9,'#bc896a');rect(316,50,5,5,'#dcbb83');
- // Low sofa and a soft patterned rug.
- rect(27,105,83,38,'#513732');rect(31,100,75,28,'#a9635a');rect(34,103,34,22,'#bd7a6b');rect(70,103,32,22,'#b97165');rect(29,123,79,15,'#a65c54');rect(25,116,9,25,'#70443d');rect(104,116,9,25,'#70443d');rect(31,139,8,6,'#51352e');rect(100,139,8,6,'#51352e');rect(39,107,12,9,'#dfba96');rect(88,107,10,9,'#ddad91');
- rect(115,148,126,57,'#674641');rect(119,151,118,51,'#bd8a76');rect(123,154,110,45,'#a05f62');rect(127,158,102,37,'#b98075');for(let xx=133;xx<227;xx+=13){rect(xx,160,1,33,'#cd9b86');rect(xx+3,174,5,2,'#d5aa91')}rect(126,158,104,1,'#e1b99d');rect(126,194,104,1,'#e1b99d');
- // Coffee table, open book and a cup.
- rect(139,130,79,5,'#51362f');rect(141,125,75,8,'#92654b');rect(145,126,67,2,'#bc8d67');rect(145,135,4,16,'#553a31');rect(208,135,4,16,'#553a31');rect(164,122,14,4,'#e7d3af');rect(178,122,14,4,'#d5bb99');rect(178,122,1,4,'#765b4a');rect(199,120,7,5,'#e0c6a7');rect(206,121,2,2,'#e0c6a7');
- // Plants and a warm standing lamp.
- rect(20,100,12,12,'#a2674e');rect(22,98,8,3,'#d69a70');rect(25,80,2,18,'#5a7553');rect(19,84,7,3,'#719369');rect(25,78,5,8,'#799c71');rect(27,87,7,3,'#547d58');
- rect(335,90,3,49,'#4e3a32');rect(329,138,15,3,'#4e3a32');poly([[330,91],[334,77],[341,77],[345,91]],'#e1bb85');rect(332,89,11,2,'#fff0bb');
- drawFrisk();
+// The furnishings and texture are all drawn by code; no external image assets.
+function buildHome(){
+ const layer=document.createElement('canvas');layer.width=1080;layer.height=672;const h=layer.getContext('2d');h.scale(3,3);h.imageSmoothingEnabled=false;
+ const R=(x,y,w,z,color)=>{h.fillStyle=color;h.fillRect(x,y,w,z)},P=(points,color)=>{h.fillStyle=color;h.beginPath();points.forEach(([x,y],i)=>i?h.lineTo(x,y):h.moveTo(x,y));h.closePath();h.fill()};
+ let seed=483971;const rnd=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+ // Walls, handmade plaster, faded floral paper and timber wainscoting.
+ R(0,0,360,224,'#241b1c');R(3,4,354,111,'#58413a');R(6,7,348,92,'#9b7566');R(7,8,346,86,'#ad8875');
+ for(let i=0;i<850;i++){const x=7+Math.floor(rnd()*345),y=8+Math.floor(rnd()*85);R(x,y,1+rnd()*2,.45,rnd()>.5?'#b8927e':'#a17a6a')}
+ for(let y=13;y<89;y+=14)for(let x=12+(Math.floor(y/14)%2)*7;x<352;x+=14){R(x,y,1,3,'#ba9783');R(x-1,y+1,3,1,'#ba9783');R(x+1,y-2,.5,1,'#997766')}
+ R(5,91,350,3,'#53382f');R(5,94,350,20,'#805549');R(5,93,350,1,'#d4a17c');
+ for(let x=9;x<351;x+=32){R(x,96,27,15,'#593a31');R(x+1,97,25,13,'#a16f59');R(x+2,98,23,11,'#95634f');R(x+3,99,21,.5,'#c18b6b')}
+ R(4,112,352,4,'#4a302b');R(4,115,352,1,'#d6a177');
+ // Timber floor with offset joints, fine grain and warm wear.
+ R(0,116,360,108,'#906047');for(let y=117,row=0;y<224;y+=11,row++){
+ R(0,y,360,1,'#56382e');R(0,y+1,360,.5,'#c08a64');for(let x=(row%2?-18:4);x<360;x+=51){R(x,y,1,11,'#684532');R(x+1,y+2,36,.5,'#a87657');R(x+8,y+7,21,.5,'#77503e');R(x+30,y+5,13,.5,'#b58261')}}
+ for(let i=0;i<850;i++){const xx=Math.floor(rnd()*360),yy=117+Math.floor(rnd()*107);R(xx,yy,1+rnd()*5,.35,rnd()>.5?'#a57555':'#79503e')}
+ // Ceiling lintel and shadow.
+ R(0,0,360,7,'#3c2926');R(0,7,360,2,'#6a4739');R(0,9,360,1,'#d0a07d');
+ // Window: layered frame, distant forest, individual trees and sky.
+ R(121,15,118,78,'#3c2b29');R(125,19,110,70,'#c9a17b');R(129,23,102,61,'#465a6d');
+ R(131,25,98,24,'#667c8b');R(131,49,98,34,'#6f8782');
+ for(let i=0;i<15;i++){const px=130+i*7,tip=52+(i*7%15);P([[px-4,82],[px+3,tip],[px+9,82]],i%2?'#516d68':'#5b766d');R(px+3,tip+6,1,Math.max(0,82-tip-6),'#526a62')}
+ R(131,81,98,2,'#485f55');R(178,23,4,61,'#d6b08a');R(130,49,100,3,'#d6b08a');R(128,84,104,4,'#e1bc91');R(126,88,108,3,'#5a3a30');
+ // Drapes with pleats, ties and hem.
+ R(119,14,122,3,'#3e2926');R(123,15,114,1,'#b58262');P([[124,18],[137,18],[136,64],[132,80],[122,87]],'#743d40');P([[236,18],[223,18],[224,64],[228,80],[238,87]],'#743d40');
+ for(let xx=125;xx<=135;xx+=3){R(xx,19,1,43,xx%2?'#a7605b':'#8c4a4b');R(360-xx,19,1,43,xx%2?'#a7605b':'#8c4a4b')};R(124,65,11,3,'#d2a174');R(225,65,11,3,'#d2a174');
+ // Lamp and hearth light softly tint the plaster without obscuring the texture.
+ let lamp=h.createRadialGradient(334,86,0,334,86,67);lamp.addColorStop(0,'rgba(255,211,141,.12)');lamp.addColorStop(1,'rgba(255,194,125,0)');h.fillStyle=lamp;h.fillRect(268,20,92,125);
+ // Built-in shelves, fine edged wood, dozens of unique little books.
+ R(12,19,80,94,'#3b2a27');R(15,21,74,90,'#6b4534');R(18,24,68,83,'#412e2a');
+ for(let j=0;j<3;j++){const sy=49+j*24;R(17,sy,70,4,'#8c5b40');R(17,sy,70,1,'#d09b70');let bx=20;while(bx<82){const bw=2+Math.floor(rnd()*4),bh=9+Math.floor(rnd()*12),cols=['#b26252','#858d70','#c6a474','#637f81','#77718a','#b08362','#c3b79d'];R(bx,sy-bh,bw,bh,cols[Math.floor(rnd()*cols.length)]);R(bx,sy-bh,bw,.7,'#e2c096');if(bw>3)R(bx+1,sy-bh+3,.5,bh-5,'#5e5145');bx+=bw+1}}
+ R(15,108,74,4,'#b47b55');R(17,111,70,2,'#4b3029');
+ // Framed landscape and an old round wall clock, both offset from the fireplace.
+ R(250,18,42,32,'#382823');R(252,20,38,28,'#ab805e');R(255,23,32,22,'#d8b187');R(257,25,28,18,'#779097');P([[257,42],[264,34],[269,39],[277,31],[285,40],[285,43]],'#677961');R(280,27,2,2,'#f2d79e');
+ R(304,18,26,29,'#49332a');R(306,20,22,25,'#a57855');R(309,23,16,19,'#ead0a6');R(316,25,1,8,'#65483c');R(316,32,5,1,'#65483c');R(311,24,2,1,'#886e54');R(323,40,1,1,'#886e54');
+ // Fireplace: irregular masonry blocks, soot, iron grate and mantel ornaments.
+ R(249,63,88,51,'#49322d');R(251,65,84,47,'#9d7961');
+ for(let yy=67,row=0;yy<112;yy+=8,row++)for(let xx=252-(row%2)*5;xx<334;xx+=10){R(xx,yy,9,7,(row+Math.floor(xx/10))%3?'#9c7964':'#b08b70');R(xx+1,yy+1,6,.5,'#c3a184');R(xx+1,yy+5,4,.5,'#816352')}
+ R(264,77,58,37,'#59443a');R(268,79,50,35,'#211a1b');R(271,83,44,28,'#2d1c1a');
+ R(250,60,87,6,'#3c2925');R(253,61,81,2,'#bd8a62');R(246,113,94,4,'#553930');R(249,113,88,1,'#d0a27d');
+ R(270,108,46,2,'#1b1818');for(let xx=274;xx<315;xx+=7)R(xx,100,1,10,'#332b29');R(272,105,42,1,'#302624');
+ R(258,50,11,10,'#4c342e');R(260,51,7,8,'#cba782');R(261,53,5,5,'#7b8d7e');R(320,52,9,8,'#b48664');R(323,48,4,4,'#788c77');
+ // Sofa: back cushions, curved arms, seam, worn highlights and cushions.
+ P([[24,110],[27,97],[34,94],[100,94],[108,98],[112,113],[111,141],[24,141]],'#4a302b');
+ R(29,98,75,25,'#a86553');R(31,99,34,22,'#b67865');R(67,99,34,22,'#b47361');R(32,100,32,1,'#d99b80');R(68,100,32,1,'#d99b80');
+ R(28,120,79,18,'#a95f50');R(32,121,70,2,'#d78f72');R(32,132,70,1,'#874d42');R(31,138,8,6,'#4d3029');R(99,138,8,6,'#4d3029');
+ P([[24,112],[28,107],[34,109],[35,137],[25,138]],'#79483c');P([[112,112],[108,107],[102,109],[101,137],[111,138]],'#79483c');R(26,111,2,21,'#c18268');R(108,111,2,21,'#c18268');
+ P([[38,104],[52,102],[56,115],[40,118]],'#d2a582');P([[84,104],[96,102],[100,115],[86,118]],'#d7b28d');R(41,105,10,1,'#ebc8a4');R(87,105,9,1,'#f0cba1');
+ // Woven rug: a softened perspective, border, fringe and a dense geometric weave.
+ P([[108,151],[249,151],[262,211],[95,211]],'#4d3431');P([[111,154],[246,154],[257,207],[100,207]],'#b78870');P([[116,158],[241,158],[252,203],[105,203]],'#74484c');P([[119,160],[238,160],[248,201],[109,201]],'#a66a65');
+ for(let xx=115;xx<250;xx+=6){R(xx,158,2,.7,'#e2bb97');R(xx-4,202,2,.7,'#e2bb97')}for(let yy=164;yy<198;yy+=7){R(113,yy,132,.6,'#c9967b');for(let xx=121;xx<239;xx+=12){R(xx,yy+2,3,1,'#e0b69a');R(xx+1,yy+1,1,3,'#d7aa8e')}}
+ // Coffee table with hand-worn grain, a book and a warm ceramic cup.
+ R(133,135,93,4,'#422b27');R(138,139,5,16,'#4d3027');R(216,139,5,16,'#4d3027');R(136,128,87,8,'#81513b');R(138,129,83,2,'#bf8762');R(141,133,70,.6,'#c6966e');
+ for(let i=0;i<18;i++)R(141+rnd()*76,130+rnd()*5,2+rnd()*7,.35,'#63402f');
+ R(162,125,15,4,'#e2caa2');R(178,125,15,4,'#cfb48d');R(177,125,1,4,'#6a5040');R(164,126,10,.5,'#a59273');R(181,126,9,.5,'#a59273');R(204,123,7,5,'#e7d1ac');R(211,124,2,2,'#e7d1ac');R(205,123,5,1,'#7c5544');
+ // House plants, delicate leaves, ceramic pots and brass lamp.
+ const plant=(x,y)=>{R(x-5,y,10,8,'#a9674e');R(x-6,y,12,2,'#d0966e');R(x-1,y-19,1,19,'#476342');for(let k=0;k<7;k++){const py=y-4-k*2,side=k%2?1:-1;P([[x,py],[x+side*(3+k%3),py-5],[x+side*(6+k%3),py-4],[x+side*3,py-1]],k%2?'#70916b':'#527851');R(x+side*3,py-3,1,1,'#8aa97d')}};plant(20,108);plant(340,110);
+ R(334,91,2,50,'#4f382e');R(331,139,13,2,'#574033');R(335,93,1,45,'#d1a66f');P([[327,92],[331,77],[339,77],[344,92]],'#d1a776');P([[330,90],[333,79],[338,79],[341,90]],'#f0cf9c');R(329,91,13,2,'#f6dbad');
+ // Warm light over the room, subtle so the texture stays readable.
+ const glow=h.createRadialGradient(48,113,2,48,113,95);glow.addColorStop(0,'rgba(255,175,85,.12)');glow.addColorStop(1,'rgba(255,175,85,0)');h.fillStyle=glow;h.fillRect(0,34,145,130);
+ return layer;
 }
-function drawFrisk(){const moving=homeWalk>0,step=moving?Math.floor(homeWalk*7)%2:0;g.save();g.translate(Math.round(x),Math.round(y));rect(-8,1,16,3,'#6f4d3f');
- // Feet and short legs, animated without changing the silhouette at rest.
- rect(-6,-5,5,6,'#392e3d');rect(1,-5,5,6,'#392e3d');rect(-7,-2+(step?1:0),6,3,'#3b2b2d');rect(1,-2+(step?0:1),6,3,'#3b2b2d');
- rect(-8,-18,16,13,'#2e405d');rect(-7,-17,14,11,'#557aa4');rect(-7,-15,14,2,'#b86d9d');rect(-7,-10,14,2,'#bc739f');rect(-10,-16,3,9,'#54799b');rect(7,-16,3,9,'#54799b');rect(-10,-9,3,3,'#dfad84');rect(7,-9,3,3,'#dfad84');
- rect(-8,-29,16,13,'#533831');rect(-9,-26,18,7,'#624033');rect(-7,-25,14,9,'#e3b287');rect(-7,-29,14,6,'#6b4938');rect(-8,-25,3,8,'#684637');rect(5,-25,3,8,'#684637');rect(-6,-28,4,1,'#92654a');
- if(homeFacing==='down'){rect(-4,-21,3,1,'#533a31');rect(2,-21,3,1,'#533a31');rect(-1,-18,2,1,'#a56e60')}else if(homeFacing==='up'){rect(-7,-26,14,10,'#684637');rect(-5,-25,10,2,'#79513d')}else{rect(homeFacing==='left'?-5:4,-21,2,1,'#533a31')}
- g.restore()}
+function drawHome(){if(!paintedHome)paintedHome=buildHome();g.drawImage(paintedHome,0,0,360,224);
+ // A restrained procedural flame, with an independently timed ember.
+ const flicker=Math.sin(homeAge*7)>0?1:0;
+ poly([[276,107],[277,99],[281,102],[283,92-flicker],[288,101],[291,96],[294,104],[298,101],[301,108]],'#bd592f');
+ poly([[280,107],[282,101],[285,103],[287,96+flicker],[291,104],[294,101],[296,108]],'#f3a14f');
+ poly([[285,108],[286,103],[288,105],[290,100+flicker],[293,108]],'#ffe2a0');
+ rect(273,110,41,2,'#302322');drawFrisk()}
+function drawFrisk(){
+ // Four-direction pixel actor: a planted shadow, opposite arm/leg swing, a
+ // gentle walking bounce, and an idle breath; the face is never swapped.
+ const stride=Math.sin(homeWalk*9)*homeMotion,step=Math.round(stride*2),bob=Math.round(Math.abs(Math.sin(homeWalk*9))*homeMotion),breath=homeMotion<.15&&Math.sin(homeAge*2.1)>.75?1:0;
+ g.save();g.translate(Math.round(x),Math.round(y));
+ g.save();g.globalAlpha=.28;rect(-10,0,20,2,'#181117');rect(-7,2,14,1,'#181117');g.restore();
+ if(homeFacing==='left'||homeFacing==='right'){
+  if(homeFacing==='right')g.scale(-1,1);
+  // Far arm and leg precede the body so the walk stays articulated.
+  rect(1,-17+step,5,10,'#292d46');rect(2,-10+step,4,3,'#b97e65');
+  rect(0,-7-step,5,6,'#292639');rect(-1,-3-step,7,3,'#29232b');rect(0,-3-step,4,1,'#6a493e');
+  rect(-5,-7+step,5,6,'#342c40');rect(-7,-3+step,7,3,'#31252a');rect(-6,-3+step,4,1,'#795344');
+  g.translate(0,-bob);
+  rect(-7,-21,13,15,'#292a42');rect(-6,-20,11,13,'#405d83');rect(-5,-19,9,2,'#6184a3');rect(-6,-16,11,3,'#aa6089');rect(-6,-11,11,3,'#a25c86');rect(3,-19,2,11,'#344763');rect(-5,-7,9,1,'#7084a0');
+  rect(-8,-20-step,4,10,'#344968');rect(-8,-18-step,3,2,'#ac688f');rect(-8,-11-step,4,3,'#d9a17d');rect(-7,-11-step,2,1,'#f0c39a');
+  // Hair wraps behind the face; the small nose points left.
+  rect(-7,-33,13,14,'#302528');rect(-6,-34,10,2,'#35282a');rect(-7,-31,12,12,'#57382e');rect(-5,-28,8,8,'#e5b18a');rect(-7,-27,2,4,'#e5b18a');rect(-5,-23,8,2,'#c99175');rect(-5,-25,2,1,'#50352f');rect(-7,-30,9,3,'#604031');rect(-4,-32,7,2,'#79503a');rect(1,-29,4,10,'#483028');rect(3,-25,2,6,'#392a28');rect(2,-28,1,5,'#8e5c42');
+ }else{
+  const back=homeFacing==='up';
+  // Draw both feet separately to make the planted and passing poses readable.
+  rect(-6,-8-step,5,7,'#302b3b');rect(1,-8+step,5,7,'#302b3b');rect(-7,-3-step,6,3,'#302329');rect(1,-3+step,6,3,'#302329');rect(-6,-3-step,4,1,'#765142');rect(2,-3+step,4,1,'#765142');
+  g.translate(0,-bob-breath);
+  rect(-9,-21,18,15,'#292b40');rect(-8,-20,16,13,'#435d82');rect(-7,-19,14,2,'#6889a6');rect(-8,-16,16,3,'#a75e89');rect(-8,-11,16,3,'#a65d87');rect(-8,-7,16,1,'#7891a7');rect(5,-19,2,11,'#374d70');rect(-6,-13,1,2,'#d68bad');
+  rect(-11,-19-step,3,10,'#31415e');rect(-10,-18-step,3,2,'#af6b92');rect(-10,-10-step,3,3,'#dca785');rect(-9,-10-step,2,1,'#f2c79e');
+  rect(8,-19+step,3,10,'#31415e');rect(8,-18+step,3,2,'#af6b92');rect(8,-10+step,3,3,'#c78c70');rect(8,-10+step,2,1,'#e8b896');
+  // A rounded, layered fringe and longer side locks, with subtle warm highlights.
+  rect(-9,-33,18,14,'#302427');rect(-8,-35,16,3,'#3d2929');rect(-9,-31,18,12,'#5d3a2e');rect(-7,-34,13,2,'#79503a');rect(-8,-30,2,10,'#49302b');rect(6,-30,2,11,'#422c2a');
+  if(back){rect(-7,-31,14,12,'#5b3b2f');rect(-5,-32,9,1,'#8e5f43');rect(-5,-29,1,7,'#805239');rect(1,-30,1,8,'#724a36');rect(5,-27,1,7,'#3e2c29');rect(-7,-21,2,2,'#45302a')}
+  else{rect(-6,-29,12,9,'#e8b38a');rect(-6,-22,12,2,'#cb9275');rect(-6,-29,12,2,'#674331');rect(-6,-28,3,2,'#674331');rect(3,-28,3,2,'#674331');rect(-4,-25,3,1,'#50362f');rect(2,-25,3,1,'#50362f');rect(-1,-22,2,1,'#a66760');rect(-6,-23,2,1,'#d99b80');rect(4,-23,2,1,'#d99b80')}
+ }
+ g.restore();
+}
