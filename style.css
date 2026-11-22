@@ -125,9 +125,8 @@ body.epilogue .world #scene{width:min(100cqw,160.714cqh);height:auto;max-height:
 body.main-menu main{display:none}
 #veil{position:fixed;inset:0;z-index:60;background:#000;opacity:0;pointer-events:none;transition:opacity .48s ease;will-change:opacity}
 #veil.on{opacity:1;pointer-events:all}
-#main-menu{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,2.4vh,22px);overflow:hidden;background:radial-gradient(120% 90% at 50% 34%,#1c1626 0%,#100d18 42%,#07060c 78%,#030308 100%);text-align:center;padding:5vw}
+#main-menu{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,2.4vh,22px);overflow:hidden;background:#000;text-align:center;padding:5vw}
 body.main-menu #main-menu{display:flex}
-body.main-menu #main-menu .menu-scan{transform:translate3d(0,-60px,0);animation:scanDrift 9s linear infinite}
 body.main-menu #main-menu>:is(.menu-eyebrow,h1,.menu-rule,.main-menu-sub,#main-menu-play,.menu-hint,.menu-foot){animation:riseIn .72s cubic-bezier(.2,.8,.25,1) backwards}
 body.main-menu #main-menu .menu-eyebrow{animation-delay:.06s}
 body.main-menu #main-menu h1{animation-delay:.16s}
@@ -136,9 +135,6 @@ body.main-menu #main-menu .main-menu-sub{animation-delay:.38s}
 body.main-menu #main-menu #main-menu-play{animation-delay:.48s}
 body.main-menu #main-menu .menu-hint{animation-delay:.58s}
 body.main-menu #main-menu .menu-foot{animation-delay:.68s}
-#main-menu .menu-scan{position:absolute;inset:-60px 0 0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(190,160,235,.045) 0 1px,transparent 1px 4px);mix-blend-mode:screen}
-#main-menu .menu-fog{position:absolute;inset:0;pointer-events:none;background:radial-gradient(70% 46% at 50% 66%,rgba(150,110,190,.12),transparent 70%);animation:fogShift 7s ease-in-out infinite alternate}
-#main-menu .menu-vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 130% at 50% 45%,transparent 46%,rgba(0,0,0,.55) 78%,rgba(0,0,0,.88) 100%)}
 #main-menu .menu-eyebrow{position:relative;display:flex;align-items:center;gap:14px;margin:0;color:#d9c493;font:10px p;letter-spacing:5px;text-transform:uppercase;text-shadow:2px 2px #000}
 #main-menu .menu-eyebrow .icon{width:13px;height:13px;shape-rendering:crispEdges;color:#e8c476;animation:starFlicker 2.4s steps(2) infinite}
 #main-menu .menu-eyebrow .icon:last-child{animation-delay:1.2s}
@@ -159,8 +155,6 @@ body.main-menu #main-menu .menu-foot{animation-delay:.68s}
 #main-menu .menu-hint b{color:#d9d3e4;font-weight:400}
 #main-menu .menu-foot{position:relative;margin:18px 0 0;color:#5f5a6d;font:8px monospace;letter-spacing:2px;text-transform:uppercase}
 @keyframes riseIn{from{opacity:0;transform:translateY(22px) scale(.97);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
-@keyframes scanDrift{from{transform:translate3d(0,-60px,0)}to{transform:translate3d(0,60px,0)}}
-@keyframes fogShift{from{transform:translateY(2%) scaleX(1.05)}to{transform:translateY(-3%) scaleX(1.14)}}
 @keyframes alight{0%,100%{text-shadow:0 0 24px rgba(127,215,201,.3),3px 3px #0d2430,6px 6px #000}50%{text-shadow:0 0 42px rgba(127,215,201,.5),3px 3px #0d2430,6px 6px #000}}
 @keyframes flick{0%,92%,96%,100%{opacity:1}94%{opacity:.28}97.5%{opacity:.55}}
 @keyframes starFlicker{0%,72%,100%{opacity:1}76%{opacity:.15}84%{opacity:.9}}
@@ -177,9 +171,8 @@ body.main-menu #main-menu .menu-foot{animation-delay:.68s}
   #main-menu-play{min-height:52px;padding:14px 30px;letter-spacing:1px}
 }
 @media(prefers-reduced-motion:reduce){
-  #main-menu .menu-scan{animation:none;transform:none}
   body.main-menu #main-menu>:is(.menu-eyebrow,h1,.menu-rule,.main-menu-sub,#main-menu-play,.menu-hint,.menu-foot){animation:none}
-  #main-menu h1 em,#main-menu h1 em::after,#main-menu .menu-eyebrow .icon,#main-menu h1 .menu-first,#main-menu .menu-fog,#main-menu .menu-hint{animation:none}
+  #main-menu h1 em,#main-menu h1 em::after,#main-menu .menu-eyebrow .icon,#main-menu h1 .menu-first,#main-menu .menu-hint{animation:none}
   #veil{transition:none}
 }
 }

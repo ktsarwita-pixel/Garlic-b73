@@ -413,4 +413,17 @@ function beginEpilogue(){withVeil(()=>{if(typeof document!=='undefined')document
 function epilogueTick(dt){const old=epilogueAge;epilogueAge+=dt;for(const [at,line] of epilogueLines)if(old<at&&epilogueAge>=at){msg(line);if(typeof document!=='undefined')document.querySelector('#ending-narration').textContent=line;}}
 
 function drawEpilogue(){rect(0,0,360,224,'#000');
- g.textAlign='center';g.textBaseline='middle';g.font='6px p, monospace';if(epilogueAge>=11){const touch=typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches;const vis=ease(Math.min(1,(epilogueAge-11)/.55)),pulse=.58+.42*Math.sin(t*2.6);g.globalAlpha=vis*pulse;g.fillStyle='#a8a29a';g.fillText(touch?'TAP ANYWHERE':'PRESS ANYTHING',180,101);g.fillText('TO GO TO THE MAIN MENU',180,117);g.globalAlpha=1;return}for(let i=0;i<epilogueLines.length;i++){const [start,line]=epilogueLines[i],age=epilogueAge-start;if(age<0)continue;const fade=ease(age/.28),jitter=age<.48&&Math.floor(age*24)%3===0;g.globalAlpha=fade;if(jitter){g.fillStyle='#713953';g.fillText(line,181+Math.floor(age*19)%3,77+i*19);g.fillStyle='#4d6379';g.fillText(line,178,78+i*19)}g.fillStyle='#eee8e7';g.fillText(line,180,77+i*19);if(jitter){rect(45+(i*57+Math.floor(age*90))%265,75+i*19,8,1,'#b58caf')}}g.globalAlpha=1}
+ g.textAlign='center';g.textBaseline='middle';g.font='6px p, monospace';
+ // Lines rise in with a glitch fade, then each one melts away line by line
+ // (newest first) well before the prompt takes over.
+ const fadeOutStart=9.05,fadeOutDur=1.1;
+ for(let i=0;i<epilogueLines.length;i++){const [start,line]=epilogueLines[i],age=epilogueAge-start;if(age<0)continue;
+  const fade=ease(age/.28),fadeOut=Math.max(0,1-ease((epilogueAge-fadeOutStart-(epilogueLines.length-1-i)*.18)/fadeOutDur));
+  const alpha=fade*fadeOut;if(alpha<=0.01)continue;
+  const jitter=age<.48&&Math.floor(age*24)%3===0;
+  g.globalAlpha=alpha;
+  if(jitter){g.fillStyle='#713953';g.fillText(line,181+Math.floor(age*19)%3,77+i*19);g.fillStyle='#4d6379';g.fillText(line,178,78+i*19)}
+  g.fillStyle='#eee8e7';g.fillText(line,180,77+i*19);
+  if(jitter){rect(45+(i*57+Math.floor(age*90))%265,75+i*19,8,1,'#b58caf')}
+ }g.globalAlpha=1;
+ if(epilogueAge>=11){const touch=typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches;const vis=ease(Math.min(1,(epilogueAge-11)/.55)),pulse=.58+.42*Math.sin(t*2.6);g.globalAlpha=vis*pulse;g.fillStyle='#a8a29a';g.fillText(touch?'TAP ANYWHERE':'PRESS ANYTHING',180,101);g.fillText('TO GO TO THE MAIN MENU',180,117);g.globalAlpha=1}}
