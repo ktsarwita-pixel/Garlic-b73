@@ -529,27 +529,25 @@ function drawHome(){if(!paintedHome)paintedHome=buildHome();g.drawImage(paintedH
  rect(44,110,44,2,'#302322');drawFrisk()}
 // Frisk is a hand-pixeled 24x42 atlas: swept fringe, striped sweater, denim
 // and boots, drawn 1:1 so every pixel stays square.
-const friskPixelPalette={k:'#241d24',h:'#4a3026',H:'#6b4633',l:'#8f6146',s:'#f0c097',S:'#cf9b76',E:'#2f2426',b:'#476c91',B:'#6b8fab',d:'#304864',p:'#ad638c',P:'#d18ca6',n:'#2c2d3c',N:'#45465c',o:'#39282a',t:'#8a5a41',v:'#3d5b79',m:'#a56b60'};
-const friskSideHead=[
-'......kkkkkkkkk......',
+const friskPixelPalette={k:'#221a20',h:'#3a2419',H:'#5f3a28',l:'#7d5340',s:'#f7d44f',S:'#d4a93a',E:'#2f2426',b:'#6ba4de',B:'#8ec5f4',d:'#2f4a6b',p:'#c73a92',P:'#e861b3',n:'#2b2d40',N:'#45465c',o:'#3a2a24',t:'#8a5a41',v:'#3d5b79',m:'#5a4030'};
+const friskSideHead=['......kkkkkkkkk......',
 '....kkHHHHHHHHHkk....',
 '...kHHHllHHHHHHHk....',
 '..kHHHllHHHHHHHHHk...',
 '..kHHHHHHHHHHHHHHk...',
 '..kHhHHHHHHHHHHHHk...',
+'..khssssHHHHHHHHHk...',
 '..khssssssHHHHHHHk...',
-'..khssssssssHHHHHk...',
 '..khsssEEssssHHHHk...',
 '..khssssssssHHHHHk...',
 '.khssssssssssHHHHk...',
 '.khssssssssssSHHHk...',
-'..kssmmssssssHHHHk...',
+'..kssssssssssHHHHk...',
 '..kssssssssSSHHHHk...',
 '..ksssssssSSSHHHHk...',
 '...ksssssssSSHHHHk...',
 '....kssssssSHHHHk....',
-'.....kkkssskkkkk.....'
-];
+'.....kkkssskkkkk.....'];
 const friskSideTorso=[
 '...kkkkkkkkkkkk...',
 '..kbbBBBBBBBBddk..',
@@ -612,8 +610,7 @@ function drawFriskSide(){if(!friskSideFrames)friskSideFrames=buildFriskSideFrame
 
 // Front/back share the sweater grid, shifted a pixel for the frontal
 // silhouette, with their own heads so Frisk keeps one size when turning.
-const friskFrontHead=[
-'.......kkkkkkkk.......',
+const friskFrontHead=['.......kkkkkkkk.......',
 '.....kkHHHHHHHHkk.....',
 '....kHHHHllllHHHHk....',
 '...kHHHHHHHHHHHHHHk...',
@@ -623,15 +620,14 @@ const friskFrontHead=[
 '..kHHssssssssssssHHk..',
 '..kHssEEssssssEEssHk..',
 '..kHssssssssssssssHk..',
-'..kHsssssSssSsssssHk..',
+'..kHssssssssssssssHk..',
 '..kHssssssssssssssHk..',
 '..kHssssssmmssssssHk..',
 '...kssssssssssssssk...',
-'...kssssssSsssssssk...',
+'...kssssssssssssssk...',
 '....kssssssssssssk....',
-'....kssssssSSssssk....',
-'......kkkssssskkk.....'
-];
+'....kssssssssssssk....',
+'......kkkssssskkk.....'];
 const friskBackHead=[
 '.......kkkkkkkk.......',
 '.....kkHHHHHHHHkk.....',
