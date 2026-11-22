@@ -529,25 +529,27 @@ function drawHome(){if(!paintedHome)paintedHome=buildHome();g.drawImage(paintedH
  rect(44,110,44,2,'#302322');drawFrisk()}
 // Frisk is a hand-pixeled 24x42 atlas: swept fringe, striped sweater, denim
 // and boots, drawn 1:1 so every pixel stays square.
-const friskPixelPalette={k:'#221a20',h:'#3a2419',H:'#5f3a28',l:'#7d5340',s:'#f7d44f',S:'#d4a93a',E:'#2f2426',b:'#6ba4de',B:'#8ec5f4',d:'#2f4a6b',p:'#c73a92',P:'#e861b3',n:'#2b2d40',N:'#45465c',o:'#3a2a24',t:'#8a5a41',v:'#3d5b79',m:'#5a4030'};
-const friskSideHead=['......kkkkkkkkk......',
-'....kkHHHHHHHHHkk....',
-'...kHHHllHHHHHHHk....',
-'..kHHHllHHHHHHHHHk...',
-'..kHHHHHHHHHHHHHHk...',
-'..kHhHHHHHHHHHHHHk...',
-'..khssssHHHHHHHHHk...',
-'..khssssssHHHHHHHk...',
-'..khsssEEssssHHHHk...',
-'..khssssssssHHHHHk...',
-'.khssssssssssHHHHk...',
-'.khssssssssssSHHHk...',
-'..kssssssssssHHHHk...',
-'..kssssssssSSHHHHk...',
-'..ksssssssSSSHHHHk...',
-'...ksssssssSSHHHHk...',
-'....kssssssSHHHHk....',
-'.....kkkssskkkkk.....'];
+const friskPixelPalette={k:'#221a20',h:'#38211c',H:'#5a352c',l:'#74493b',s:'#f7d44f',S:'#d4a93a',E:'#2f2426',b:'#6ba4de',B:'#8ec5f4',d:'#2f4a6b',p:'#c73a92',P:'#e861b3',n:'#2b2d40',N:'#45465c',o:'#3a2a24',t:'#8a5a41',v:'#3d5b79',m:'#5a4030'};
+const friskSideHead=[
+'......kkkkkkkkk......',
+'....kkkHHHHHHHkkk....',
+'...kkHHHHHHHHHHHkk...',
+'..kkHHHHHHHHHHHHHkk..',
+'..kHHHHHHHHHHHHHHHk..',
+'..kHHhhhhhhhhhhhhHk..',
+'..khsssssHHHHHHHHHHk.',
+'..khsssssssHHHHHHHHk.',
+'..khssEEsssssHHHHHHk.',
+'..khssssssssssHHHHHk.',
+'..khsssssssssssHHHHk.',
+'..khsssssssssssHHHHk.',
+'..khsssssssssssHHHHk.',
+'..khssssssssssHHHHHk.',
+'..khssssssssHHHHHHHk.',
+'..khssssssHHHHHHHHHk.',
+'..khssssHHHHHHHHHHHk.',
+'..kkssskkkkkkkkkkkkk.'
+];
 const friskSideTorso=[
 '...kkkkkkkkkkkk...',
 '..kbbBBBBBBBBddk..',
@@ -610,43 +612,45 @@ function drawFriskSide(){if(!friskSideFrames)friskSideFrames=buildFriskSideFrame
 
 // Front/back share the sweater grid, shifted a pixel for the frontal
 // silhouette, with their own heads so Frisk keeps one size when turning.
-const friskFrontHead=['.......kkkkkkkk.......',
+const friskFrontHead=[
+'.......kkkkkkkk.......',
 '.....kkHHHHHHHHkk.....',
-'....kHHHHllllHHHHk....',
-'...kHHHHHHHHHHHHHHk...',
+'...kkHHHHHHHHHHHHkk...',
+'..kkHHHHHHHHHHHHHHkk..',
 '..kHHHHHHHHHHHHHHHHk..',
 '..kHHhhhhhhhhhhhhHHk..',
-'..kHHhssssssssssHHHk..',
-'..kHHssssssssssssHHk..',
-'..kHssEEssssssEEssHk..',
-'..kHssssssssssssssHk..',
-'..kHssssssssssssssHk..',
-'..kHssssssssssssssHk..',
-'..kHssssssmmssssssHk..',
-'...kssssssssssssssk...',
-'...kssssssssssssssk...',
-'....kssssssssssssk....',
-'....kssssssssssssk....',
-'......kkkssssskkk.....'];
+'..kHHHssssssssssHHHk..',
+'..kHHHssssssssssHHHk..',
+'..kHHHssEEssEEssHHHk..',
+'..kHHHssssssssssHHHk..',
+'..kHHHssssssssssHHHk..',
+'..kHHHssssssssssHHHk..',
+'..kHHHssssmmssssHHHk..',
+'...kHHssssssssssHHk...',
+'...kHHssssssssssHHk...',
+'....kHssssssssssHk....',
+'.....kssssssssssk.....',
+'......kkksssskkk......'
+];
 const friskBackHead=[
 '.......kkkkkkkk.......',
 '.....kkHHHHHHHHkk.....',
-'....kHHHHllllHHHHk....',
-'...kHHHHHHHHHHHHHHk...',
+'...kkHHHHHHHHHHHHkk...',
+'..kkHHHHHHHHHHHHHHkk..',
+'..kHHHHHHHHHHHHHHHHk..',
+'..kHHhhhhhhhhhhhhHHk..',
 '..kHHHHHHHHHHHHHHHHk..',
 '..kHHllHHHHHHHHllHHk..',
-'..kHHHlHHHHHHHHlHHHk..',
+'..kHHHHHHHHHHHHHHHHk..',
+'..kHHHHHHHHHHHHHHHHk..',
 '..kHHllHHHHHHHHllHHk..',
-'..khhhHHHHHHHHHHhhhk..',
-'..khhHHHHHHHHHHHHhhk..',
-'..khHHHHHHHHHHHHHHhk..',
 '..kHHHHHHHHHHHHHHHHk..',
-'..kHHHHHHHHHHHHHHHHk..',
+'..kHHhhhhhhhhhhhhHHk..',
 '...kHHHHHHHHHHHHHHk...',
-'...khHHHHHHHHHHHHhk...',
+'...kHHHHHHHHHHHHHHk...',
 '....kHHHHHHHHHHHHk....',
 '....kHHHHHHHHHHHHk....',
-'......kkHHHHHHkk......'
+'.....kkkHHHHHHkkk.....'
 ];
 const friskFrontBoot=['.kkkk.','ktootk','kooook','kooook','.kkkk.'];
 let friskFrontFrames=null,friskBackFrames=null;
