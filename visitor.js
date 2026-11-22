@@ -283,13 +283,18 @@ function blasterSkull(open,big=false,charge=0,front=false){open=Math.round(open*
   if(big){for(let x=1;x<14;x++){const outer=12-Math.floor((x-1)*.34);for(let j=0;j<4;j++)dot(x,14+side*(outer-j),['k','m',side<0?'h':'b','s'][j])}
    for(let x=5;x<=12;x++)dot(x,14+side*(1+(x>>2)),x%3?'m':'h')}
  }
- // ---- Polish: horn-edge shading and a thin brow rim — minimal, not a face rework. ----
+ // ---- Horn shaping: rim the outer edge, keep a bright core — a black rim
+ // separates the horn from the crown mass.
+ if(front){const cp=(x,y,c)=>{if(x<0||x>29||y<0||y>28)return;ctx.fillStyle=c;ctx.fillRect(x,y,1,1)};
+  // Outer rim on the tip edge, bright core, light-gray base.
+  for(let y=0;y<=3;y++){cp(1,y,'#6f6b78');cp(28,y,'#6f6b78');cp(2,y,'#fffdf5');cp(27,y,'#fffdf5');}
+  for(let y=0;y<=2;y++){cp(3,y,'#f5efe5');cp(26,y,'#f5efe5');}
+  for(let y=3;y<=4;y++){cp(4,y,'#c9c7cd');cp(25,y,'#c9c7cd');}}
+ // ---- Polish: a thin brow rim — minimal, not a face rework. ----
  if(front){
   const cp=(x,y,c)=>{if(x<0||x>29||y<0||y>31)return;ctx.fillStyle=c;ctx.fillRect(x,y,1,1)};
   const mir=(x,y,c)=>{cp(x,y,c);cp(29-x,y,c)};
   const band=(y,x0,x1,c)=>{for(let x=x0;x<=x1;x++){mir(x,y,c)}};
-  // Horn sweep lower edge.
-  band(4,3,5,'#3a3744');
   // Light rim under the brow hood.
   band(9,7,10,'#48454e');
 }
