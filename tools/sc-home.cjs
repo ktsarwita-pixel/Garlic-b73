@@ -17,6 +17,14 @@ const server=http.createServer((q,r)=>{const f=path.join(root,new URL(q.url,'htt
   checks['front/back distinct']=diff(front,back)>100;checks['left/right distinct']=diff(left,right)>100;checks['front/side distinct']=diff(front,left)>100;
   const gaitA=sprite('down',Math.PI/18,1),gaitB=sprite('down',Math.PI/6,1);checks['front stride changes']=diff(gaitA,gaitB)>100;
   checks['side stride changes']=diff(sprite('left',Math.PI/18,1),sprite('left',Math.PI/6,1))>100;
+  // Inspect all actual alpha masks, not just two poses: large disconnected
+  // islands expose a floating hand, shoe, or detached head in a walk frame.
+  function joined(tile){const w=tile.width,h=tile.height,a=tile.getContext('2d').getImageData(0,0,w,h).data,seen=new Uint8Array(w*h);let total=0,max=0;for(let i=0;i<w*h;i++)if(a[4*i+3])total++;for(let i=0;i<w*h;i++){if(seen[i]||!a[4*i+3])continue;let q=[i],n=0;seen[i]=1;while(q.length){const p=q.pop(),xx=p%w,yy=Math.floor(p/w);n++;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=xx+dx,ny=yy+dy;if(nx<0||nx>=w||ny<0||ny>=h)continue;const k=nx+ny*w;if(!seen[k]&&a[k*4+3]){seen[k]=1;q.push(k)}}}max=Math.max(max,n)}return max/total}
+  checks['side frames connected']=friskSideFrames.every(tile=>joined(tile)>.97);
+  const masks=friskSideFrames.map(tile=>tile.getContext('2d').getImageData(0,0,tile.width,tile.height).data);
+  checks['side feet stay grounded']=masks.every(a=>{for(let xx=0;xx<24;xx++)if(a[4*(xx+40*24)+3])return true;return false});
+  const frameChanges=Array.from({length:8},(_,i)=>diff(masks[i],masks[(i+1)%8]));checks['bounded frame transitions']=Math.max(...frameChanges)<=24*42*.15;
+  checks['multiple side poses']=new Set(masks.slice(0,8).map(a=>Array.from(a).join(','))).size>=6;
   let start=x;keys.add('d');for(let i=0;i<30;i++)homeTick(1/60);keys.clear();checks['keyboard movement']=x-start>20;checks['walking stays animated']=homeMotion>.95;
   for(let i=0;i<90;i++)homeTick(1/60);checks['idle settles']=homeMotion<.01;
   drag=true;target=[x-30,y];for(let i=0;i<120;i++)homeTick(1/60);checks['touch target settles']=Math.abs(x-target[0])<3;drag=false;target=null;
@@ -24,6 +32,6 @@ const server=http.createServer((q,r)=>{const f=path.join(root,new URL(q.url,'htt
   x=180;y=186;homeAge=2;homeWalk=0;homeMotion=0;homeFacing='down';draw();return checks});
  await page.setViewportSize({width:390,height:844});checks['mobile canvas fits']=await page.evaluate(()=>{const r=c.getBoundingClientRect();return r.left>=-.1&&r.right<=innerWidth+.1&&r.top>=0&&r.bottom<=innerHeight});await page.setViewportSize({width:1200,height:800});
  checks['no browser errors']=errors.length===0;console.table(checks);console.log(`${Object.values(checks).filter(Boolean).length}/${Object.keys(checks).length} functional checks (not a visual-quality score)`);
- if(process.argv[2]){fs.mkdirSync(process.argv[2],{recursive:true});await page.screenshot({path:path.join(process.argv[2],'home.png')});for(const facing of ['down','up','left','right']){await page.evaluate(f=>{homeFacing=f;homeWalk=Math.PI/18;homeMotion=1;draw()},facing);await page.screenshot({path:path.join(process.argv[2],`${facing}.png`)})}}
+ if(process.argv[2]){fs.mkdirSync(process.argv[2],{recursive:true});const tiles=await page.evaluate(()=>friskSideFrames.map(c=>c.toDataURL().split(',')[1]));tiles.forEach((img,i)=>fs.writeFileSync(path.join(process.argv[2],`tile-${i}.png`),Buffer.from(img,'base64')));await page.screenshot({path:path.join(process.argv[2],'home.png')});for(const facing of ['down','up','left','right']){await page.evaluate(f=>{homeFacing=f;homeWalk=Math.PI/18;homeMotion=1;draw()},facing);await page.screenshot({path:path.join(process.argv[2],`${facing}.png`)})}}
  assert(Object.values(checks).every(Boolean));
  }finally{await browser.close();server.close()}})().catch(e=>{console.error(e);process.exitCode=1});

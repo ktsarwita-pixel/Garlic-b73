@@ -506,6 +506,89 @@ function drawHome(){if(!paintedHome)paintedHome=buildHome();g.drawImage(paintedH
  poly([[280,107],[282,101],[285,103],[287,96+flicker],[291,104],[294,101],[296,108]],'#f3a14f');
  poly([[285,108],[286,103],[288,105],[290,100+flicker],[293,108]],'#ffe2a0');
  rect(273,110,41,2,'#302322');drawFrisk()}
+// The side view is an eight-frame pixel atlas, not translated rectangles. The
+// same connected head, torso, sleeves and legs are drawn on an integer grid.
+const friskPixelPalette={k:'#2b2328',h:'#53362e',H:'#704a35',l:'#976446',s:'#e6b18a',S:'#c48c70',E:'#392b29',b:'#476c91',B:'#6b8fab',d:'#304864',p:'#ad638c',P:'#d18ca6',n:'#303141',N:'#494b5d',o:'#39282a',t:'#906046',v:'#3d5b79'};
+const friskSideHead=[
+'.......kkkkkkkkk.....',
+'.....kkHHHHHHHHHkk...',
+'....kHHHllHHHHHHHHk..',
+'...kHHlHHHHlHHHHHHHk.',
+'..kHHHHHHHHHHHHHHHHk.',
+'..kHHHHHHHHHHHHHHHHk.',
+'..kHHHHHhhhHHHHHHHHk.',
+'..kHHhhhsssHHHHHHHHk.',
+'..kHhssssssHHHHHHHHk.',
+'..kHsssssssHHHHHHHHk.',
+'..kssssEEssHHsHHHHHk.',
+'.ksssssssssssSHHHHHk.',
+'.ksssssssssssSHHHHHk.',
+'..kssssssSSssHHHHHHk.',
+'..kssssssssssHHHHHHk.',
+'...ksssssssSHHHHHHHk.',
+'....kkssssSHHHHHHHk..',
+'......kkkkkkkkkkkk...'
+];
+const friskSideTorso=[
+'....kkkkkkkkkk....',
+'...kbbBBBBbbddk...',
+'..kbbbBBBBbbbddk..',
+'.kbbbBBBBbbbbddk..',
+'.kbbpppppppppddk..',
+'.kbbPPpppppppddk..',
+'.kbbbbbbbbbbbddk..',
+'.kbbbbbBbbbbbddk..',
+'.kbbbbbbbbbbbddk..',
+'.kbbpppppppppddk..',
+'.kbbPPpppppppddk..',
+'.kbbbbbbbbbbbddk..',
+'..kbbbBbbbbbbdk...',
+'..kdddddddddddk...',
+'...kkkkkkkkkkk....'
+];
+const friskSideSleeve=[
+'.vBv.',
+'vpppv',
+'vPPpv',
+'vbBbv',
+'vbbdv',
+'vbbdv',
+'vpppv',
+'vPPpv',
+'vdddv',
+'.kSs.',
+'..kk.'
+];
+const friskSidePants=[
+'.kkkkkkkkkk.',
+'knnnNnnnnnk.',
+'knnnNnnnnnk.',
+'knnnnnnnnnk.',
+'.knnnkknnk..',
+'.kkkk..kkk..'
+];
+const friskSideLeg=['.kkk.','knNnk','knnnk','knnnk','.knk.','.knk.'];
+const friskSideBoot=['..kkkk.','.kootok','koottok','koootok','.kkkkk.'];
+let friskSideFrames=null;
+function friskPixels(ctx,rows,x,y){for(let j=0;j<rows.length;j++)for(let i=0;i<rows[j].length;i++){const c=friskPixelPalette[rows[j][i]];if(c){ctx.fillStyle=c;ctx.fillRect(x+i,y+j,1,1)}}}
+function buildFriskSideFrames(){
+ // Frames progress through contact, recoil, passing and extension for each
+ // leg. Shoulder pixels always overlap the body and feet meet the legs.
+ // Keep the head anchored; one-pixel bobbing made the earlier walk jitter.
+ const shifts=[0,1,2,1,0,-1,-2,-1],lift=[0,0,1,1,0,0,1,1];
+ return Array.from({length:9},(_,i)=>{const tile=document.createElement('canvas');tile.width=24;tile.height=42;const ctx=tile.getContext('2d');const walking=i<8,dx=walking?shifts[i]:0,rise=walking?lift[i]:0,bob=0;
+  friskPixels(ctx,friskSideLeg,12-dx,31-bob);friskPixels(ctx,friskSideBoot,11-dx,36-(walking&&dx>0?rise:0));
+  friskPixels(ctx,friskSidePants,7,27-bob);
+  friskPixels(ctx,friskSideLeg,7+dx,31-bob);friskPixels(ctx,friskSideBoot,6+dx,36-(walking&&dx<0?rise:0));
+  friskPixels(ctx,friskSideSleeve,15+Math.round(dx/2),20-bob);
+  friskPixels(ctx,friskSideTorso,4,16-bob);
+  friskPixels(ctx,friskSideSleeve,11-Math.round(dx/2),19-bob);
+  friskPixels(ctx,friskSideHead,1,1-bob);
+  return tile;
+ });
+}
+function drawFriskSide(){if(!friskSideFrames)friskSideFrames=buildFriskSideFrames();const frame=homeMotion>.16?Math.floor(homeWalk*10)%8:8;if(homeFacing==='right')g.scale(-1,1);g.drawImage(friskSideFrames[frame],-10.5,-36,21,36);}
+
 function drawFrisk(){
  // Four-direction pixel actor: a planted shadow, opposite arm/leg swing, a
  // gentle walking bounce, and an idle breath; the face is never swapped.
@@ -514,22 +597,7 @@ function drawFrisk(){
  const D=(xx,yy,w,h,color)=>{g.fillStyle=color;g.fillRect(xx,yy,w,h)};
  g.save();g.globalAlpha=.28;rect(-10,0,20,2,'#181117');rect(-7,2,14,1,'#181117');g.restore();
  if(homeFacing==='left'||homeFacing==='right'){
-  if(homeFacing==='right')g.scale(-1,1);
-  // Far arm and leg precede the body so the walk stays articulated.
-  rect(1,-17+step,5,10,'#292d46');rect(2,-10+step,4,3,'#b97e65');
-  rect(0,-7-step,5,6,'#292639');rect(-1,-3-step,7,3,'#29232b');rect(0,-3-step,4,1,'#6a493e');
-  rect(-5,-7+step,5,6,'#342c40');rect(-7,-3+step,7,3,'#31252a');rect(-6,-3+step,4,1,'#795344');
-  g.translate(0,-bob);
-  rect(-7,-21,13,15,'#292a42');rect(-6,-20,11,13,'#405d83');rect(-5,-19,9,2,'#6184a3');rect(-6,-16,11,3,'#aa6089');rect(-6,-11,11,3,'#a25c86');rect(3,-19,2,11,'#344763');rect(-5,-7,9,1,'#7084a0');
-  // Ribbed knit and a soft seam on the side-facing sweater.
-  for(let yy=-19;yy<-8;yy+=1.5){D(-5,yy,1,.35,'#6687a3');D(2,yy,1,.35,'#344c6d')}
-  D(-6,-16,1.5,.4,'#d78fa8');D(-6,-11,1.5,.4,'#d78fa8');
-  rect(-8,-20-step,4,10,'#344968');rect(-8,-18-step,3,2,'#ac688f');rect(-8,-11-step,4,3,'#d9a17d');rect(-7,-11-step,2,1,'#f0c39a');
-  // Hair wraps behind the face; the small nose points left.
-  rect(-7,-33,13,14,'#302528');rect(-6,-34,10,2,'#35282a');rect(-7,-31,12,12,'#57382e');rect(-5,-28,8,8,'#e5b18a');rect(-7,-27,2,4,'#e5b18a');rect(-5,-23,8,2,'#c99175');rect(-5,-25,2,1,'#50352f');rect(-7,-30,9,3,'#604031');rect(-4,-32,7,2,'#79503a');rect(1,-29,4,10,'#483028');rect(3,-25,2,6,'#392a28');rect(2,-28,1,5,'#8e5c42');
-  // A staggered hairline, small ear and cheek catchlight.
-  D(-6,-31,4,.5,'#9a6a49');D(-3,-32,4,.5,'#936145');D(0,-30,1,2,'#80543d');
-  D(-6,-24,1,1,'#efc19b');D(-4,-22,3,.4,'#b77c67');D(2,-26,1,2,'#c48e72');
+  drawFriskSide();
  }else{
   const back=homeFacing==='up';
   // Draw both feet separately to make the planted and passing poses readable.
