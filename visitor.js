@@ -207,11 +207,11 @@ const gateScores=[
 ];
 // Beam counts, cadence and bone choreography are independent: faster bones never add cannons.
 const eightScore=[
- {count:5,beat:1.45,gates:['L1w','L2w','R2w','R0w'],gap:25,pace:.93},
- {count:3,beat:2.35,gates:['R1w','R2g','L2b','L0r','R1g','L3w','R2r'],gap:19,pace:.53},
- {count:2,beat:3,gates:['L1b','R1r','L3r','R2b','L0r'],gap:18,pace:.55},
- {count:10,beat:1.24,gates:['T1w','L1w','R2w','T2w','L2w'],gap:48,pace:.97},
- {count:22,beat:.67,gates:[]}
+ {count:7,beat:1.28,gates:['L1w','L2w','R2w','R0w'],gap:22,pace:.80},
+ {count:5,beat:2.0,gates:['R1w','R2g','L2b','L0r','R1g','L3w','R2r'],gap:16,pace:.46},
+ {count:4,beat:2.3,gates:['L1b','R1r','L3r','R2b','L0r'],gap:15,pace:.48},
+ {count:12,beat:1.1,gates:['T1w','L1w','R2w','T2w','L2w'],gap:44,pace:.82},
+ {count:28,beat:.57,gates:[]}
 ];
 let cannons=[],sent=0,nextBeam=0;
 function startEight(retry=false){const handoff=!retry&&encounter===7?{age:0,sx:x,sy:y,reverse:true}:null;encounter=8;if(retry)resetBattle();endingAge=Math.max(12,endingAge);round=1;swings=0;boss=100;wallPull=null;keys.clear();eightWave(handoff)}
