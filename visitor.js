@@ -341,7 +341,7 @@ const fractureFrames=new WeakMap();
 function guardCut(x){return 24-Math.floor(x*.68)}
 function splitSkull(tile,split){g.imageSmoothingEnabled=false;if(!split){g.drawImage(tile,-13,-13);return}
  let frames=fractureFrames.get(tile);if(!frames){frames=[];fractureFrames.set(tile,frames)}
- if(!frames[split]){const f=document.createElement('canvas');f.width=40;f.height=42;const ctx=f.getContext('2d');for(let i=0;i<tile.width;i++){const cut=guardCut(i);ctx.drawImage(tile,i,0,1,cut,i+5-split,5-split,1,cut);ctx.drawImage(tile,i,cut,1,32-cut,i+5+split,5+cut+split,1,32-cut);if(i>=7&&i<=18&&i%3!==0){ctx.fillStyle=i%2?'#cebfcb':'#918295';ctx.fillRect(i+5+split,5+cut+split,1,1)}}frames[split]=f}g.drawImage(frames[split],-18,-18)}
+ if(!frames[split]){const f=document.createElement('canvas');f.width=40;f.height=42;const ctx=f.getContext('2d');ctx.imageSmoothingEnabled=false;for(let i=0;i<tile.width;i++){const cut=guardCut(i);ctx.drawImage(tile,i,0,1,cut,i+5-split,5-split,1,cut);ctx.drawImage(tile,i,cut,1,32-cut,i+5+split,5+cut+split,1,32-cut);if(i>=7&&i<=18&&i%3!==0){ctx.fillStyle=i%2?'#cebfcb':'#918295';ctx.fillRect(i+5+split,5+cut+split,1,1)}}frames[split]=f}g.drawImage(frames[split],-18,-18)}
 // A dedicated front view: paired crown prongs, recessed orbits and a central muzzle.
 function frontalGuard(){return blasterSkull(5,true,0,true)}
 function blockShield(age){if(age<.06||age>=2.9)return;const arrive=ease((age-.06)/.26),impact=Math.max(0,age-.42),kick=Math.sin(Math.min(1,impact/.25)*Math.PI),drop=ease((age-.58)/1.17),dust=ease((age-1.75)/1.15);g.save();g.translate(180+(1-arrive)*17+drop*7,82-(1-arrive)*13+kick*3+drop*19);g.rotate((1-arrive)*.22-drop*.34);g.scale(1.55+arrive*.18+kick*.12,1.66-kick*.16);g.globalAlpha=arrive;const tile=frontalGuard(),split=Math.round(4*drop);if(dust>0&&fractureFrames.get(tile)?.[4])erodeSkull(fractureFrames.get(tile)[4],dust,.7,18);else splitSkull(tile,split);crossEye(g,-5-split,-2-split,t,1-drop);g.restore()}
@@ -508,7 +508,7 @@ function drawHome(){if(!paintedHome)paintedHome=buildHome();g.drawImage(paintedH
  rect(273,110,41,2,'#302322');drawFrisk()}
 // The side view is an eight-frame pixel atlas, not translated rectangles. The
 // same connected head, torso, sleeves and legs are drawn on an integer grid.
-const friskPixelPalette={k:'#2b2328',h:'#53362e',H:'#704a35',l:'#976446',s:'#e6b18a',S:'#c48c70',E:'#392b29',b:'#476c91',B:'#6b8fab',d:'#304864',p:'#ad638c',P:'#d18ca6',n:'#303141',N:'#494b5d',o:'#39282a',t:'#906046',v:'#3d5b79'};
+const friskPixelPalette={k:'#2b2328',h:'#53362e',H:'#704a35',l:'#976446',s:'#e6b18a',S:'#c48c70',E:'#392b29',b:'#476c91',B:'#6b8fab',d:'#304864',p:'#ad638c',P:'#d18ca6',n:'#303141',N:'#494b5d',o:'#39282a',t:'#906046',v:'#3d5b79',m:'#a56b60'};
 const friskSideHead=[
 '.......kkkkkkkkk.....',
 '.....kkHHHHHHHHHkk...',
@@ -589,38 +589,83 @@ function buildFriskSideFrames(){
 }
 function drawFriskSide(){if(!friskSideFrames)friskSideFrames=buildFriskSideFrames();const frame=homeMotion>.16?Math.floor(homeWalk*10)%8:8;if(homeFacing==='right')g.scale(-1,1);g.drawImage(friskSideFrames[frame],-10.5,-36,21,36);}
 
+// Front/back use the same pixel grid and cadence as the profile so Frisk
+// doesn't change size or art style when turning.
+const friskFrontHead=[
+'.......kkkkkkkk.......',
+'.....kkHHHHHHHHkk.....',
+'....kHHlHHHHlHHHHk....',
+'...kHHHHHHHHHHHHHHk...',
+'..kHHHHHHHHHHHHHHHHk..',
+'..kHHHhhhhhhhhhhHHHk..',
+'..kHHhhsssssssshHHHk..',
+'..kHhssssssssssshHHk..',
+'..kHssEEssssEEsssHHk..',
+'..kHsssssssssssssHHk..',
+'..kHsssssssssssssHHk..',
+'..kHsssSssssSssssHHk..',
+'..kHsssssssSsssssHHk..',
+'..kHssssssmssssssHHk..',
+'..kHhssssssssssshHHk..',
+'...kHhssssssssshHHk...',
+'....kkHHssssHHHHkk....',
+'......kkkkkkkkkk......'
+];
+const friskBackHead=[
+'.......kkkkkkkk.......',
+'.....kkHHHHHHHHkk.....',
+'....kHHlHHHHlHHHHk....',
+'...kHHHHHHHHHHHHHHk...',
+'..kHHHHHHHHHHHHHHHHk..',
+'..kHHlHHHHHHHHlHHHHk..',
+'..kHHlHHHHHHHHlHHHHk..',
+'..kHHHHHlHHHHHHHHHHk..',
+'..kHHHHHlHHHHHHHHHHk..',
+'..kHHHHHHHHHHHHHHHHk..',
+'..kHHHHHHHHlHHHHHHHk..',
+'..kHHHHHHHHlHHHHHHHk..',
+'..kHHlHHHHHHHHHHHHHk..',
+'..kHHlHHHHHHHHHHHHHk..',
+'..kHhHHHHHHHHHHHHhHk..',
+'...kHhHHHHHHHHHHhHk...',
+'....kkHHHHHHHHHHkk....',
+'......kkkkkkkkkk......'
+];
+const friskFrontTorso=[
+'....kkkkkkkkkkkk....',
+'...kbbBBBBBBBBbbk...',
+'..kbbbBBBBBBBBbbbk..',
+'.kbbbbBBBBBBBBbbbbk.',
+'.kbbppppppppppppbbk.',
+'.kbbPPppppppppppbbk.',
+'.kbbbbbbbbbbbbbbbbk.',
+'.kbbbbbBbbbbBbbbbbk.',
+'.kbbbbbbbbbbbbbbbbk.',
+'.kbbppppppppppppbbk.',
+'.kbbPPppppppppppbbk.',
+'.kbbbbbbbbbbbbbbbbk.',
+'..kbbBbbbbbbBbbbk...',
+'..kdddddddddddddk...',
+'...kkkkkkkkkkkkk....'
+];
+const friskFrontBoot=['.kkkk.','koottk','koootk','koootk','.kkkk.'];
+let friskFrontFrames=null,friskBackFrames=null;
+function buildFriskFrontFrames(back){const stride=[0,1,2,1,0,-1,-2,-1],lift=[0,0,1,1,0,0,1,1];
+ return Array.from({length:9},(_,i)=>{const tile=document.createElement('canvas');tile.width=24;tile.height=42;const ctx=tile.getContext('2d');const walking=i<8,dx=walking?stride[i]:0,rise=walking?lift[i]:0;
+  friskPixels(ctx,friskSidePants,6,27);
+  friskPixels(ctx,friskSideLeg,5,31);friskPixels(ctx,friskFrontBoot,5,36-(dx>0?rise:0));
+  friskPixels(ctx,friskSideLeg,13,31);friskPixels(ctx,friskFrontBoot,13,36-(dx<0?rise:0));
+  friskPixels(ctx,friskFrontTorso,2,16);
+  friskPixels(ctx,friskSideSleeve,2,19+Math.round(dx/2));friskPixels(ctx,friskSideSleeve,17,19-Math.round(dx/2));
+  friskPixels(ctx,back?friskBackHead:friskFrontHead,1,1);
+  return tile;
+ });
+}
+function drawFriskFacing(){const back=homeFacing==='up';if(back&&!friskBackFrames)friskBackFrames=buildFriskFrontFrames(true);if(!back&&!friskFrontFrames)friskFrontFrames=buildFriskFrontFrames(false);const frames=back?friskBackFrames:friskFrontFrames,frame=homeMotion>.16?Math.floor(homeWalk*10)%8:8;g.drawImage(frames[frame],-10.5,-36,21,36)}
+
 function drawFrisk(){
- // Four-direction pixel actor: a planted shadow, opposite arm/leg swing, a
- // gentle walking bounce, and an idle breath; the face is never swapped.
- const stride=Math.sin(homeWalk*9)*homeMotion,step=Math.round(stride*2),bob=Math.round(Math.abs(Math.sin(homeWalk*9))*homeMotion),breath=homeMotion<.15&&Math.sin(homeAge*2.1)>.75?1:0;
- g.save();g.translate(Math.round(x),Math.round(y));
- const D=(xx,yy,w,h,color)=>{g.fillStyle=color;g.fillRect(xx,yy,w,h)};
- g.save();g.globalAlpha=.28;rect(-10,0,20,2,'#181117');rect(-7,2,14,1,'#181117');g.restore();
- if(homeFacing==='left'||homeFacing==='right'){
-  drawFriskSide();
- }else{
-  const back=homeFacing==='up';
-  // Draw both feet separately to make the planted and passing poses readable.
-  rect(-6,-8-step,5,7,'#302b3b');rect(1,-8+step,5,7,'#302b3b');rect(-7,-3-step,6,3,'#302329');rect(1,-3+step,6,3,'#302329');rect(-6,-3-step,4,1,'#765142');rect(2,-3+step,4,1,'#765142');
-  g.translate(0,-bob-breath);
-  rect(-9,-21,18,15,'#292b40');rect(-8,-20,16,13,'#435d82');rect(-7,-19,14,2,'#6889a6');rect(-8,-16,16,3,'#a75e89');rect(-8,-11,16,3,'#a65d87');rect(-8,-7,16,1,'#7891a7');rect(5,-19,2,11,'#374d70');rect(-6,-13,1,2,'#d68bad');
-  // Fine woven sweater stitches and a shaped ribbed hem.
-  for(let yy=-19;yy<-7;yy+=1.5){D(-6.5,yy,1,.35,'#6e8da7');D(3.5,yy,1,.35,'#3d5272')}
-  for(let xx=-6;xx<7;xx+=2)D(xx,-7.5,1,.5,'#92a2ad');
-  D(-6,-15.5,3,.4,'#d795ae');D(-6,-10.5,3,.4,'#d28ba9');
-  rect(-11,-19+step,3,10,'#31415e');rect(-10,-18+step,3,2,'#af6b92');rect(-10,-10+step,3,3,'#dca785');rect(-9,-10+step,2,1,'#f2c79e');
-  rect(8,-19-step,3,10,'#31415e');rect(8,-18-step,3,2,'#af6b92');rect(8,-10-step,3,3,'#c78c70');rect(8,-10-step,2,1,'#e8b896');
-  // A rounded, layered fringe and longer side locks, with subtle warm highlights.
-  rect(-6,-35,12,1,'#302427');rect(-8,-34,16,2,'#302427');rect(-9,-32,18,12,'#302427');
-  rect(-7,-34,14,2,'#5d3a2e');rect(-8,-32,16,11,'#5d3a2e');rect(-9,-29,3,9,'#4a302b');rect(6,-29,3,9,'#422c2a');rect(-7,-34,13,1,'#79503a');
-  // Step the silhouette in at the crown and separate the hair into locks.
-  D(-9,-33,1,2,'#302427');D(8,-33,1,2,'#302427');D(-6,-34.5,10,.5,'#a06f4d');
-  D(-7,-31,3,.5,'#a1704e');D(-3,-32,3,.5,'#956245');D(2,-32,3,.5,'#916044');
-  D(-8,-27,.5,5,'#83543b');D(7,-27,.5,5,'#6c4936');rect(-8,-30,2,10,'#49302b');rect(6,-30,2,11,'#422c2a');
-  if(back){rect(-7,-31,14,12,'#5b3b2f');rect(-5,-32,9,1,'#8e5f43');rect(-5,-29,1,7,'#805239');rect(1,-30,1,8,'#724a36');rect(5,-27,1,7,'#3e2c29');rect(-7,-21,2,2,'#45302a')}
-  else{rect(-6,-29,12,9,'#e8b38a');rect(-6,-22,12,2,'#cb9275');rect(-6,-29,12,2,'#674331');rect(-6,-28,3,2,'#674331');rect(3,-28,3,2,'#674331');rect(-4,-25,3,1,'#50362f');rect(2,-25,3,1,'#50362f');rect(-1,-22,2,1,'#a66760');rect(-6,-23,2,1,'#d99b80');rect(4,-23,2,1,'#d99b80');
-   D(-5.5,-28,3,.5,'#83553c');D(-1,-28,2,.5,'#83553c');D(3,-28,2,.5,'#83553c');
-   D(-4,-24.7,3,.4,'#392c29');D(2,-24.7,3,.4,'#392c29');D(-2,-21,4,.4,'#d49b80')}
- }
+ // A stable floor shadow is shared by the four pixel-art directions.
+ g.save();g.translate(Math.round(x),Math.round(y));g.save();g.globalAlpha=.28;rect(-10,0,20,2,'#181117');rect(-7,2,14,1,'#181117');g.restore();
+ if(homeFacing==='left'||homeFacing==='right')drawFriskSide();else drawFriskFacing();
  g.restore();
 }

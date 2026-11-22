@@ -274,7 +274,7 @@ function hallway(){
   // middle pixels. This pairs even-width fixtures and odd-width inlays alike.
   const half=HALL_WIDTH/2;
   galleryBackdrop=document.createElement('canvas');galleryBackdrop.width=HALL_WIDTH;galleryBackdrop.height=HALL_HEIGHT;
-  const bg=galleryBackdrop.getContext('2d');bg.drawImage(g.canvas,0,0,half,HALL_HEIGHT,0,0,half,HALL_HEIGHT);
+  const bg=galleryBackdrop.getContext('2d');bg.imageSmoothingEnabled=false;bg.drawImage(g.canvas,0,0,half,HALL_HEIGHT,0,0,half,HALL_HEIGHT);
   bg.translate(HALL_WIDTH,0);bg.scale(-1,1);bg.drawImage(g.canvas,0,0,half,HALL_HEIGHT,0,0,half,HALL_HEIGHT);
  }
  g.drawImage(galleryBackdrop,HALL_LEFT,0);

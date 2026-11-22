@@ -21,8 +21,12 @@ const server=http.createServer((q,r)=>{const f=path.join(root,new URL(q.url,'htt
   // islands expose a floating hand, shoe, or detached head in a walk frame.
   function joined(tile){const w=tile.width,h=tile.height,a=tile.getContext('2d').getImageData(0,0,w,h).data,seen=new Uint8Array(w*h);let total=0,max=0;for(let i=0;i<w*h;i++)if(a[4*i+3])total++;for(let i=0;i<w*h;i++){if(seen[i]||!a[4*i+3])continue;let q=[i],n=0;seen[i]=1;while(q.length){const p=q.pop(),xx=p%w,yy=Math.floor(p/w);n++;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=xx+dx,ny=yy+dy;if(nx<0||nx>=w||ny<0||ny>=h)continue;const k=nx+ny*w;if(!seen[k]&&a[k*4+3]){seen[k]=1;q.push(k)}}}max=Math.max(max,n)}return max/total}
   checks['side frames connected']=friskSideFrames.every(tile=>joined(tile)>.97);
+  checks['front frames connected']=friskFrontFrames.every(tile=>joined(tile)>.97);
+  checks['back frames connected']=friskBackFrames.every(tile=>joined(tile)>.97);
+  checks['nearest-neighbor sprites']=g.imageSmoothingEnabled===false;
   const masks=friskSideFrames.map(tile=>tile.getContext('2d').getImageData(0,0,tile.width,tile.height).data);
-  checks['side feet stay grounded']=masks.every(a=>{for(let xx=0;xx<24;xx++)if(a[4*(xx+40*24)+3])return true;return false});
+  const grounded=frames=>frames.every(tile=>{const a=tile.getContext('2d').getImageData(0,0,24,42).data;for(let xx=0;xx<24;xx++)if(a[4*(xx+40*24)+3])return true;return false});
+  checks['side feet stay grounded']=grounded(friskSideFrames);checks['front/back feet stay grounded']=grounded(friskFrontFrames)&&grounded(friskBackFrames);
   const frameChanges=Array.from({length:8},(_,i)=>diff(masks[i],masks[(i+1)%8]));checks['bounded frame transitions']=Math.max(...frameChanges)<=24*42*.15;
   checks['multiple side poses']=new Set(masks.slice(0,8).map(a=>Array.from(a).join(','))).size>=6;
   let start=x;keys.add('d');for(let i=0;i<30;i++)homeTick(1/60);keys.clear();checks['keyboard movement']=x-start>20;checks['walking stays animated']=homeMotion>.95;
