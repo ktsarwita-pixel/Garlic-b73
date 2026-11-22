@@ -328,7 +328,7 @@ function wallSequence(dt,b){if(!wallPull&&slamCount>=SLAM_COUNT)return false;if(
 let farewellAge=0,ring=[];
 function beginFarewell(){x=180;y=140;mode='farewell';farewellAge=0;const offset=Math.random()*Math.PI*2;ring=Array.from({length:15},(_,i)=>({angle:offset+i*Math.PI*2/15+(Math.random()-.5)*.12,r:(i%3===1?117:99)+Math.random()*12,big:i%3===1,seed:Math.random()*9}));inv=0;msg('The broken blaster falls.');ui()}
 function farewellTick(dt){const old=farewellAge;farewellAge+=dt;const at=n=>old<n&&farewellAge>=n;
- if(at(1.6))sampleCue('rattle');if(at(2.3))sfx('ringCharge',3.78);if(at(6.65))sfx('dust');if(at(7.2))msg('Sans: “SEE YOU SOON”');if(at(10.1))sfx('phaseOut');if(at(11)){mode='departed';msg('The corridor is silent.');ui()}}
+ if(at(1.6))sampleCue('rattle');if(at(2.3))sfx('ringCharge',3.78);if(at(6.65))sfx('dust');if(at(7.2))msg('Sans: “SEE YOU SOON”');if(at(10.1))sfx('phaseOut');if(at(11)){beginEpilogue()}}
 // Every grain starts at a real opaque bone pixel. The silhouette loses exactly
 // the pixels that lift away; stable release times keep the ash from flickering.
 const ashMaps=new WeakMap();
@@ -356,7 +356,7 @@ function farewellCaption(b){const a=farewellAge;if(a<7.2||a>=10.1)return;const w
 
 
 let endingAge=0;
-function sevenTick(dt){if(encounter===8)endingAge+=dt;if(mode==='farewell'){farewellTick(dt);return}if(mode==='departed')return;if(mode==='sevenHold'){endingAge+=dt;if(encounter===7&&endingAge>=12){startEight()}return}if(mode==='strike'){const before=1.45-flash;flash-=dt;const age=1.45-flash;if(swings<(encounter===8?5:6)){if(before<.18&&age>=.18)sfx(encounter===8?'glitchDodgeOut':'phaseOut');if(before<1.06&&age>=1.06)sfx(encounter===8?'glitchDodgeIn':'phaseIn')}else if(before<.52&&age>=.52)sfx('impact');if(flash<=0){if(encounter===8){if(swings===5){beginFarewell()}else{round++;eightWave()}}else if(swings===6){endingAge=0;mode='sevenHold';msg('…');ui()}else{round++;sevenWave(round===4)}}return}if(mode!=='dodge')return;
+function sevenTick(dt){if(encounter===8)endingAge+=dt;if(mode==='farewell'){farewellTick(dt);return}if(mode==='departed'){epilogueTick(dt);return}if(mode==='sevenHold'){endingAge+=dt;if(encounter===7&&endingAge>=12){startEight()}return}if(mode==='strike'){const before=1.45-flash;flash-=dt;const age=1.45-flash;if(swings<(encounter===8?5:6)){if(before<.18&&age>=.18)sfx(encounter===8?'glitchDodgeOut':'phaseOut');if(before<1.06&&age>=1.06)sfx(encounter===8?'glitchDodgeIn':'phaseIn')}else if(before<.52&&age>=.52)sfx('impact');if(flash<=0){if(encounter===8){if(swings===5){beginFarewell()}else{round++;eightWave()}}else if(swings===6){endingAge=0;mode='sevenHold';msg('…');ui()}else{round++;sevenWave(round===4)}}return}if(mode!=='dodge')return;
  if(roomShift){const m=roomShift;m.age=Math.min(SHIFT_TIME,m.age+dt);const p=ease(m.age/SHIFT_TIME);x=m.sx+(180-m.sx)*p;y=m.sy+((m.reverse?189.5:160)-m.sy)*p;if(m.age>=SHIFT_TIME)roomShift=null;return}
  const b=sevenBox(),ox=x,oy=y;elapsed+=dt;inv-=dt;
  const held=round===6&&wallSequence(dt,b);if(held&&drag&&target){target=null}if(!held){let dx=+ (keys.has('d')||keys.has('arrowright'))- +(keys.has('a')||keys.has('arrowleft')),dy=+(keys.has('s')||keys.has('arrowdown'))- +(keys.has('w')||keys.has('arrowup'));if(drag&&target){dx=target[0]-x;dy=target[1]-y}const q=Math.hypot(dx,dy)||1,step=drag&&target?Math.min(q,dt*95):dt*95;x=Math.max(b.l+5,Math.min(b.r-5,x+step*dx/q));y=Math.max(b.u+5,Math.min(b.d-5,y+step*dy/q))}if(encounter===8){tickBeams(dt,b);if(mode==='dying')return}if(round<6&&!(encounter===8&&round===5)&&(spawn-=dt)<=0)sevenGate();const moving=Math.hypot(x-ox,y-oy)>.001;
@@ -397,3 +397,59 @@ function drawVisitorBone(s){if(s.kind==='corrupt boke'){drawCorruptBoke(s);retur
  rect(0,2,3,len,'#77508e');rect(0,2,1,len,'#bbb6c1');rect(2,2,1,len,'#615c69');
  if(len>2){const trail=Math.min(4,cut-2);rect(1,cut-trail,1,trail,'#ad7ccb');rect(0,cut,3,1,'#c9a3e6');if(cycle>.34&&cycle<.52)rect(-1,cut,1,1,'#a883c4')}
  for(const d of [1,-1]){const tip=d===1?0:h-1;rect(-1,tip,2,1,'#ddd9df');rect(2,tip,2,1,'#ada6b5');rect(-2,tip+d,7,1,'#998ca4');if(h>4)rect(-1,tip+2*d,5,1,'#786384')}}
+
+// Epilogue time is measured from the first completely black frame, in game time.
+let epilogueAge=0,homeAge=0,homeWalk=0,homeFacing='down';
+const epilogueLines=[
+ [2,'after that you find destroyed the glitching door'],
+ [4,'you get out of the hallway'],
+ [5,'you go back to your home relaxing'],
+ [7,'explore and multiverse to search for the right Sans']
+];
+function beginEpilogue(){if(typeof document!=='undefined')document.querySelector('#ending-narration').textContent='';mode='departed';epilogueAge=0;keys.clear();drag=false;target=null;msg('');ui()}
+function epilogueTick(dt){const old=epilogueAge;epilogueAge+=dt;for(const [at,line] of epilogueLines)if(old<at&&epilogueAge>=at){msg(line);if(typeof document!=='undefined')document.querySelector('#ending-narration').textContent=line;}if(epilogueAge>=10.5)enterHome()}
+function enterHome(){mode='home';homeAge=0;homeWalk=0;homeFacing='down';x=180;y=186;keys.clear();drag=false;target=null;msg('Home.');ui()}
+function homeTick(dt){homeAge+=dt;let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));
+ if(drag&&target){dx=target[0]-x;dy=target[1]-y;if(Math.hypot(dx,dy)<3)dx=dy=0}
+ const len=Math.hypot(dx,dy);if(len){dx/=len;dy/=len;x=Math.max(19,Math.min(341,x+dx*52*dt));y=Math.max(152,Math.min(211,y+dy*52*dt));homeFacing=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');homeWalk+=dt}else homeWalk=0}
+function drawEpilogue(){rect(0,0,360,224,'#000');if(mode==='home'){g.save();g.globalAlpha=ease(homeAge/1.2);drawHome();g.restore();return}
+ g.textAlign='center';g.textBaseline='middle';g.font='6px p, monospace';for(let i=0;i<epilogueLines.length;i++){const [start,line]=epilogueLines[i],age=epilogueAge-start;if(age<0)continue;const fade=ease(age/.28),jitter=age<.48&&Math.floor(age*24)%3===0;g.globalAlpha=fade;if(jitter){g.fillStyle='#713953';g.fillText(line,181+Math.floor(age*19)%3,77+i*19);g.fillStyle='#4d6379';g.fillText(line,178,78+i*19)}g.fillStyle='#eee8e7';g.fillText(line,180,77+i*19);if(jitter){rect(45+(i*57+Math.floor(age*90))%265,75+i*19,8,1,'#b58caf')}}g.globalAlpha=1}
+// A quiet, warm room in the same native pixel grid as the rest of the game.
+function drawHome(){
+ rect(0,0,360,224,'#201921');rect(8,6,344,110,'#75514b');rect(12,10,336,101,'#ad8272');
+ // Wallpaper: tiny repeated diamond motifs, shaded moulding, and wainscot.
+ for(let yy=17;yy<87;yy+=16)for(let xx=19+(yy%32?0:8);xx<344;xx+=16){rect(xx,yy,1,3,'#bc9682');rect(xx-1,yy+1,3,1,'#bc9682')}
+ rect(10,86,340,4,'#63413c');rect(10,90,340,21,'#8d5b4e');for(let xx=14;xx<350;xx+=34){rect(xx,93,29,15,'#70483e');rect(xx+2,95,25,11,'#a3705c')}
+ rect(8,110,344,5,'#4f302d');rect(8,115,344,109,'#9b6a4c');
+ for(let yy=119;yy<224;yy+=13){rect(8,yy,344,1,'#7a4e3d');for(let xx=13+(Math.floor(yy/13)%2)*27;xx<350;xx+=54){rect(xx,yy,1,12,'#835440');if(xx+5<350)rect(xx+5,yy+4,Math.min(22,350-xx-5),1,'#ad7856')}}
+ // Broad window with curtains and a distant evening sky.
+ rect(130,18,100,69,'#493331');rect(134,22,92,61,'#dbb58e');rect(138,25,84,54,'#526e85');rect(138,54,84,25,'#879b9b');
+ poly([[138,72],[153,60],[167,70],[180,58],[194,70],[209,62],[222,72],[222,79],[138,79]],'#576c69');rect(156,35,4,4,'#eddfb7');rect(177,25,4,54,'#e2c5a4');rect(138,51,84,4,'#e2c5a4');
+ rect(127,17,7,69,'#5a363b');rect(129,20,7,39,'#894f52');rect(129,57,5,18,'#a96361');rect(226,17,7,69,'#5a363b');rect(224,20,7,39,'#894f52');rect(226,57,5,18,'#a96361');rect(126,15,108,4,'#493331');rect(132,83,96,4,'#e1bd96');
+ // Packed bookshelf on the left.
+ rect(18,23,72,86,'#49312b');rect(21,26,66,80,'#684538');for(let yy=49;yy<=99;yy+=24){rect(22,yy,64,4,'#432d29');rect(23,yy-1,62,1,'#aa7754')}
+ const bookColors=['#bf8d68','#687d76','#ad6157','#c5ac79','#514d68','#8e916d'];for(let row=0;row<3;row++){let xx=25;for(let i=0;i<10;i++){let w=3+(i%3);let h=11+(i*3+row)%8;rect(xx,48+row*24-h,w,h,bookColors[(i+row)%bookColors.length]);rect(xx,49+row*24-h,w,1,'#e0c093');xx+=w+1}}
+ rect(22,104,64,4,'#a16d50');
+ // Framed little landscape and a wall clock.
+ rect(254,23,44,31,'#523a32');rect(257,26,38,25,'#ceaa7e');rect(260,29,32,19,'#7895a0');poly([[260,46],[269,36],[275,42],[282,34],[292,45],[292,48],[260,48]],'#71826f');rect(284,31,3,3,'#f3d8a4');
+ rect(310,21,21,22,'#583e33');rect(313,24,15,16,'#e1c79c');rect(320,26,1,7,'#654b3d');rect(320,32,5,1,'#654b3d');
+ // Fireplace, mantle, glowing logs and two keepsakes.
+ rect(255,67,76,49,'#67463c');rect(250,63,86,6,'#49332d');rect(253,64,80,2,'#bb8868');rect(264,77,58,39,'#b68a6c');rect(269,80,48,36,'#3a2928');rect(272,85,42,28,'#211c23');rect(277,106,30,3,'#795040');poly([[283,106],[280,99],[286,101],[288,91],[294,100],[299,94],[302,104]],'#d77b45');poly([[287,106],[286,101],[290,102],[292,97],[296,104]],'#ffd188');rect(273,110,39,3,'#5a3b32');
+ rect(261,53,11,10,'#d5b08b');rect(264,50,5,4,'#799582');rect(313,54,11,9,'#bc896a');rect(316,50,5,5,'#dcbb83');
+ // Low sofa and a soft patterned rug.
+ rect(27,105,83,38,'#513732');rect(31,100,75,28,'#a9635a');rect(34,103,34,22,'#bd7a6b');rect(70,103,32,22,'#b97165');rect(29,123,79,15,'#a65c54');rect(25,116,9,25,'#70443d');rect(104,116,9,25,'#70443d');rect(31,139,8,6,'#51352e');rect(100,139,8,6,'#51352e');rect(39,107,12,9,'#dfba96');rect(88,107,10,9,'#ddad91');
+ rect(115,148,126,57,'#674641');rect(119,151,118,51,'#bd8a76');rect(123,154,110,45,'#a05f62');rect(127,158,102,37,'#b98075');for(let xx=133;xx<227;xx+=13){rect(xx,160,1,33,'#cd9b86');rect(xx+3,174,5,2,'#d5aa91')}rect(126,158,104,1,'#e1b99d');rect(126,194,104,1,'#e1b99d');
+ // Coffee table, open book and a cup.
+ rect(139,130,79,5,'#51362f');rect(141,125,75,8,'#92654b');rect(145,126,67,2,'#bc8d67');rect(145,135,4,16,'#553a31');rect(208,135,4,16,'#553a31');rect(164,122,14,4,'#e7d3af');rect(178,122,14,4,'#d5bb99');rect(178,122,1,4,'#765b4a');rect(199,120,7,5,'#e0c6a7');rect(206,121,2,2,'#e0c6a7');
+ // Plants and a warm standing lamp.
+ rect(20,100,12,12,'#a2674e');rect(22,98,8,3,'#d69a70');rect(25,80,2,18,'#5a7553');rect(19,84,7,3,'#719369');rect(25,78,5,8,'#799c71');rect(27,87,7,3,'#547d58');
+ rect(335,90,3,49,'#4e3a32');rect(329,138,15,3,'#4e3a32');poly([[330,91],[334,77],[341,77],[345,91]],'#e1bb85');rect(332,89,11,2,'#fff0bb');
+ drawFrisk();
+}
+function drawFrisk(){const moving=homeWalk>0,step=moving?Math.floor(homeWalk*7)%2:0;g.save();g.translate(Math.round(x),Math.round(y));rect(-8,1,16,3,'#6f4d3f');
+ // Feet and short legs, animated without changing the silhouette at rest.
+ rect(-6,-5,5,6,'#392e3d');rect(1,-5,5,6,'#392e3d');rect(-7,-2+(step?1:0),6,3,'#3b2b2d');rect(1,-2+(step?0:1),6,3,'#3b2b2d');
+ rect(-8,-18,16,13,'#2e405d');rect(-7,-17,14,11,'#557aa4');rect(-7,-15,14,2,'#b86d9d');rect(-7,-10,14,2,'#bc739f');rect(-10,-16,3,9,'#54799b');rect(7,-16,3,9,'#54799b');rect(-10,-9,3,3,'#dfad84');rect(7,-9,3,3,'#dfad84');
+ rect(-8,-29,16,13,'#533831');rect(-9,-26,18,7,'#624033');rect(-7,-25,14,9,'#e3b287');rect(-7,-29,14,6,'#6b4938');rect(-8,-25,3,8,'#684637');rect(5,-25,3,8,'#684637');rect(-6,-28,4,1,'#92654a');
+ if(homeFacing==='down'){rect(-4,-21,3,1,'#533a31');rect(2,-21,3,1,'#533a31');rect(-1,-18,2,1,'#a56e60')}else if(homeFacing==='up'){rect(-7,-26,14,10,'#684637');rect(-5,-25,10,2,'#79513d')}else{rect(homeFacing==='left'?-5:4,-21,2,1,'#533a31')}
+ g.restore()}
