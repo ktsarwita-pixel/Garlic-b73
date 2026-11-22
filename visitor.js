@@ -404,11 +404,11 @@ const epilogueLines=[
  [2,'after that you find and destroy the glitching door'],
  [4,'you get out of the hallway'],
  [5,'you go back to your home relaxing'],
- [7,'explore and multiverse to search for the right Sans']
+ [7,'explore the multiverse to search for the right Sans']
 ];
 function beginMainMenu(){mode='mainMenu';epilogueAge=0;keys.clear();drag=false;target=null;msg('');if(typeof document!=='undefined'){document.querySelector('#ending-narration').textContent='';document.querySelector('#main-menu-play').focus()}ui()}
 function beginEpilogue(){if(typeof document!=='undefined')document.querySelector('#ending-narration').textContent='';mode='departed';epilogueAge=0;keys.clear();drag=false;target=null;msg('');ui()}
-function epilogueTick(dt){const old=epilogueAge;epilogueAge+=dt;for(const [at,line] of epilogueLines)if(old<at&&epilogueAge>=at){msg(line);if(typeof document!=='undefined')document.querySelector('#ending-narration').textContent=line;}}if(epilogueAge>=11&&mode==='departed')beginMainMenu()
+function epilogueTick(dt){const old=epilogueAge;epilogueAge+=dt;for(const [at,line] of epilogueLines)if(old<at&&epilogueAge>=at){msg(line);if(typeof document!=='undefined')document.querySelector('#ending-narration').textContent=line;}}
 
 function drawEpilogue(){rect(0,0,360,224,'#000');
- g.textAlign='center';g.textBaseline='middle';g.font='6px p, monospace';for(let i=0;i<epilogueLines.length;i++){const [start,line]=epilogueLines[i],age=epilogueAge-start;if(age<0)continue;const fade=ease(age/.28),jitter=age<.48&&Math.floor(age*24)%3===0;g.globalAlpha=fade;if(jitter){g.fillStyle='#713953';g.fillText(line,181+Math.floor(age*19)%3,77+i*19);g.fillStyle='#4d6379';g.fillText(line,178,78+i*19)}g.fillStyle='#eee8e7';g.fillText(line,180,77+i*19);if(jitter){rect(45+(i*57+Math.floor(age*90))%265,75+i*19,8,1,'#b58caf')}}g.globalAlpha=1}
+ g.textAlign='center';g.textBaseline='middle';g.font='6px p, monospace';if(epilogueAge>=11){g.fillStyle='#8a8690';g.fillText('PRESS ANYTHING',180,101);g.fillText('TO GO TO THE MAIN MENU',180,117);return}for(let i=0;i<epilogueLines.length;i++){const [start,line]=epilogueLines[i],age=epilogueAge-start;if(age<0)continue;const fade=ease(age/.28),jitter=age<.48&&Math.floor(age*24)%3===0;g.globalAlpha=fade;if(jitter){g.fillStyle='#713953';g.fillText(line,181+Math.floor(age*19)%3,77+i*19);g.fillStyle='#4d6379';g.fillText(line,178,78+i*19)}g.fillStyle='#eee8e7';g.fillText(line,180,77+i*19);if(jitter){rect(45+(i*57+Math.floor(age*90))%265,75+i*19,8,1,'#b58caf')}}g.globalAlpha=1}
