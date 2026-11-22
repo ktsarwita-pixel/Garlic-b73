@@ -24,7 +24,7 @@ for(let r=1;r<=6;r++){
   for(let i=0;i<75&&mode==='strike';i++)sevenTick(.02);
 }
 assert.equal(mode,'sevenHold');assert.equal(slamCount,6);for(let i=0;i<500;i++)sevenTick(.02);assert.equal(encounter,7);for(let i=0;i<110;i++)sevenTick(.02);assert.equal(encounter,8);assert.equal(mode,'dodge');
-for(let r=1;r<=5;r++){const sizes=[];for(let i=0;i<2000&&mode==='dodge';i++){const prev=sent;t+=.02;sevenTick(.02);if(sent>prev)sizes.push(cannons.at(-1).big);if(r===5)assert.equal(shots.length,0)}assert.equal(mode,'ready');assert.equal(sizes.length,[5,3,2,10,22][r-1]);assert.equal(sizes.filter(Boolean).length,[0,0,2,0,2][r-1]);swings++;flash=1.45;mode='strike';for(let i=0;i<75&&mode==='strike';i++)sevenTick(.02)}assert.equal(mode,'farewell');assert.equal(ring.length,15);assert.equal(ring.filter(c=>c.big).length,5);const hpBefore=hp;for(let i=0;i<560;i++)sevenTick(.02);assert.equal(mode,'departed');assert.equal(hp,hpBefore);
+for(let r=1;r<=5;r++){const sizes=[];for(let i=0;i<2000&&mode==='dodge';i++){const prev=sent;t+=.02;sevenTick(.02);if(sent>prev)sizes.push(cannons.at(-1).big);if(r===5)assert.equal(shots.length,0)}assert.equal(mode,'ready');assert.equal(sizes.length,[7,5,4,11,28][r-1]);assert.equal(sizes.filter(Boolean).length,[0,0,4,0,8][r-1]);swings++;flash=1.45;mode='strike';for(let i=0;i<75&&mode==='strike';i++)sevenTick(.02)}assert.equal(mode,'farewell');assert.equal(ring.length,15);assert.equal(ring.filter(c=>c.big).length,5);const hpBefore=hp;for(let i=0;i<560;i++)sevenTick(.02);assert.equal(mode,'departed');assert.equal(hp,hpBefore);
 // The narration clock starts on black and fires each line at its requested time.
 beginEpilogue();for(const [threshold,line] of epilogueLines){epilogueTick(threshold-epilogueAge-.001);assert(epilogueAge<threshold);epilogueTick(.002);assert(epilogueAge>=threshold)}
 assert.equal(mode,'departed');epilogueTick(10.49-epilogueAge);assert.equal(mode,'departed');epilogueTick(.02);assert.equal(mode,'departed');
@@ -34,7 +34,7 @@ for(const dt of [1/30,1/60]){startEight();round=4;eightWave();testGod=false;hp=2
   if(c&&c.age>.20){const pos=c.vertical?x:y,mid=c.vertical?180:160,goal=mid+(c.pos>=mid?-9:9);
    if(Math.abs(goal-pos)>1.6)keys.add(c.vertical?(pos<goal?'d':'a'):(pos<goal?'s':'w'));}
   t+=dt;sevenTick(dt);assert.equal(hp,20);}
- assert.equal(mode,'ready');assert.equal(sent,10);keys.clear();}
+ assert.equal(mode,'ready');assert.equal(sent,11);keys.clear();}
 // Six accelerating, alternating slams must remain escapable with normal directional input.
 for(const dt of [1/30,1/60,1/120]){startSeven(6);testGod=false;hp=20;inv=0;let count=0,axis=null;
  for(let k=0;k<25/dt&&mode==='dodge';k++){keys.clear();const w=wallPull;if(w){if(count!==slamCount){assert.notEqual(axis,!!w.nx);axis=!!w.nx;count=slamCount}if(w.age>.92+.025*w.tempo)keys.add(w.nx<0?'d':w.nx>0?'a':w.ny<0?'s':'w')}sevenTick(dt);assert.equal(hp,20)}assert.equal(mode,'ready');assert.equal(count,6);keys.clear();console.log('Escape bot: six no-hit slams at '+Math.round(1/dt)+' FPS');
