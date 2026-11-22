@@ -25,7 +25,9 @@ const server=http.createServer((q,r)=>{const f=path.join(root,new URL(q.url,'htt
   checks['back frames connected']=friskBackFrames.every(tile=>joined(tile)>.97);
   checks['nearest-neighbor sprites']=g.imageSmoothingEnabled===false;
   const masks=friskSideFrames.map(tile=>tile.getContext('2d').getImageData(0,0,tile.width,tile.height).data);
-  const grounded=frames=>frames.every(tile=>{const a=tile.getContext('2d').getImageData(0,0,24,42).data;for(let xx=0;xx<24;xx++)if(a[4*(xx+40*24)+3])return true;return false});
+  // Sample the tile's own second-to-last row: the atlas is 22x36, so a
+  // hard-coded 24x42 stride would read past the sprite and always fail.
+  const grounded=frames=>frames.every(tile=>{const w=tile.width,h=tile.height,a=tile.getContext('2d').getImageData(0,0,w,h).data;for(let xx=0;xx<w;xx++)if(a[4*(xx+(h-2)*w)+3])return true;return false});
   checks['side feet stay grounded']=grounded(friskSideFrames);checks['front/back feet stay grounded']=grounded(friskFrontFrames)&&grounded(friskBackFrames);
   const frameChanges=Array.from({length:8},(_,i)=>diff(masks[i],masks[(i+1)%8]));checks['bounded frame transitions']=Math.max(...frameChanges)<=24*42*.15;
   checks['multiple side poses']=new Set(masks.slice(0,8).map(a=>Array.from(a).join(','))).size>=6;

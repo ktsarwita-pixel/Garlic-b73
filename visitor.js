@@ -577,23 +577,23 @@ const friskArtBackHead={x:3,y:0,rows:[
   '......kkkk......'
 ]};
 const friskArtSideHead={x:0,y:0,rows:[
-  '........kkHHHHHkk...',
-  '.......kHHLLLLLHHk..',
-  '......kHHLLLLLLLHHk.',
-  '.....kHHHHHHHHHHHHk.',
-  '.....khhhhhhhHHHHlHk',
-  '....khhhhhhsHHHHHlHk',
-  '...khhhhhsssHHHHHlHk',
-  '..kshhssssssHHHHHlHk',
-  '..ksshhsssssHHHHHlHk',
-  '..kkssEEssssHHHHHlHk',
-  '.kSsssEsssssHHHHHlHk',
-  'ksssssssssssHHHHHlk.',
+  '.......kkHHHHHkk....',
+  '......kHHLLLLLHHk...',
+  '.....kHHLLLLLLLHHk..',
+  '....kHHHHHHHHHHHHk..',
+  '....khhhhhhhhHHHHlk.',
+  '...khhhhhhsHHHHHHlk.',
+  '...khhhhssssHHHHHlk.',
+  '..kshhssssssHHHHHHk.',
+  '..ksshhsssssHHHHHHk.',
+  '..kkssEsssssHHHHHHk.',
+  '..kSssEsssssHHHHHHk.',
+  '.kssssssssssHHHHHHk.',
   '.kkssssSssssHHHHHlk.',
   '..kssmmsssssHHHHHlk.',
-  '...kssssssssHHHHHlk.',
-  '....ksssssskHHHHklk.',
-  '.....kkkkkk.kkkk.k..'
+  '..kssssssssHHHHHlk..',
+  '...kssssssskHHHHkk..',
+  '....kkkkkk..kkkk....'
 ]};
 const friskArtTorso={x:4,y:16,rows:[
   '....kkkkkk....',
@@ -606,64 +606,94 @@ const friskArtTorso={x:4,y:16,rows:[
   'kPPPPPPPPPPPPk',
   'kbbbbbbbbbbbbk',
   'kddddddddddddk',
-  '.kkkkkkkkkkkk.'
+  'knnnnnnnnnnnnk'
 ]};
-const friskArtTorsoSide={x:5,y:16,rows:[
-  '.kkkkkkkkkk..',
-  'kbbbbbbbbbbk.',
-  'kbdddddddddbk',
-  'kBBBBBBBBBBBk',
-  'kBBBBBBBBBBBk',
-  'kbbbbbbbbbbbk',
-  'kpppppppppppk',
-  'kPPPPPPPPPPPk',
-  'kbbbbbbbbbbbk',
-  'kddddddddddk.',
-  '.kkkkkkkkkk..'
+const friskArtTorsoSide={x:4,y:16,rows:[
+  '..kkkkkkk...',
+  '.kbbbbbbbk..',
+  'kbdddddddbk.',
+  'kBBBBBBBBBk.',
+  'kBBBBBBBBBk.',
+  'kbbbbbbbbbk.',
+  'kppppppppppk',
+  'kPPPPPPPPPPk',
+  'kbbbbbbbbbbk',
+  'kddddddddddk',
+  '.kkkkkkkkkk.'
 ]};
+// Front/back arm: dark shoulder cap, plain cloth sleeve, cuff stripe, then a
+// two-pixel hand. It is drawn beside the coat, never on top of it.
 const friskArtSleeve={x:0,y:0,rows:[
-  'BBk',
-  'BBk',
-  'bbk',
-  'ppk',
-  'PPk',
-  'bbk',
-  'ppk',
-  'ddk',
-  'ssk',
-  'kk.'
+  'qq',
+  'BB',
+  'BB',
+  'bb',
+  'pp',
+  'PP',
+  'bb',
+  'dd',
+  'pp',
+  'ss',
+  'ss'
+]};
+// Profile arm: the near sleeve hangs over the coat's front edge, so it is a
+// shade darker than the sweater (no stripes) and ends in a visible hand.
+const friskArtSleeveSide={x:0,y:0,rows:[
+  'kqqk',
+  'kqqk',
+  'kqqk',
+  'kqqk',
+  'kqqk',
+  'kqqk',
+  'kssk',
+  'kssk'
 ]};
 const friskArtHips={x:5,y:26,rows:[
   'dddddddddddd',
   '..nnnNNnnn..'
 ]};
-const friskArtLegL={x:7,y:27,rows:[
+// Trousers keep a solid tone so the stripe never reads as a hole in the leg.
+const friskArtLegL={x:0,y:27,rows:[
   'NNN',
   'nnn',
   'nnn',
   'nnn',
-  'nNn',
   'nnn'
 ]};
-const friskArtLegR={x:12,y:27,rows:[
+const friskArtLegR={x:0,y:27,rows:[
   'NNN',
   'nnn',
   'nnn',
   'nnn',
-  'nNn',
   'nnn'
 ]};
-const friskArtBootL={x:5,y:33,rows:[
-  '..ooo',
-  'oooOo',
-  'ttttt'
+// Front boots, 4px wide with a soft toe highlight and a dark sole.
+const friskArtBootFront={x:0,y:32,rows:[
+  '.oo.',
+  'oOoo',
+  'kkkk'
 ]};
-const friskArtBootR={x:12,y:33,rows:[
-  'ooo..',
-  'oOooo',
-  'ttttt'
+// Profile boot, 5px wide. The sheet always faces left (it is mirrored for
+// right), so the toe sits on the low-x side. The trailing boot uses a darker
+// art so an overlap reads as near-over-far instead of one fused bar.
+const friskArtBootSide={x:0,y:32,rows:[
+  '.oooo',
+  'ooooO',
+  'kkkk.'
 ]};
-const friskPixelPalette={'k':'#221a23','h':'#57351f','H':'#7a4a2b','l':'#98613a','L':'#bc8552','s':'#f8d3ac','S':'#e4b184','m':'#c47564','E':'#31212a','b':'#3c5d93','B':'#5e81b7','d':'#253a57','p':'#b35e8d','P':'#d986ac','n':'#2b3149','N':'#414a6b','o':'#4a2f26','O':'#6d4731','t':'#2a1a17'};
+const friskArtBootSideFar={x:0,y:32,rows:[
+  '.ttt',
+  'tttO',
+  'tttt'
+]};
+const friskArtLegSide={x:0,y:27,rows:[
+  'NN',
+  'nn',
+  'nn',
+  'nn',
+  'nn'
+]};
+const friskPixelPalette={'k':'#221a23','h':'#57351f','H':'#7a4a2b','l':'#98613a','L':'#bc8552','s':'#f8d3ac','S':'#e4b184','m':'#c47564','E':'#31212a','b':'#3c5d93','B':'#5e81b7','d':'#253a57','p':'#b35e8d','P':'#d986ac','n':'#2b3149','N':'#414a6b','o':'#4a2f26','O':'#6d4731','t':'#2a1a17','q':'#33507e'};
 
 // ---------------------------------------------------------------------------
 // Frisk in the house: hand-authored pixel parts assembled into a nine-frame
@@ -673,24 +703,38 @@ let friskSideFrames=null,friskFrontFrames=null,friskBackFrames=null;
 function friskPixels(ctx,rows,x,y){for(let j=0;j<rows.length;j++){const row=rows[j];for(let i=0;i<row.length;i++){const c=friskPixelPalette[row[i]];if(c){ctx.fillStyle=c;ctx.fillRect(x+i,y+j,1,1)}}}}
 function friskPart(ctx,part,dx=0,dy=0){friskPixels(ctx,part.rows,part.x+dx,part.y+dy)}
 function buildFriskFrames(view){
- // Eight-frame gait: the legs scissor while the forward foot lifts, and the
- // arms swing in opposition. Frames 0-3 mirror 4-7, so the loop is seamless.
- const stride=[0,1,2,1,0,-1,-2,-1],lift=[0,0,1,1,0,0,1,1];
+ // Eight-frame walk cycle. Frames 4-7 are the exact mirror of 0-3 (a mirrored
+ // pose is only reachable when the legs open outward from the hip line, never
+ // across it), which is what closes the loop without a jump.
+ const gait=[0,1,2,1], liftStep=[0,1,2,1];
+ // The profile is never mirrored, so it uses its own continuous travel map:
+ // the far leg swings fore and aft and the arm bobs out of phase.
+ const sideStep=[0,1,2,1,0,2,1,2], sideLift=[0,1,2,1,0,1,2,1];
  return Array.from({length:9},(_,i)=>{
   const tile=document.createElement('canvas');tile.width=22;tile.height=36;const ctx=tile.getContext('2d');
-  const walking=i<8,dx=walking?stride[i]:0,rise=walking?lift[i]:0,swing=walking?Math.round(dx/2):0;
+  const walking=i<8,right=walking&&i<4;
+  const step=walking?gait[i&3]:0,rise=walking?liftStep[i&3]:0;
   if(view==='side'){
-   // far leg, body, near leg: both legs stay attached to the hip line
-   friskPart(ctx,friskArtLegR,-dx,0);friskPart(ctx,friskArtBootR,-dx,dx<0?-rise:0);
-   friskPart(ctx,friskArtTorsoSide);
-   friskPart(ctx,friskArtSleeve,17+swing,17);
-   friskPart(ctx,friskArtLegL,dx,0);friskPart(ctx,friskArtBootL,dx,dx>0?-rise:0);
-   friskPart(ctx,friskArtHips);friskPart(ctx,friskArtSideHead);
+   const sd=walking?sideStep[i]:0,sl=walking?sideLift[i]:0;
+   friskPart(ctx,friskArtLegSide,8-sd,0);
+   friskPart(ctx,friskArtBootSideFar,6-sd,-sl);
+   friskPart(ctx,friskArtTorsoSide,1,0);
+   // The near arm hangs in front of the coat, outlined on both sides so it
+   // never melts into the sweater stripes; it bobs in opposition to the leg.
+   friskPart(ctx,friskArtSleeveSide,3,17-sl);
+   friskPart(ctx,friskArtLegL,7,0);friskPart(ctx,friskArtBootSide,6,0);
+   friskPart(ctx,friskArtHips,1,0);friskPart(ctx,friskArtSideHead,1,0);
   }else{
-   friskPart(ctx,friskArtLegR,-dx,0);friskPart(ctx,friskArtBootR,-dx,dx<0?-rise:0);
-   friskPart(ctx,friskArtLegL,dx,0);friskPart(ctx,friskArtBootL,dx,dx>0?-rise:0);
+   // Each leg's base is the exact mirror of the other's (trousers 12/7, boots
+   // 12/6 about the tile centre) and every boot follows its own leg, so
+   // mirroring frame i reproduces frame i+4 pixel-for-pixel.
+   const offR=right?step:0,offL=right?0:step;
+   friskPart(ctx,friskArtLegR,12+offR,0);friskPart(ctx,friskArtBootFront,12+offR,right?-rise:0);
+   friskPart(ctx,friskArtLegL,7-offL,0);friskPart(ctx,friskArtBootFront,6-offL,right?0:-rise);
    friskPart(ctx,friskArtHips);friskPart(ctx,friskArtTorso);
-   friskPart(ctx,friskArtSleeve,3,17-swing);friskPart(ctx,friskArtSleeve,17,17+swing);
+   // Sleeves hang just outside the coat; the arm opposite the leading leg
+   // swings forward. The head covers the shoulder joint.
+   friskPart(ctx,friskArtSleeve,2,16+(right?rise:0));friskPart(ctx,friskArtSleeve,18,16+(right?0:rise));
    friskPart(ctx,view==='back'?friskArtBackHead:friskArtFrontHead);
   }
   return tile;
